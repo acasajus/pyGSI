@@ -1,0 +1,30 @@
+#!/bin/bash
+
+basedir=`readlink -f $0`
+basedir=`dirname $basedir`
+#
+Version=1.2.2
+sslVersion=0.9.7m
+
+openssldir=$basedir/../../external/openssl-${sslVersion}
+
+
+if ! [ -d $openssldir ] ; then
+  echo This package needs "$openssldir"
+  exit 1
+fi
+
+(
+cd $openssldir
+rm -rf openssl-${sslVersion}
+)
+
+(
+cd $basedir
+arch=`../../scripts/dirac-architecture`              || exit 1
+DIRACdir=`readlink -f $basedir/../..`
+DIRACbin=$DIRACdir/$arch/bin
+
+export PATH=$DIRACbin:$PATH
+python setup.py clean
+)

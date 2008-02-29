@@ -1,0 +1,61 @@
+#!/bin/bash
+
+function canonicalize
+{
+	cd -P -- "$(dirname -- "$1")" &&
+	printf '%s\n' "$(pwd -P)/$(basename -- "$1")"
+}
+
+basedir=`canonicalize $0`
+basedir=`dirname $basedir`
+#
+Version=0.7.1
+sslVersion=0.9.8g
+
+openssldir=$basedir/../../external/openssl-${sslVersion}
+
+
+if ! [ -d $openssldir ] ; then
+  echo This package needs "$openssldir"
+  exit 1
+fi
+
+[ "1" == "2" ] && (
+#(
+cd $openssldir
+tar -xzf openssl-${sslVersion}.tar.gz                || exit 1
+cd openssl-${sslVersion}                             || exit 1
+./config -shared                                     || exit 1
+make                                                 || exit 1
+)
+
+(
+cd $basedir
+arch=`../../scripts/dirac-architecture`              || exit 1
+DIRACdir=`canonicalize $basedir/../..`
+DIRACbin=`canonicalize $DIRACdir/$arch/bin`
+DIRAClib=`canonicalize $DIRACdir/$arch/lib`
+export PATH=$DIRACbin:$PATH
+python=`which python` ; python=`canonicalize $python`
+DIRACpython=$DIRACbin/python
+python_version=`$python -V 2>&1 | awk '{print $2}' | awk -F. '{printf "%s.%s",$1,$2}'` || exit 1
+$python setup.py build                                      || exit 1
+$python setup.py bdist_egg                                 || exit 1
+rm -rf temp                                                || exit 1
+mkdir temp                                                 || exit 1
+(
+cd temp
+unzip ../dist/pyOpenSSL-${Version}-py${python_version}-*-*.egg  || exit 1
+rm -rf EGG-INFO                                            || exit 1
+if [ $python == $DIRACpython ] ; then
+  cp -r * ${DIRAClib}/python${python_version}/site-packages/ || exit 1
+fi
+python_arch=`file $python | awk '{ if ( $0 ~ "x86-64" ) print "-x86_64"; if ( $0 ~ "IA-64" ) print "-ia64" }'`
+CONTRIBdir=$DIRACdir/contrib/python${python_version}${python_arch}
+mkdir -p $CONTRIBdir                                       || exit
+rm -rf $CONTRIBdir/MySQLdb                                 || exit
+cp -r * $CONTRIBdir
+
+)
+
+)
