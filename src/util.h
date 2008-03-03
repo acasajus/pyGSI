@@ -8,7 +8,7 @@
  *
  * Reviewed 2001-07-23
  *
- * @(#) $Id: util.h,v 1.1 2008/02/29 18:46:03 acasajus Exp $
+ * @(#) $Id: util.h,v 1.2 2008/03/03 21:07:23 acasajus Exp $
  */
 #ifndef PyOpenSSL_UTIL_H_
 #define PyOpenSSL_UTIL_H_
@@ -121,7 +121,5 @@ static int PyObject_AsFileDescriptor(PyObject *o)
     return fd;
 }
 #endif
-
-time_t GRSTasn1TimeToTimeT(char *asn1time, size_t len);
 
 #endif

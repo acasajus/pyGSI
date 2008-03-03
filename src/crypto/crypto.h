@@ -8,7 +8,7 @@
  *
  * Reviewed 2001-07-23
  *
- * @(#) $Id: crypto.h,v 1.1 2008/02/29 18:46:02 acasajus Exp $
+ * @(#) $Id: crypto.h,v 1.2 2008/03/03 21:07:25 acasajus Exp $
  */
 #ifndef PyOpenSSL_CRYPTO_H_
 #define PyOpenSSL_CRYPTO_H_
@@ -104,7 +104,7 @@ extern void **crypto_API;
 
 #define import_crypto() \
 { \
-  PyObject *crypto_module = PyImport_ImportModule("OpenSSL.crypto"); \
+  PyObject *crypto_module = PyImport_ImportModule("GSI.crypto"); \
   if (crypto_module != NULL) { \
     PyObject *crypto_dict, *crypto_api_object; \
     crypto_dict = PyModule_GetDict(crypto_module); \

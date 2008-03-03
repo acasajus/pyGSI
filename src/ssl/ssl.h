@@ -8,7 +8,7 @@
  *
  * Reviewed 2001-07-23
  *
- * @(#) $Id: ssl.h,v 1.1 2008/02/29 18:46:04 acasajus Exp $
+ * @(#) $Id: ssl.h,v 1.2 2008/03/03 21:07:24 acasajus Exp $
  */
 #ifndef PyOpenSSL_SSL_H_
 #define PyOpenSSL_SSL_H_
@@ -72,7 +72,7 @@ extern void **ssl_API;
 
 #define import_SSL() \
 { \
-  PyObject *module = PyImport_ImportModule("OpenSSL.SSL"); \
+  PyObject *module = PyImport_ImportModule("GSI.SSL"); \
   if (module != NULL) { \
     PyObject *module_dict = PyModule_GetDict(module); \
     PyObject *c_api_object = PyDict_GetItemString(module_dict, "_C_API"); \

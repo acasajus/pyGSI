@@ -4,7 +4,7 @@
 #
 # Copyright (C) AB Strakt 2001, All rights reserved
 #
-# @(#) $Id: setup.py,v 1.1 2008/02/29 18:46:03 acasajus Exp $
+# @(#) $Id: setup.py,v 1.2 2008/03/03 21:07:24 acasajus Exp $
 #
 """
 Installation script for the OpenSSL module
@@ -70,24 +70,26 @@ ExtraObjects = [ '../../external/openssl-%s/openssl-%s/libssl.a' % (openSSLVersi
                  '../../external/openssl-%s/openssl-%s/libcrypto.a' % (openSSLVersion, openSSLVersion) ]
                  #, '/usr/lib%s/python%s/config/libpython%s.a' % (sModifier, sys.version[:3], sys.version[:3] ) ]
 
+DefineList = [ ( 'OPENSSL_NO_KRB5', "" ) ]
+
 for confList in ( Libraries, IncludeDirs, ExtraObjects ):
     for index in range( len( confList ) ):
         confList[ index ] = os.path.realpath( confList[ index ] )
 
 def mkExtension(name):
     import string
-    modname = 'OpenSSL.%s' % name
+    modname = 'GSI.%s' % name
     src = globals()['%s_src' % string.lower(name)]
     dep = globals()['%s_dep' % string.lower(name)]
-    return Extension(modname, src, libraries=Libraries, depends=dep, include_dirs=IncludeDirs, library_dirs=LibraryDirs, extra_objects=ExtraObjects, define_macros = [ ( 'OPENSSL_NO_KRB5', "" ) ])
+    return Extension(modname, src, libraries=Libraries, depends=dep, include_dirs=IncludeDirs, library_dirs=LibraryDirs, extra_objects=ExtraObjects, define_macros = DefineList)
 
-setup(name='pyOpenSSL', version=__version__,
-      package_dir = { 'OpenSSL': '.' },
+setup(name='pyGSI', version=__version__,
+      package_dir = { 'GSI': '.' },
       ext_modules = [mkExtension('crypto'), mkExtension('rand'), mkExtension('SSL')],
-      py_modules  = ['OpenSSL.__init__', 'OpenSSL.tsafe', 'OpenSSL.version'],
-      description = 'Python wrapper module around the OpenSSL library (including hack to accept GIS SSL proxies)',
-      author = 'Martin Sgren, AB Strakt', author_email = 'msjogren@gmail.com',
-      url = 'http://pyopenssl.sourceforge.net/',
+      py_modules  = ['GSI.__init__', 'GSI.tsafe', 'GSI.version'],
+      description = 'Python wrapper module around the OpenSSL library (including hack to accept GSI SSL proxies)',
+      author = 'Adria Casajus', author_email = 'adria@ecm.ub.es',
+      url = 'http://lhcbweb.pic.es',
       license = 'LGPL',
       long_description = """\
 High-level wrapper around a subset of the OpenSSL library, includes
