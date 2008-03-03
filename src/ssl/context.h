@@ -8,7 +8,7 @@
  *
  * Reviewed 2001-07-23
  *
- * @(#) $Id: context.h,v 1.1 2008/02/29 18:46:04 acasajus Exp $
+ * @(#) $Id: context.h,v 1.2 2008/03/03 20:50:30 acasajus Exp $
  */
 #ifndef PyOpenSSL_SSL_CONTEXT_H_
 #define PyOpenSSL_SSL_CONTEXT_H_
@@ -26,6 +26,7 @@ typedef struct
 {
 	PyObject_HEAD
 	SSL_CTX *ctx;
+   char *clientMethod;
 	PyObject *passphrase_callback,
 		*passphrase_userdata, *verify_callback, *info_callback, *app_data;
 	PyThreadState *tstate;

@@ -8,7 +8,7 @@
  *
  * Reviewed 2001-07-23
  *
- * @(#) $Id: connection.h,v 1.1 2008/02/29 18:46:04 acasajus Exp $
+ * @(#) $Id: connection.h,v 1.2 2008/03/03 20:50:30 acasajus Exp $
  */
 #ifndef PyOpenSSL_SSL_CONNECTION_H_
 #define PyOpenSSL_SSL_CONNECTION_H_
@@ -44,6 +44,7 @@ typedef struct
 	PyObject_HEAD
 	SSL *ssl;
 	ssl_ContextObj *context;
+   unsigned char remoteCertVerified;
 	PyObject *socket;
 	PyThreadState *tstate;
 	PyObject *app_data;

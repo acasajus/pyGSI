@@ -24,7 +24,7 @@
 #endif
 
 static char *CVSid =
-	"@(#) $Id: connection.c,v 1.1 2008/02/29 18:46:04 acasajus Exp $";
+	"@(#) $Id: connection.c,v 1.2 2008/03/03 20:50:30 acasajus Exp $";
 //static int handshaked = 0;
 
 /**
@@ -474,6 +474,47 @@ static PyObject *ssl_Connection_renegotiate( ssl_ConnectionObj * self,
 	return PyInt_FromLong( ( long ) ret );
 }
 
+static void helper_treatHandshakeError( ssl_ConnectionObj * conn, int err, int ret )
+{
+   PyObject *tuple;
+   char additionalError[512];
+
+   switch ( err )
+   {
+      /*
+       * Strange as it may seem, ZeroReturn is not an error per se. It means
+       * that the SSL Connection has been closed correctly (note, not the
+       * transport layer!), i.e. closure alerts have been exchanged. This is
+       * an exception since
+       *  + There's an SSL "error" code for it
+       *  + You have to deal with it in any case, close the transport layer
+       *    etc
+       */
+   case SSL_ERROR_ZERO_RETURN:
+   case SSL_ERROR_WANT_READ:
+   case SSL_ERROR_WANT_WRITE:
+   case SSL_ERROR_WANT_X509_LOOKUP:
+   case SSL_ERROR_SYSCALL:
+      handle_ssl_errors(conn->ssl, err, ret );
+   case SSL_ERROR_SSL:
+      return;
+
+   }
+
+   if( ( conn->context->clientMethod && conn->remoteCertVerified ) ||
+       ( ! conn->context->clientMethod && ! conn->remoteCertVerified ) )
+      sprintf( additionalError, "Your certificate is invalid" );
+   else
+      sprintf( additionalError, "Remote certificate is invalid" );
+
+   tuple = Py_BuildValue("(ssss)", additionalError,
+                                   ERR_lib_error_string(err),
+                                   ERR_func_error_string(err),
+                                   ERR_reason_error_string(err));
+   PyErr_SetObject( ssl_Error, tuple );
+   Py_DECREF( tuple );
+}
+
 static char ssl_Connection_do_handshake_doc[] = "\n\
 Perform an SSL handshake (usually called after renegotiate() or one of\n\
 set_*_state()). This can raise the same exceptions as send and recv.\n\
@@ -508,7 +549,8 @@ static PyObject *ssl_Connection_do_handshake( ssl_ConnectionObj * self,
 	}
 	else
 	{
-		handle_ssl_errors( self->ssl, err, ret );
+      helper_treatHandshakeError( self, err, ret );
+      flush_error_queue();
 		return NULL;
 	}
 }
@@ -1190,6 +1232,8 @@ ssl_ConnectionObj *ssl_Connection_New( ssl_ContextObj * ctx,
 	self = PyObject_GC_New( ssl_ConnectionObj, &ssl_Connection_Type );
 	if ( self == NULL )
 		return NULL;
+
+   self->remoteCertVerified = 0;
 
 	Py_INCREF( ctx );
 	self->context = ctx;

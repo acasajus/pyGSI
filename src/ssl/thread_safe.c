@@ -52,7 +52,7 @@ void locking_thread_callback( int mode, int type, const char *file,
 							  int line )
 {
 #ifdef DEBUG
-	fprintf( stderr, "thread=%4d mode=%s lock=%s %s:%d\n",
+	fprintf( stderr, "thread=%4ul mode=%s lock=%s %s:%d\n",
 			 CRYPTO_thread_id(  ),
 			 ( mode & CRYPTO_LOCK ) ? "l" : "u",
 			 ( type & CRYPTO_READ ) ? "r" : "w", file, line );
@@ -80,6 +80,7 @@ unsigned long thread_id( void )
 
 //  Py_BEGIN_ALLOW_THREADS
 	thId = PyThread_get_thread_ident(  );
+   //thId = (unsigned long) pthread_self(void);
 //  Py_END_ALLOW_THREADS
 //  printf("ThId %d\n",thId);
 	return thId;
