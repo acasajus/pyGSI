@@ -1,4 +1,4 @@
-from OpenSSL import SSL
+from GSI import SSL
 _ssl = SSL
 del SSL
 
