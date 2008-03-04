@@ -1,6 +1,5 @@
 #include "ssl.h"
 
-#define DEBUG
 #ifdef DEBUG
 #define MIN_LOG_LEVEL 0
 
