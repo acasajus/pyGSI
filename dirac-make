@@ -12,7 +12,7 @@ basedir=`dirname $basedir`
 Version=0.7.1
 sslVersion=0.9.8g
 
-sslCompile=0
+sslCompile=1
 sslDebug=0
 
 
