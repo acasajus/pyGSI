@@ -87,9 +87,10 @@ int gsiVerifyCallback( int ok, X509_STORE_CTX *ctx )
    char *dummy;
    X509 *cert;
 
+   cert = X509_STORE_CTX_get_current_cert(ctx);
+
 #ifdef DEBUG
    logMsg( 0, "===============" );
-   cert = X509_STORE_CTX_get_current_cert(ctx);
    dummy = X509_NAME_oneline( X509_get_subject_name(cert), NULL, 0 );
    logMsg( 0, "Subject [%s]", dummy );
    if(dummy) OPENSSL_free(dummy);
