@@ -12,6 +12,10 @@ basedir=`dirname $basedir`
 Version=0.7.1
 sslVersion=0.9.8g
 
+sslCompile=0
+sslDebug=0
+
+
 openssldir=$basedir/../../external/openssl-${sslVersion}
 
 
@@ -20,12 +24,18 @@ if ! [ -d $openssldir ] ; then
   exit 1
 fi
 
-[ "1" == "2" ] && (
-#(
+[ "$sslCompile" == "1" ] && (
+echo "====Compiling openssl version $sslVersion===="
 cd $openssldir
 tar -xzf openssl-${sslVersion}.tar.gz                || exit 1
 cd openssl-${sslVersion}                             || exit 1
-./config -shared                                     || exit 1
+if [ "$sslDebug" == "1" ]; then
+	echo "-debug mode-"
+	./config -d -shared threads                       || exit 1
+else
+	echo "-release mode-"
+	./config -shared threads                          || exit 1
+fi
 make                                                 || exit 1
 )
 
@@ -45,7 +55,7 @@ rm -rf temp                                                || exit 1
 mkdir temp                                                 || exit 1
 (
 cd temp
-unzip ../dist/pyOpenSSL-${Version}-py${python_version}-*-*.egg  || exit 1
+unzip ../dist/pyGSI-${Version}-py${python_version}-*-*.egg  || exit 1
 rm -rf EGG-INFO                                            || exit 1
 if [ $python == $DIRACpython ] ; then
   cp -r * ${DIRAClib}/python${python_version}/site-packages/ || exit 1

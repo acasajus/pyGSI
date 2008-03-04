@@ -24,7 +24,7 @@
 #endif
 
 static char *CVSid =
-	"@(#) $Id: connection.c,v 1.2 2008/03/03 20:50:30 acasajus Exp $";
+	"@(#) $Id: connection.c,v 1.3 2008/03/04 19:59:53 acasajus Exp $";
 //static int handshaked = 0;
 
 /**
@@ -476,7 +476,7 @@ static PyObject *ssl_Connection_renegotiate( ssl_ConnectionObj * self,
 
 static void helper_treatHandshakeError( ssl_ConnectionObj * conn, int err, int ret )
 {
-   PyObject *tuple;
+   PyObject *errlist, *tuple;
    char additionalError[512];
 
    switch ( err )
@@ -496,23 +496,31 @@ static void helper_treatHandshakeError( ssl_ConnectionObj * conn, int err, int r
    case SSL_ERROR_WANT_X509_LOOKUP:
    case SSL_ERROR_SYSCALL:
       handle_ssl_errors(conn->ssl, err, ret );
-   case SSL_ERROR_SSL:
       return;
 
    }
 
-   if( ( conn->context->clientMethod && conn->remoteCertVerified ) ||
-       ( ! conn->context->clientMethod && ! conn->remoteCertVerified ) )
-      sprintf( additionalError, "Your certificate is invalid" );
+   if( conn->context->clientMethod )
+      if ( ! conn->remoteCertVerified )
+         sprintf( additionalError, "Remote certificate hasn't been accepted" );
+      else
+         sprintf( additionalError, "Your certificate is invalid" );
    else
-      sprintf( additionalError, "Remote certificate is invalid" );
+      sprintf( additionalError, "Handshake failed" );
 
-   tuple = Py_BuildValue("(ssss)", additionalError,
-                                   ERR_lib_error_string(err),
-                                   ERR_func_error_string(err),
-                                   ERR_reason_error_string(err));
-   PyErr_SetObject( ssl_Error, tuple );
-   Py_DECREF( tuple );
+   errlist = PyList_New(0);
+   while ((err = ERR_get_error()) != 0)
+   {
+      tuple = Py_BuildValue("(ssss)", additionalError,
+                               ERR_lib_error_string(err),
+                               ERR_func_error_string(err),
+                               ERR_reason_error_string(err));
+      PyList_Append(errlist, tuple);
+      Py_DECREF(tuple);
+   }
+   PyErr_SetObject( ssl_Error, errlist );
+   Py_DECREF( errlist );
+
 }
 
 static char ssl_Connection_do_handshake_doc[] = "\n\

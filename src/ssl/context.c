@@ -13,7 +13,7 @@
 #include "ssl.h"
 
 static char *CVSid =
-   "@(#) $Id: context.c,v 1.2 2008/03/03 20:50:30 acasajus Exp $";
+   "@(#) $Id: context.c,v 1.3 2008/03/04 19:59:53 acasajus Exp $";
 
 /*
  * CALLBACKS
@@ -125,14 +125,14 @@ static int global_verify_callback( int ok, X509_STORE_CTX * x509_ctx )
    ssl_ConnectionObj *conn;
    crypto_X509Obj *cert;
    X509 *x509;
-   int errnum, errdepth;
+   int errnum = X509_STORE_CTX_get_error( x509_ctx );
+   int errdepth = X509_STORE_CTX_get_error_depth( x509_ctx );
 
    ssl = ( SSL * ) X509_STORE_CTX_get_app_data( x509_ctx );
    conn = ( ssl_ConnectionObj * ) SSL_get_app_data( ssl );
+
    if( conn->context->verify_callback != Py_None )
    {
-      errnum = X509_STORE_CTX_get_error( x509_ctx );
-      errdepth = X509_STORE_CTX_get_error_depth( x509_ctx );
       x509 = X509_STORE_CTX_get_current_cert( x509_ctx );
 
       MY_END_ALLOW_THREADS(conn->tstate);
@@ -163,6 +163,13 @@ static int global_verify_callback( int ok, X509_STORE_CTX * x509_ctx )
       }
       MY_BEGIN_ALLOW_THREADS(conn->tstate);
    }
+
+   //Set the remove verification flag in the end
+   if( errdepth == 0 && ok )
+   {
+      conn->remoteCertVerified = 1;
+   }
+
 
    return ok;
 }
