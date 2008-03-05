@@ -13,7 +13,7 @@
 #include "ssl.h"
 
 static char *CVSid =
-   "@(#) $Id: context.c,v 1.3 2008/03/04 19:59:53 acasajus Exp $";
+   "@(#) $Id: context.c,v 1.4 2008/03/05 14:44:58 acasajus Exp $";
 
 /*
  * CALLBACKS
@@ -169,7 +169,6 @@ static int global_verify_callback( int ok, X509_STORE_CTX * x509_ctx )
    {
       conn->remoteCertVerified = 1;
    }
-
 
    return ok;
 }
@@ -652,6 +651,7 @@ static PyObject *ssl_Context_set_verify( ssl_ContextObj * self,
    }
    else
       SSL_CTX_set_verify( self->ctx, mode, global_verify_callback );
+
    Py_INCREF( Py_None );
    return Py_None;
 }

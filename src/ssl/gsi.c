@@ -78,14 +78,16 @@ int gsiCheckIssuedWrapper(X509_STORE_CTX *ctx, X509 *x, X509 *issuer)
 
 int gsiVerifyCallback( int ok, X509_STORE_CTX *ctx )
 {
-   SSL *ssl;                 //SSL connection
-   ssl_ConnectionObj *conn;  //Python connection
    int errnum          = X509_STORE_CTX_get_error(ctx);
    int errdepth        = X509_STORE_CTX_get_error_depth(ctx);
    int rawOK = ok;           //Is openssl telling us the cert is ok?
+   SSL *ssl = ( SSL * ) X509_STORE_CTX_get_app_data( ctx ); //SSL connection
+   ssl_ConnectionObj *conn = ( ssl_ConnectionObj * ) SSL_get_app_data( ssl );  //Python connection
    STACK_OF(X509) *certstack;
-   char *dummy;
    X509 *cert;
+#ifdef DEBUG
+   char *dummy;
+#endif
 
    cert = X509_STORE_CTX_get_current_cert(ctx);
 
@@ -166,18 +168,18 @@ int gsiVerifyCallback( int ok, X509_STORE_CTX *ctx )
       if (errnum != X509_V_OK)
       {
          logMsg( 0, "Invalid certificate chain reported by gsiVerifyProxyChain()");
-
          ok = FALSE;
       }
       else
       {
          logMsg( 0, "Valid certificate chain reported by gsiVerifyProxyChain()");
-         ssl = ( SSL * ) X509_STORE_CTX_get_app_data( ctx );
-         conn = ( ssl_ConnectionObj * ) SSL_get_app_data( ssl );
          conn->remoteCertVerified = 1;
       }
 
    }
+
+   if( !ok )
+      conn->handshakeErrorId = errnum;
 
    return ok;
 }

@@ -24,7 +24,7 @@
 #endif
 
 static char *CVSid =
-	"@(#) $Id: connection.c,v 1.3 2008/03/04 19:59:53 acasajus Exp $";
+	"@(#) $Id: connection.c,v 1.4 2008/03/05 14:44:58 acasajus Exp $";
 //static int handshaked = 0;
 
 /**
@@ -477,7 +477,7 @@ static PyObject *ssl_Connection_renegotiate( ssl_ConnectionObj * self,
 static void helper_treatHandshakeError( ssl_ConnectionObj * conn, int err, int ret )
 {
    PyObject *errlist, *tuple;
-   char additionalError[512];
+   char readableError[512], sslExtraError[100];
 
    switch ( err )
    {
@@ -500,18 +500,29 @@ static void helper_treatHandshakeError( ssl_ConnectionObj * conn, int err, int r
 
    }
 
+   if( conn->handshakeErrorId != X509_V_OK )
+      sprintf( sslExtraError, ": %s", X509_verify_cert_error_string( conn->handshakeErrorId ) );
+   else
+      sslExtraError[0] = 0;
+
    if( conn->context->clientMethod )
       if ( ! conn->remoteCertVerified )
-         sprintf( additionalError, "Remote certificate hasn't been accepted" );
+         sprintf( readableError,
+                  "Remote certificate hasn't been accepted%s",
+                  sslExtraError );
       else
-         sprintf( additionalError, "Your certificate is invalid" );
+         sprintf( readableError,
+                  "Your certificate is invalid%s",
+                  sslExtraError );
    else
-      sprintf( additionalError, "Handshake failed" );
+      sprintf( readableError,
+               "Handshake failed%s",
+               sslExtraError );
 
    errlist = PyList_New(0);
    while ((err = ERR_get_error()) != 0)
    {
-      tuple = Py_BuildValue("(ssss)", additionalError,
+      tuple = Py_BuildValue("(ssss)", readableError,
                                ERR_lib_error_string(err),
                                ERR_func_error_string(err),
                                ERR_reason_error_string(err));
@@ -1242,6 +1253,7 @@ ssl_ConnectionObj *ssl_Connection_New( ssl_ContextObj * ctx,
 		return NULL;
 
    self->remoteCertVerified = 0;
+   self->handshakeErrorId = X509_V_OK;
 
 	Py_INCREF( ctx );
 	self->context = ctx;

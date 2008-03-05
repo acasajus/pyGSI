@@ -8,7 +8,7 @@
  *
  * Reviewed 2001-07-23
  *
- * @(#) $Id: connection.h,v 1.3 2008/03/05 13:55:31 acasajus Exp $
+ * @(#) $Id: connection.h,v 1.4 2008/03/05 14:44:58 acasajus Exp $
  */
 #ifndef PyGSI_SSL_CONNECTION_H_
 #define PyGSI_SSL_CONNECTION_H_
@@ -45,6 +45,7 @@ typedef struct
 	SSL *ssl;
 	ssl_ContextObj *context;
    unsigned char remoteCertVerified;
+   int handshakeErrorId;
 	PyObject *socket;
 	PyThreadState *tstate;
 	PyObject *app_data;
