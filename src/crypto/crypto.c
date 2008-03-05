@@ -18,7 +18,7 @@ Main file of crypto sub module.\n\
 See the file RATIONALE for a short explanation of why this module was written.\n\
 ";
 
-static char *CVSid = "@(#) $Id: crypto.c,v 1.1 2008/02/29 18:46:02 acasajus Exp $";
+static char *CVSid = "@(#) $Id: crypto.c,v 1.2 2008/03/05 13:55:23 acasajus Exp $";
 
 void **ssl_API;
 
@@ -448,8 +448,8 @@ crypto_load_pkcs7_data(PyObject *spam, PyObject *args)
     if (!PyArg_ParseTuple(args, "is#:load_pkcs7_data", &type, &buffer, &len))
         return NULL;
 
-    /* 
-     * Try to read the pkcs7 data from the bio 
+    /*
+     * Try to read the pkcs7 data from the bio
      */
     bio = BIO_new_mem_buf(buffer, len);
     switch (type)
@@ -648,7 +648,7 @@ crypto_NetscapeSPKI(PyObject *spam, PyObject *args)
     return (PyObject *)crypto_NetscapeSPKI_New(spki, 1);
 }
 
-/* Methods in the OpenSSL.crypto module (i.e. none) */
+/* Methods in the GSI.crypto module (i.e. none) */
 static PyMethodDef crypto_methods[] = {
     /* Module functions */
     { "load_privatekey",  (PyCFunction)crypto_load_privatekey,  METH_VARARGS, crypto_load_privatekey_doc },
@@ -701,7 +701,7 @@ initcrypto(void)
     if (c_api_object != NULL)
         PyModule_AddObject(module, "_C_API", c_api_object);
 
-    crypto_Error = PyErr_NewException("OpenSSL.crypto.Error", NULL, NULL);
+    crypto_Error = PyErr_NewException("GSI.crypto.Error", NULL, NULL);
     if (crypto_Error == NULL)
         goto error;
     if (PyModule_AddObject(module, "Error", crypto_Error) != 0)
@@ -717,7 +717,7 @@ initcrypto(void)
 		                             X509_V_FLAG_CRL_CHECK );
     PyModule_AddIntConstant( module, "X509_CRL_CHECK_ALL",
 		                             X509_V_FLAG_CRL_CHECK_ALL );
-    
+
     dict = PyModule_GetDict(module);
     if (!init_crypto_x509(dict))
         goto error;

@@ -8,10 +8,10 @@
  *
  * Reviewed 2001-07-23
  *
- * @(#) $Id: context.h,v 1.3 2008/03/04 19:59:53 acasajus Exp $
+ * @(#) $Id: context.h,v 1.4 2008/03/05 13:55:31 acasajus Exp $
  */
-#ifndef PyOpenSSL_SSL_CONTEXT_H_
-#define PyOpenSSL_SSL_CONTEXT_H_
+#ifndef PyGSI_SSL_CONTEXT_H_
+#define PyGSI_SSL_CONTEXT_H_
 
 #include <Python.h>
 #include <openssl/ssl.h>

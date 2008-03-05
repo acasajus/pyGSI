@@ -8,10 +8,10 @@
  *
  * Reviewed 2001-07-23
  *
- * @(#) $Id: util.h,v 1.2 2008/03/03 21:07:23 acasajus Exp $
+ * @(#) $Id: util.h,v 1.3 2008/03/05 13:55:40 acasajus Exp $
  */
-#ifndef PyOpenSSL_UTIL_H_
-#define PyOpenSSL_UTIL_H_
+#ifndef PyGSI_UTIL_H_
+#define PyGSI_UTIL_H_
 
 #include <Python.h>
 #include <time.h>

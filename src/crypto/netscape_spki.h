@@ -7,8 +7,8 @@
  *
  *
  */
-#ifndef PyOpenSSL_crypto_Netscape_SPKI_H_
-#define PyOpenSSL_crypto_Netscape_SPKI_H_
+#ifndef PyGSI_crypto_Netscape_SPKI_H_
+#define PyGSI_crypto_Netscape_SPKI_H_
 
 #include <Python.h>
 #include <openssl/ssl.h>

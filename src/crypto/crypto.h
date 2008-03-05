@@ -8,10 +8,10 @@
  *
  * Reviewed 2001-07-23
  *
- * @(#) $Id: crypto.h,v 1.2 2008/03/03 21:07:25 acasajus Exp $
+ * @(#) $Id: crypto.h,v 1.3 2008/03/05 13:55:23 acasajus Exp $
  */
-#ifndef PyOpenSSL_CRYPTO_H_
-#define PyOpenSSL_CRYPTO_H_
+#ifndef PyGSI_CRYPTO_H_
+#define PyGSI_CRYPTO_H_
 
 #include <Python.h>
 #include "x509.h"
@@ -117,4 +117,4 @@ extern void **crypto_API;
 
 #endif /* crypto_MODULE */
 
-#endif /* PyOpenSSL_CRYPTO_H_ */
+#endif /* PyGSI_CRYPTO_H_ */

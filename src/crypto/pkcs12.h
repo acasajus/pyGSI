@@ -7,8 +7,8 @@
  *
  * @(#) $$
  */
-#ifndef PyOpenSSL_crypto_PKCS12_H_
-#define PyOpenSSL_crypto_PKCS12_H_
+#ifndef PyGSI_crypto_PKCS12_H_
+#define PyGSI_crypto_PKCS12_H_
 
 #include <Python.h>
 #include <openssl/pkcs12.h>

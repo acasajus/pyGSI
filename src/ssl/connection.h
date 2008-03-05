@@ -8,10 +8,10 @@
  *
  * Reviewed 2001-07-23
  *
- * @(#) $Id: connection.h,v 1.2 2008/03/03 20:50:30 acasajus Exp $
+ * @(#) $Id: connection.h,v 1.3 2008/03/05 13:55:31 acasajus Exp $
  */
-#ifndef PyOpenSSL_SSL_CONNECTION_H_
-#define PyOpenSSL_SSL_CONNECTION_H_
+#ifndef PyGSI_SSL_CONNECTION_H_
+#define PyGSI_SSL_CONNECTION_H_
 
 #include <Python.h>
 #include <openssl/ssl.h>

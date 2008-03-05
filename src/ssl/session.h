@@ -8,10 +8,10 @@
  *
  * Reviewed 2001-07-23
  *
- * @(#) $Id: session.h,v 1.1 2008/02/29 18:46:04 acasajus Exp $
+ * @(#) $Id: session.h,v 1.2 2008/03/05 13:55:31 acasajus Exp $
  */
-#ifndef PyOpenSSL_SSL_SESSION_H_
-#define PyOpenSSL_SSL_SESSION_H_
+#ifndef PyGSI_SSL_SESSION_H_
+#define PyGSI_SSL_SESSION_H_
 
 #include <Python.h>
 #include <openssl/ssl.h>

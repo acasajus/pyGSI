@@ -18,7 +18,7 @@ See the file RATIONALE for a short explanation of hy this module was written.\n\
 ";
 
 static char *CVSid =
-	"@(#) $Id: ssl.c,v 1.1 2008/02/29 18:46:04 acasajus Exp $";
+	"@(#) $Id: ssl.c,v 1.2 2008/03/05 13:55:31 acasajus Exp $";
 
 void **crypto_API;
 
@@ -110,7 +110,7 @@ static PyObject *ssl_set_thread_safe( PyObject * spam, PyObject * args )
 #define ADD_METHOD(name)        \
 	{ #name, (PyCFunction)ssl_##name, METH_VARARGS, ssl_##name##_doc }
 
-/* Methods in the OpenSSL.SSL module */
+/* Methods in the GSI.SSL module */
 static PyMethodDef ssl_methods[] = {
 	ADD_METHOD( Context ),
 	ADD_METHOD( Connection ),
@@ -154,18 +154,18 @@ void initSSL( void )
 	/* Exceptions */
 /*
  * ADD_EXCEPTION(dict,name,base) expands to a correct Exception declaration,
- * inserting OpenSSL.SSL.name into dict, derviving the exception from base.
+ * inserting GSI.SSL.name into dict, derviving the exception from base.
  */
 #define ADD_EXCEPTION(_name, _base)                                    \
 do {                                                                          \
-    ssl_##_name = PyErr_NewException("OpenSSL.SSL."#_name, _base, NULL);\
+    ssl_##_name = PyErr_NewException("GSI.SSL."#_name, _base, NULL);\
     if (ssl_##_name == NULL)                                            \
         goto error;                                                           \
     if (PyModule_AddObject(module, #_name, ssl_##_name) != 0)           \
         goto error;                                                           \
 } while (0)
 
-	ssl_Error = PyErr_NewException( "OpenSSL.SSL.Error", NULL, NULL );
+	ssl_Error = PyErr_NewException( "GSI.SSL.Error", NULL, NULL );
 	if ( ssl_Error == NULL )
 		goto error;
 	if ( PyModule_AddObject( module, "Error", ssl_Error ) != 0 )

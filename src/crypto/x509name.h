@@ -8,10 +8,10 @@
  *
  * Reviewed 2001-07-23
  *
- * @(#) $Id: x509name.h,v 1.1 2008/02/29 18:46:02 acasajus Exp $
+ * @(#) $Id: x509name.h,v 1.2 2008/03/05 13:55:23 acasajus Exp $
  */
-#ifndef PyOpenSSL_crypto_X509NAME_H_
-#define PyOpenSSL_crypto_X509NAME_H_
+#ifndef PyGSI_crypto_X509NAME_H_
+#define PyGSI_crypto_X509NAME_H_
 
 #include <Python.h>
 #include <openssl/ssl.h>

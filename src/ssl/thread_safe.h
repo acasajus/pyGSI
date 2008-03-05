@@ -1,5 +1,5 @@
-#ifndef PyOpenSSL_SSL_THREAD_SAFE_LOCK_H_
-#define PyOpenSSL_SSL_THREAD_SAFE_LOCK_H_
+#ifndef PyGSI_SSL_THREAD_SAFE_LOCK_H_
+#define PyGSI_SSL_THREAD_SAFE_LOCK_H_
 
 #include <Python.h>
 #include <unistd.h>

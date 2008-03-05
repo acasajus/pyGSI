@@ -6,10 +6,10 @@
  * Export X509 request functions and data structures.
  * See the file RATIONALE for a short explanation of why this module was written.
  *
- * @(#) $Id: x509req.h,v 1.1 2008/02/29 18:46:02 acasajus Exp $
+ * @(#) $Id: x509req.h,v 1.2 2008/03/05 13:55:23 acasajus Exp $
  */
-#ifndef PyOpenSSL_SSL_X509REQ_H_
-#define PyOpenSSL_SSL_X509REQ_H_
+#ifndef PyGSI_SSL_X509REQ_H_
+#define PyGSI_SSL_X509REQ_H_
 
 #include <Python.h>
 #include <openssl/ssl.h>

@@ -10,12 +10,12 @@
  */
 #include <Python.h>
 
-/* 
+/*
  * In order to get the RAND_screen definition from the rand.h
  * WIN32 or WINDOWS needs to be defined, otherwise we get a
  * warning.
  */
-#ifdef MS_WINDOWS 
+#ifdef MS_WINDOWS
 #define WIN32
 #endif
 #include <openssl/rand.h>
@@ -25,7 +25,7 @@ PRNG management routines, thin wrappers.\n\
 See the file RATIONALE for a short explanation of why this module was written.\n\
 ";
 
-static char *CVSid = "@(#) $Id: rand.c,v 1.1 2008/02/29 18:46:04 acasajus Exp $";
+static char *CVSid = "@(#) $Id: rand.c,v 1.2 2008/03/05 13:55:40 acasajus Exp $";
 
 static char rand_add_doc[] = "\n\
 Add data with a given entropy to the PRNG\n\
@@ -205,7 +205,7 @@ rand_write_file(PyObject *spam, PyObject *args)
 }
 
 
-/* Methods in the OpenSSL.rand module */
+/* Methods in the GSI.rand module */
 static PyMethodDef rand_methods[] = {
     { "add",       (PyCFunction)rand_add,          METH_VARARGS, rand_add_doc },
     { "seed",      (PyCFunction)rand_seed,         METH_VARARGS, rand_seed_doc },

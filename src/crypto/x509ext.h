@@ -6,10 +6,10 @@
  * Export X.509 extension functions and data structures.
  * See the file RATIONALE for a short explanation of why this module was written.
  *
- * @(#) $Id: x509ext.h,v 1.1 2008/02/29 18:46:02 acasajus Exp $
+ * @(#) $Id: x509ext.h,v 1.2 2008/03/05 13:55:23 acasajus Exp $
  */
-#ifndef PyOpenSSL_crypto_X509EXTENSION_H_
-#define PyOpenSSL_crypto_X509EXTENSION_H_
+#ifndef PyGSI_crypto_X509EXTENSION_H_
+#define PyGSI_crypto_X509EXTENSION_H_
 
 #include <Python.h>
 #include <openssl/ssl.h>

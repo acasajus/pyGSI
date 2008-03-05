@@ -8,10 +8,10 @@
  *
  * Reviewed 2001-07-23
  *
- * @(#) $Id: ssl.h,v 1.2 2008/03/03 21:07:24 acasajus Exp $
+ * @(#) $Id: ssl.h,v 1.3 2008/03/05 13:55:31 acasajus Exp $
  */
-#ifndef PyOpenSSL_SSL_H_
-#define PyOpenSSL_SSL_H_
+#ifndef PyGSI_SSL_H_
+#define PyGSI_SSL_H_
 
 #include <Python.h>
 #include "gsi.h"
@@ -84,4 +84,4 @@ extern void **ssl_API;
 
 #endif							/* SSL_MODULE */
 
-#endif							/* PyOpenSSL_SSL_H_ */
+#endif							/* PyGSI_SSL_H_ */
