@@ -4,7 +4,7 @@
 #
 # Copyright (C) AB Strakt 2001, All rights reserved
 #
-# @(#) $Id: setup.py,v 1.2 2008/03/03 21:07:24 acasajus Exp $
+# @(#) $Id: setup.py,v 1.3 2008/03/05 23:06:07 rgracian Exp $
 #
 """
 Installation script for the OpenSSL module
@@ -66,8 +66,8 @@ else:
     IncludeDirs = [ '../../external/openssl-%s/openssl-%s/include' % (openSSLVersion, openSSLVersion) ]
 
 #ExtraObjects = [ '/usr/lib/libpthread.a', '/usr/lib/libssl.a','/usr/lib/libcrypto.a' ]
-ExtraObjects = [ '../../external/openssl-%s/openssl-%s/libssl.a' % (openSSLVersion, openSSLVersion),
-                 '../../external/openssl-%s/openssl-%s/libcrypto.a' % (openSSLVersion, openSSLVersion) ]
+ExtraObjects = [ '../../external/openssl-%s/openssl-%s/libssl.so' % (openSSLVersion, openSSLVersion),
+                 '../../external/openssl-%s/openssl-%s/libcrypto.so' % (openSSLVersion, openSSLVersion) ]
                  #, '/usr/lib%s/python%s/config/libpython%s.a' % (sModifier, sys.version[:3], sys.version[:3] ) ]
 
 DefineList = [ ( 'OPENSSL_NO_KRB5', "" ) ]
