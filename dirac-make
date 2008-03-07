@@ -10,7 +10,7 @@ basedir=`canonicalize $0`
 basedir=`dirname $basedir`
 #
 Version=0.1
-sslVersion=0.9.8g
+sslVersion=0.9.7m
 
 sslCompile=1
 sslDebug=0
