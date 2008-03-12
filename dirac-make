@@ -9,7 +9,7 @@ function canonicalize
 basedir=`canonicalize $0`
 basedir=`dirname $basedir`
 #
-Version=0.1
+Version=0.2
 sslVersion=0.9.7m
 
 sslCompile=1

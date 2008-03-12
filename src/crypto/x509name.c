@@ -12,8 +12,44 @@
 #define crypto_MODULE
 #include "crypto.h"
 
-static char *CVSid = "@(#) $Id: x509name.c,v 1.1 2008/02/29 18:46:02 acasajus Exp $";
+static char *CVSid = "@(#) $Id: x509name.c,v 1.2 2008/03/12 15:38:17 acasajus Exp $";
 
+
+static char crypto_X509Name_one_line_doc[] = "\n\
+Return X509 subject in one line.\n\
+\n\
+Arguments: self - The X509 object\n\
+           args - The Python argument tuple, should be empty\n\
+Returns:   String containing the value\n\
+";
+
+static PyObject *
+crypto_X509Name_one_line(crypto_X509NameObj *self, PyObject *args)
+{
+   char *subject;
+
+   if (!PyArg_ParseTuple(args, ":subject_name_hash"))
+      return NULL;
+
+   subject = X509_NAME_oneline( self->x509_name, NULL, 0 );
+   if( !subject ) return NULL;
+
+   return PyString_FromString( subject );
+}
+
+/*
+ * ADD_METHOD(name) expands to a correct PyMethodDef declaration
+ *   {  'name', (PyCFunction)crypto_X509_name, METH_VARARGS }
+ * for convenience
+ */
+#define ADD_METHOD(name)        \
+    { #name, (PyCFunction)crypto_X509Name_##name, METH_VARARGS, crypto_X509Name_##name##_doc }
+static PyMethodDef crypto_X509Name_methods[] =
+{
+    ADD_METHOD(one_line),
+    { NULL, NULL }
+};
+#undef ADD_METHOD
 
 /*
  * Constructor for X509Name, never called by Python code directly
@@ -128,23 +164,30 @@ crypto_X509Name_getattr(crypto_X509NameObj *self, char *name)
 {
     int nid, len;
     char *utf8string;
+    PyObject *meth;
 
-    if ((nid = OBJ_txt2nid(name)) == NID_undef)
-    {
-        PyErr_SetString(PyExc_AttributeError, "No such attribute");
-        return NULL;
-    }
+   meth = Py_FindMethod(crypto_X509Name_methods, (PyObject *)self, name );
+   if ( PyErr_Occurred() && PyErr_ExceptionMatches( PyExc_AttributeError ) )
+      PyErr_Clear();
+   else
+      return meth;
 
-    len = get_name_by_nid(self->x509_name, nid, &utf8string);
-    if (len < 0)
-        return NULL;
-    else if (len == 0)
-    {
-        Py_INCREF(Py_None);
-        return Py_None;
-    }
-    else
-        return PyUnicode_Decode(utf8string, len, "utf-8", NULL);
+   if ((nid = OBJ_txt2nid(name)) == NID_undef)
+   {
+      PyErr_SetString(PyExc_AttributeError, "No such attribute");
+      return NULL;
+   }
+
+   len = get_name_by_nid(self->x509_name, nid, &utf8string);
+   if (len < 0)
+      return NULL;
+   else if (len == 0)
+   {
+      Py_INCREF(Py_None);
+      return Py_None;
+   }
+   else
+      return PyUnicode_Decode(utf8string, len, "utf-8", NULL);
 }
 
 /*

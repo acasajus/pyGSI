@@ -9,10 +9,13 @@
  * Reviewed 2001-07-23
  */
 #include <Python.h>
+#include <datetime.h>
 #define crypto_MODULE
 #include "crypto.h"
 
-static char *CVSid = "@(#) $Id: x509.c,v 1.1 2008/02/29 18:46:02 acasajus Exp $";
+
+
+static char *CVSid = "@(#) $Id: x509.c,v 1.2 2008/03/12 15:38:17 acasajus Exp $";
 
 /*
  * X.509 is a standard for digital certificates.  See e.g. the OpenSSL homepage
@@ -371,6 +374,125 @@ crypto_X509_has_expired(crypto_X509Obj *self, PyObject *args)
         return PyInt_FromLong(0L);
 }
 
+static PyObject *
+convertASN1_TIMEToDateTime( const ASN1_TIME *asn1Time )
+{
+   PyObject *datetime;
+   unsigned char *asn1String;
+   char zone;
+   int len;
+   struct tm time_tm;
+
+
+   asn1String = ASN1_STRING_data( asn1Time );
+   len = strlen((char*)asn1String);
+   /* dont understand */
+   if ((len != 13) && (len != 15))
+   {
+      Py_INCREF( Py_None );
+      return Py_None;
+   }
+
+   if (len == 13)
+   {
+      len = sscanf( (char*)asn1String, "%02d%02d%02d%02d%02d%02d%c",
+                                                               &(time_tm.tm_year),
+                                                               &(time_tm.tm_mon),
+                                                               &(time_tm.tm_mday),
+                                                               &(time_tm.tm_hour),
+                                                               &(time_tm.tm_min),
+                                                               &(time_tm.tm_sec),
+                                                               &zone
+                                                               );
+      //HACK: We don't expect this code to run past 2100s or receive certs pre-2000
+      time_tm.tm_year += 2000;
+      /* dont understand */
+      if ( ( len != 7 ) || ( zone != 'Z' ) )
+      {
+         Py_INCREF( Py_None );
+         return Py_None;
+      }
+   }
+
+   if (len == 15)
+   {
+      len = sscanf(( char*)asn1String, "20%02d%02d%02d%02d%02d%02d%c",
+                                                               &(time_tm.tm_year),
+                                                               &(time_tm.tm_mon),
+                                                               &(time_tm.tm_mday),
+                                                               &(time_tm.tm_hour),
+                                                               &(time_tm.tm_min),
+                                                               &(time_tm.tm_sec),
+                                                               &zone
+                                                               );
+      /* dont understand */
+      if ( ( len != 7 ) || ( zone != 'Z' ) )
+      {
+         Py_INCREF( Py_None );
+         return Py_None;
+      }
+   }
+
+   PyDateTime_IMPORT;
+   datetime = PyDateTime_FromDateAndTime( time_tm.tm_year,
+                                          time_tm.tm_mon,
+                                          time_tm.tm_mday,
+                                          time_tm.tm_hour,
+                                          time_tm.tm_min,
+                                          time_tm.tm_sec,
+                                          0
+                                          );
+   /* dont understand */
+   if( !datetime )
+   {
+      Py_INCREF( Py_None );
+      return Py_None;
+   }
+   return datetime;
+}
+
+static char crypto_X509_get_not_after_doc[] = "\n\
+Get the not after date.\n\
+\n\
+Arguments: self - The X509 object\n\
+           args - The Python argument tuple, should be empty\n\
+Returns:   not after datetime or None if error\n\
+";
+
+static PyObject *
+crypto_X509_get_not_after(crypto_X509Obj *self, PyObject *args)
+{
+    ASN1_TIME *notafter;
+
+    if (!PyArg_ParseTuple(args, ":get_not_after"))
+        return NULL;
+
+    notafter = X509_get_notAfter(self->x509);
+
+   return convertASN1_TIMEToDateTime( notafter );
+}
+
+static char crypto_X509_get_not_before_doc[] = "\n\
+Get the not before date.\n\
+\n\
+Arguments: self - The X509 object\n\
+           args - The Python argument tuple, should be empty\n\
+Returns:   not before datetime or None if error\n\
+";
+
+static PyObject *
+crypto_X509_get_not_before(crypto_X509Obj *self, PyObject *args)
+{
+    ASN1_TIME *notbefore;
+
+    if (!PyArg_ParseTuple(args, ":get_not_before"))
+        return NULL;
+
+    notbefore = X509_get_notBefore(self->x509);
+
+   return convertASN1_TIMEToDateTime( notbefore );
+}
+
 static char crypto_X509_subject_name_hash_doc[] = "\n\
 Return the hash of the X509 subject.\n\
 \n\
@@ -504,6 +626,8 @@ static PyMethodDef crypto_X509_methods[] =
     ADD_METHOD(subject_name_hash),
     ADD_METHOD(digest),
     ADD_METHOD(add_extensions),
+    ADD_METHOD(get_not_after),
+    ADD_METHOD(get_not_before),
     { NULL, NULL }
 };
 #undef ADD_METHOD
