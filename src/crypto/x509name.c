@@ -12,7 +12,7 @@
 #define crypto_MODULE
 #include "crypto.h"
 
-static char *CVSid = "@(#) $Id: x509name.c,v 1.2 2008/03/12 15:38:17 acasajus Exp $";
+static char *CVSid = "@(#) $Id: x509name.c,v 1.3 2008/03/19 10:28:22 acasajus Exp $";
 
 
 static char crypto_X509Name_one_line_doc[] = "\n\
@@ -27,6 +27,7 @@ static PyObject *
 crypto_X509Name_one_line(crypto_X509NameObj *self, PyObject *args)
 {
    char *subject;
+   PyObject *pyString;
 
    if (!PyArg_ParseTuple(args, ":subject_name_hash"))
       return NULL;
@@ -34,7 +35,9 @@ crypto_X509Name_one_line(crypto_X509NameObj *self, PyObject *args)
    subject = X509_NAME_oneline( self->x509_name, NULL, 0 );
    if( !subject ) return NULL;
 
-   return PyString_FromString( subject );
+   pyString = PyString_FromString( subject );
+   OPENSSL_free(subject);
+   return pyString;
 }
 
 /*
