@@ -41,7 +41,7 @@ make                                                 || exit 1
 
 (
 cd $basedir
-arch=`../../scripts/dirac-architecture`              || exit 1
+arch=`../../scripts/platform.py`                     || exit 1
 DIRACdir=`canonicalize $basedir/../..`
 DIRACbin=`canonicalize $DIRACdir/$arch/bin`
 DIRAClib=`canonicalize $DIRACdir/$arch/lib`

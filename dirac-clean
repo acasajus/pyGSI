@@ -21,7 +21,7 @@ rm -rf openssl-${sslVersion}
 
 (
 cd $basedir
-arch=`../../scripts/dirac-architecture`              || exit 1
+arch=`../../scripts/platform.py`                     || exit 1
 DIRACdir=`readlink -f $basedir/../..`
 DIRACbin=$DIRACdir/$arch/bin
 

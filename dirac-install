@@ -16,7 +16,7 @@ fi
 
 (
 cd $basedir
-arch=`../../scripts/dirac-architecture`
+arch=`../../scripts/platform.py`
 DIRACdir=`readlink -f $basedir/../..`
 DIRACbin=$DIRACdir/$arch/bin
 DIRAClib=$DIRACdir/$arch/lib
