@@ -12,7 +12,7 @@
 #define crypto_MODULE
 #include "crypto.h"
 
-static char *CVSid = "@(#) $Id: x509name.c,v 1.4 2008/05/20 09:28:40 acasajus Exp $";
+static char *CVSid = "@(#) $Id: x509name.c,v 1.5 2008/05/20 16:48:44 acasajus Exp $";
 
 
 static char crypto_X509Name_one_line_doc[] = "\n\
@@ -40,6 +40,110 @@ crypto_X509Name_one_line(crypto_X509NameObj *self, PyObject *args)
    return pyString;
 }
 
+static char crypto_X509Name_hash_doc[] = "\n\
+Return the has value of this name\n\
+\n\
+Arguments: self - The X509 object\n\
+           args - The Python argument tuple, should be empty\n\
+Returns:   None\n\
+";
+
+/*
+ * First four bytes of the MD5 digest of the DER form of an X509Name.
+ *
+ * Arguments: self - The X509Name object
+ * Returns:   An integer giving the hash.
+ */
+static PyObject *
+crypto_X509Name_hash(crypto_X509NameObj *self, PyObject* args)
+{
+    unsigned long hash;
+
+    if (!PyArg_ParseTuple(args, ":hash")) {
+        return NULL;
+    }
+    hash = X509_NAME_hash(self->x509_name);
+    return PyInt_FromLong(hash);
+}
+
+static char crypto_X509Name_der_doc[] = "\n\
+Return the DER encodeing of this name\n\
+\n\
+Arguments: self - The X509 object\n\
+           args - The Python argument tuple, should be empty\n\
+Returns:   None\n\
+";
+
+/*
+ * Arguments: self - The X509Name object
+ * Returns:   The DER form of an X509Name.
+ */
+static PyObject *
+crypto_X509Name_der(crypto_X509NameObj *self, PyObject *args)
+{
+    if (!PyArg_ParseTuple(args, ":der")) {
+        return NULL;
+    }
+
+    i2d_X509_NAME(self->x509_name, 0);
+    return PyString_FromStringAndSize(self->x509_name->bytes->data,
+                                      self->x509_name->bytes->length);
+}
+
+static char crypto_X509Name_get_components_doc[] = "\n\
+Returns the split-up components of this name.\n\
+\n\
+Arguments: self - The X509 object\n\
+           args - The Python argument tuple, should be empty\n\
+Returns:   List of tuples (name, value).\n\
+";
+
+static PyObject *
+crypto_X509Name_get_components(crypto_X509NameObj *self, PyObject *args)
+{
+    int n, i;
+    X509_NAME *name = self->x509_name;
+    PyObject *list;
+
+    if (!PyArg_ParseTuple(args, ":get_components"))
+        return NULL;
+
+    n = X509_NAME_entry_count(name);
+    list = PyList_New(n);
+    for (i = 0; i < n; i++)
+    {
+        X509_NAME_ENTRY *ent;
+        ASN1_OBJECT *fname;
+        ASN1_STRING *fval;
+        int nid;
+        int l;
+        unsigned char buf[100];
+        unsigned char *str;
+        PyObject *tuple;
+
+        ent = X509_NAME_get_entry(name, i);
+
+        fname = X509_NAME_ENTRY_get_object(ent);
+        fval = X509_NAME_ENTRY_get_data(ent);
+
+        l = ASN1_STRING_length(fval);
+        str = ASN1_STRING_data(fval);
+
+        nid = OBJ_obj2nid(fname);
+
+        /* printf("fname is %s len=%d str=%s\n", OBJ_nid2sn(nid), l, str); */
+
+        tuple = PyTuple_New(2);
+        PyTuple_SetItem(tuple, 0, PyString_FromString(OBJ_nid2sn(nid)));
+        PyTuple_SetItem(tuple, 1, PyString_FromStringAndSize(str, l));
+
+        PyList_SetItem(list, i, tuple);
+    }
+
+    return list;
+}
+
+
 /*
  * ADD_METHOD(name) expands to a correct PyMethodDef declaration
  *   {  'name', (PyCFunction)crypto_X509_name, METH_VARARGS }
@@ -50,6 +154,9 @@ crypto_X509Name_one_line(crypto_X509NameObj *self, PyObject *args)
 static PyMethodDef crypto_X509Name_methods[] =
 {
     ADD_METHOD(one_line),
+    ADD_METHOD(hash),
+    ADD_METHOD(der),
+    ADD_METHOD(get_components),
     { NULL, NULL }
 };
 #undef ADD_METHOD
@@ -117,16 +224,18 @@ get_name_by_nid(X509_NAME *name, int nid, char **utf8string)
  *
  * Arguments: name  - The X509_NAME object
  *            nid   - The name identifier
+ *            nidIndex - Index of the nid in case there are more than one
  *            value - The string to set
  * Returns:   0 for success, -1 on failure
  */
 static int
-set_name_by_nid(X509_NAME *name, int nid, char *utf8string)
+set_name_by_nid(X509_NAME *name, int nid, int nidIndex, char *utf8string)
 {
     X509_NAME_ENTRY *ne;
     int i, entry_count, temp_nid;
 
     /* If there's an old entry for this NID, remove it */
+    /*
     entry_count = X509_NAME_entry_count(name);
     for (i = 0; i < entry_count; i++)
     {
@@ -139,10 +248,11 @@ set_name_by_nid(X509_NAME *name, int nid, char *utf8string)
             break;
         }
     }
+    */
 
     /* Add the new entry */
     if (!X509_NAME_add_entry_by_NID(name, nid, MBSTRING_UTF8, utf8string,
-                -1, -1, 0))
+                -1, nidIndex, 0))
     {
         exception_from_error_queue();
         return -1;
@@ -207,8 +317,17 @@ crypto_X509Name_getattr(crypto_X509NameObj *self, char *name)
 static int
 crypto_X509Name_setattr(crypto_X509NameObj *self, char *name, PyObject *value)
 {
-    int nid;
-    char *buffer;
+    int nid,result,nidIndex;
+    char *buffer, *divP;
+
+    divP = strchr( name, '.' );
+    if( !divP )
+    	nidIndex = -1;
+    else
+    {
+    	*divP = 0;
+    	nidIndex = atoi( divP+1 );
+    }
 
     if ((nid = OBJ_txt2nid(name)) == NID_undef)
     {
@@ -220,7 +339,9 @@ crypto_X509Name_setattr(crypto_X509NameObj *self, char *name, PyObject *value)
     if (!PyArg_Parse(value, "es:setattr", "utf-8", &buffer))
         return -1;
 
-    return set_name_by_nid(self->x509_name, nid, buffer);
+    result = set_name_by_nid(self->x509_name, nid, nidIndex, buffer);
+    PyMem_Free(buffer);
+    return result;
 }
 
 /*
