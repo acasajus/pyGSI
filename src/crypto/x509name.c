@@ -12,7 +12,7 @@
 #define crypto_MODULE
 #include "crypto.h"
 
-static char *CVSid = "@(#) $Id: x509name.c,v 1.3 2008/03/19 10:28:22 acasajus Exp $";
+static char *CVSid = "@(#) $Id: x509name.c,v 1.4 2008/05/20 09:28:40 acasajus Exp $";
 
 
 static char crypto_X509Name_one_line_doc[] = "\n\
@@ -190,7 +190,11 @@ crypto_X509Name_getattr(crypto_X509NameObj *self, char *name)
       return Py_None;
    }
    else
-      return PyUnicode_Decode(utf8string, len, "utf-8", NULL);
+   {
+	  PyObject* meth = PyUnicode_Decode(utf8string, len, "utf-8", NULL);
+	  OPENSSL_free(utf8string);
+	  return meth;
+   }
 }
 
 /*
