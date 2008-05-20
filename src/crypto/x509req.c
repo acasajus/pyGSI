@@ -10,7 +10,7 @@
 #define crypto_MODULE
 #include "crypto.h"
 
-static char *CVSid = "@(#) $Id: x509req.c,v 1.1 2008/02/29 18:46:02 acasajus Exp $";
+static char *CVSid = "@(#) $Id: x509req.c,v 1.2 2008/05/20 19:25:12 acasajus Exp $";
 
 
 static char crypto_X509Req_get_subject_doc[] = "\n\
@@ -221,6 +221,59 @@ crypto_X509Req_add_extensions(crypto_X509ReqObj *self, PyObject *args)
     return Py_None;
 }
 
+static char crypto_X509Req_get_extensions_doc[] = "\n\
+Get extensions from the request.\n\
+\n\
+Arguments: self - X509Req object\n\
+           args - The Python argument tuple, should be: empty \n\
+Returns:   None\n\
+";
+
+static PyObject *
+crypto_X509Req_get_extensions(crypto_X509ReqObj *self, PyObject *args)
+{
+    PyObject *extList;
+    crypto_X509ExtensionObj *pyext;
+    X509_EXTENSION *ext;
+    STACK_OF(X509_EXTENSION) *extstack;
+    int extNum,i;
+
+    if (!PyArg_ParseTuple(args, ":get_extensions"))
+        return NULL;
+
+    extstack = X509_REQ_get_extensions( self->x509_req );
+    extNum = sk_X509_EXTENSION_num( extstack );
+    extList = PyList_New(extNum);
+    for( i=0; i< extNum; i++)
+    {
+    	ext = sk_X509_EXTENSION_value( extstack, i );
+    	if( ext )
+    	{
+    		pyext = PyObject_New(crypto_X509ExtensionObj, &crypto_X509Extension_Type);
+    		if( !pyext )
+    		{
+    			Py_DECREF( extList );
+    			PyErr_SetString(PyExc_OSError, "Can't create extension object");
+    			return NULL;
+    		}
+    		pyext->x509_extension = ext;
+    		pyext->dealloc = 0;
+    		if( PyList_SetItem( extList, i, pyext ) == -1 )
+    		{
+    			Py_DECREF( extList );
+    			return NULL;
+    		}
+    	}
+    	else
+    	{
+    		Py_DECREF( extList );
+    		exception_from_error_queue();
+    		return NULL;
+    	}
+    }
+    return extList;
+}
+
 /*
  * ADD_METHOD(name) expands to a correct PyMethodDef declaration
  *   {  'name', (PyCFunction)crypto_X509Req_name, METH_VARARGS }
@@ -236,6 +289,7 @@ static PyMethodDef crypto_X509Req_methods[] =
     ADD_METHOD(sign),
     ADD_METHOD(verify),
     ADD_METHOD(add_extensions),
+    ADD_METHOD(get_extensions),
     { NULL, NULL }
 };
 #undef ADD_METHOD
