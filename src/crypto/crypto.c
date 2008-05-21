@@ -18,7 +18,7 @@ Main file of crypto sub module.\n\
 See the file RATIONALE for a short explanation of why this module was written.\n\
 ";
 
-static char *CVSid = "@(#) $Id: crypto.c,v 1.3 2008/05/21 16:18:39 acasajus Exp $";
+static char *CVSid = "@(#) $Id: crypto.c,v 1.4 2008/05/21 19:36:03 acasajus Exp $";
 
 void **ssl_API;
 
@@ -268,6 +268,83 @@ crypto_load_certificate(PyObject *spam, PyObject *args)
     }
 
     return (PyObject *)crypto_X509_New(cert, 1);
+}
+
+static char crypto_load_certificate_chain_doc[] = "\n\
+Load a certificate chain from a buffer\n\
+\n\
+Arguments: spam - Always NULL\n\
+           args - The Python argument tuple, should be:\n\
+             type   - The file type (one of FILETYPE_PEM, FILETYPE_ASN1)\n\
+             buffer - The buffer the certificate chain is stored in\n\
+Returns: List with X509 objects\n\
+";
+
+static PyObject *
+crypto_load_certificate_chain(PyObject *spam, PyObject *args)
+{
+    crypto_X509Obj *crypto_X509_New(X509 *, int);
+    int type, len;
+    char *buffer;
+    unsigned long err;
+    PyObject *pyCertList, *pyCert;
+    BIO *bio;
+    X509 *cert;
+
+    if (!PyArg_ParseTuple(args, "is#:load_certificate_chain", &type, &buffer, &len))
+        return NULL;
+
+    pyCertList = PyList_New(0);
+    if( !pyCertList )
+    	return NULL;
+
+    bio = BIO_new_mem_buf(buffer, len);
+    do
+    {
+	    switch (type)
+	    {
+	        case X509_FILETYPE_PEM:
+	            cert = PEM_read_bio_X509(bio, NULL, NULL, NULL);
+	            break;
+
+	        case X509_FILETYPE_ASN1:
+	            cert = d2i_X509_bio(bio, NULL);
+	            break;
+
+	        default:
+	            PyErr_SetString(PyExc_ValueError, "type argument must be FILETYPE_PEM or FILETYPE_ASN1");
+	            BIO_free(bio);
+	            Py_DECREF( pyCertList );
+	            return NULL;
+	    }
+
+	    if (cert != NULL)
+	    {
+	    	pyCert = (PyObject *)crypto_X509_New(cert, 1);
+	    	err = PyList_Append( pyCertList, pyCert );
+	    	Py_DECREF( pyCert );
+	    	if( -1 == err )
+	    	{
+	    		BIO_free(bio);
+	    		Py_DECREF( pyCertList );
+	    		return NULL;
+	    	}
+	    }
+    }
+	while( cert );
+    BIO_free(bio);
+    //Ignore no start line error when loading a chain
+    err = ERR_peek_last_error();
+    if (ERR_GET_LIB(err) == ERR_LIB_PEM && ERR_GET_REASON(err) == PEM_R_NO_START_LINE)
+    	ERR_clear_error();
+    else
+    {
+    	Py_DECREF( pyCertList );
+        exception_from_error_queue();
+        return NULL;
+    }
+
+    return pyCertList;
 }
 
 static char crypto_dump_certificate_doc[] = "\n\
@@ -700,6 +777,7 @@ static PyMethodDef crypto_methods[] = {
     { "load_privatekey",  (PyCFunction)crypto_load_privatekey,  METH_VARARGS, crypto_load_privatekey_doc },
     { "dump_privatekey",  (PyCFunction)crypto_dump_privatekey,  METH_VARARGS, crypto_dump_privatekey_doc },
     { "load_certificate", (PyCFunction)crypto_load_certificate, METH_VARARGS, crypto_load_certificate_doc },
+    { "load_certificate_chain", (PyCFunction)crypto_load_certificate_chain, METH_VARARGS, crypto_load_certificate_chain_doc },
     { "dump_certificate", (PyCFunction)crypto_dump_certificate, METH_VARARGS, crypto_dump_certificate_doc },
     { "load_certificate_request", (PyCFunction)crypto_load_certificate_request, METH_VARARGS, crypto_load_certificate_request_doc },
     { "dump_certificate_request", (PyCFunction)crypto_dump_certificate_request, METH_VARARGS, crypto_dump_certificate_request_doc },
