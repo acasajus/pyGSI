@@ -15,7 +15,7 @@
 
 
 
-static char *CVSid = "@(#) $Id: x509.c,v 1.2 2008/03/12 15:38:17 acasajus Exp $";
+static char *CVSid = "@(#) $Id: x509.c,v 1.3 2008/05/21 16:18:39 acasajus Exp $";
 
 /*
  * X.509 is a standard for digital certificates.  See e.g. the OpenSSL homepage
@@ -552,6 +552,52 @@ crypto_X509_digest(crypto_X509Obj *self, PyObject *args)
     return ret;
 }
 
+static char crypto_X509_get_extensions_doc[] = "\n\
+Get extensions from the certificate.\n\
+\n\
+Arguments: self - X509 object\n\
+           args - The Python argument tuple, should be: empty \n\
+Returns:   None\n\
+";
+
+static PyObject *
+crypto_X509_get_extensions(crypto_X509Obj *self, PyObject *args)
+{
+    PyObject *extList;
+    crypto_X509ExtensionObj *pyext;
+    X509_EXTENSION *ext;
+    int extNum,i;
+
+    if (!PyArg_ParseTuple(args, ":get_extensions"))
+        return NULL;
+
+    extNum = X509_get_ext_count( self->x509 );
+    extList = PyList_New(extNum);
+    for( i=0; i< extNum; i++)
+    {
+    	ext = X509_get_ext( self->x509, i );
+    	if( ext )
+    	{
+    		pyext = PyObject_New(crypto_X509ExtensionObj, &crypto_X509Extension_Type);
+    		if( !pyext )
+    		{
+    			Py_DECREF( extList );
+    			PyErr_SetString(PyExc_OSError, "Can't create extension object");
+    			return NULL;
+    		}
+    		pyext->x509_extension = ext;
+    		pyext->dealloc = 0;
+    		PyList_SetItem( extList, i, pyext );
+    	}
+    	else
+    	{
+    		Py_DECREF( extList );
+    		exception_from_error_queue();
+    		return NULL;
+    	}
+    }
+    return extList;
+}
 
 static char crypto_X509_add_extensions_doc[] = "\n\
 Add extensions to the certificate.\n\
@@ -565,14 +611,14 @@ Returns:   None\n\
 static PyObject *
 crypto_X509_add_extensions(crypto_X509Obj *self, PyObject *args)
 {
-    PyObject *extensions, *seq;
+    PyObject *extList, *seq;
     crypto_X509ExtensionObj *ext;
     int nr_of_extensions, i;
 
-    if (!PyArg_ParseTuple(args, "O:add_extensions", &extensions))
+    if (!PyArg_ParseTuple(args, "O:add_extensions", &extList))
         return NULL;
 
-    seq = PySequence_Fast(extensions, "Expected a sequence");
+    seq = PySequence_Fast(extList, "Expected a sequence");
     if (seq == NULL)
         return NULL;
 
@@ -583,6 +629,7 @@ crypto_X509_add_extensions(crypto_X509Obj *self, PyObject *args)
         ext = (crypto_X509ExtensionObj *)PySequence_Fast_GET_ITEM(seq, i);
         if (!crypto_X509Extension_Check(ext))
         {
+        	Py_DECREF(extList);
             Py_DECREF(seq);
             PyErr_SetString(PyExc_ValueError,
                             "One of the elements is not an X509Extension");
@@ -590,12 +637,15 @@ crypto_X509_add_extensions(crypto_X509Obj *self, PyObject *args)
         }
         if (!X509_add_ext(self->x509, ext->x509_extension, -1))
         {
+        	Py_DECREF(extList);
             Py_DECREF(seq);
             exception_from_error_queue();
             return NULL;
         }
     }
 
+    Py_DECREF(extList);
+    Py_DECREF(seq);
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -626,6 +676,7 @@ static PyMethodDef crypto_X509_methods[] =
     ADD_METHOD(subject_name_hash),
     ADD_METHOD(digest),
     ADD_METHOD(add_extensions),
+    ADD_METHOD(get_extensions),
     ADD_METHOD(get_not_after),
     ADD_METHOD(get_not_before),
     { NULL, NULL }

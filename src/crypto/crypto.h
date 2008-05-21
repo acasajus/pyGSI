@@ -8,7 +8,7 @@
  *
  * Reviewed 2001-07-23
  *
- * @(#) $Id: crypto.h,v 1.3 2008/03/05 13:55:23 acasajus Exp $
+ * @(#) $Id: crypto.h,v 1.4 2008/05/21 16:18:39 acasajus Exp $
  */
 #ifndef PyGSI_CRYPTO_H_
 #define PyGSI_CRYPTO_H_
@@ -58,7 +58,7 @@ extern PyObject *crypto_Error;
 
 #define crypto_X509Extension_New_NUM    5
 #define crypto_X509Extension_New_RETURN crypto_X509ExtensionObj *
-#define crypto_X509Extension_New_PROTO  (char *, int, char *)
+#define crypto_X509Extension_New_PROTO  (char *, char *)
 
 #define crypto_PKCS7_New_NUM            6
 #define crypto_PKCS7_New_RETURN         crypto_PKCS7Obj *

@@ -18,7 +18,7 @@ Main file of crypto sub module.\n\
 See the file RATIONALE for a short explanation of why this module was written.\n\
 ";
 
-static char *CVSid = "@(#) $Id: crypto.c,v 1.2 2008/03/05 13:55:23 acasajus Exp $";
+static char *CVSid = "@(#) $Id: crypto.c,v 1.3 2008/05/21 16:18:39 acasajus Exp $";
 
 void **ssl_API;
 
@@ -515,6 +515,55 @@ crypto_load_pkcs12(PyObject *spam, PyObject *args)
     return (PyObject *)crypto_PKCS12_New(p12, passphrase);
 }
 
+static char crypto_add_x509_extension_alias_doc[] = "\n\
+Set an alias from a previous extension\n\
+\n\
+Arguments: spam - Always NULL\n\
+           args - The Python argument tuple, should be empty or, optionally\n\
+             new nid - int with the new nid\n\
+			 old nid - int with the nid to alias\n\
+Returns: None\n\
+";
+
+static PyObject *
+crypto_add_x509_extension_alias(PyObject *spam, PyObject *args)
+{
+    int nid, old_nid;
+
+    if (!PyArg_ParseTuple(args, "ii:add_x509_extension_alias", &nid, &old_nid))
+        return NULL;
+
+    X509V3_EXT_add_alias( nid, old_nid );
+
+    Py_INCREF( Py_None );
+    return Py_None;
+}
+
+
+static char crypto_create_oid_doc[] = "\n\
+Create a new ssl OID \n\
+\n\
+Arguments: spam - Always NULL\n\
+           args - The Python argument tuple, should be empty or, optionally\n\
+             OID - string with the oid.\n\
+			 shortName - string with the short name.\n\
+			 longName - string with the long name.\n\
+Returns:   nid id\n\
+";
+
+static PyObject *
+crypto_create_oid(PyObject *spam, PyObject *args)
+{
+    char *oid, *sn, *ln;
+    int nid;
+
+    if (!PyArg_ParseTuple(args, "sss:create_nid", &oid, &sn, &ln))
+        return NULL;
+
+    nid = OBJ_create( oid, sn, ln);
+
+    return PyInt_FromLong( nid );
+}
 
 static char crypto_X509_doc[] = "\n\
 The factory function inserted in the module dictionary to create X509\n\
@@ -597,9 +646,8 @@ X509Extension objects.\n\
 \n\
 Arguments: spam - Always NULL\n\
            args - The Python argument tuple, should be\n\
-             typename - ???\n\
-             critical - ???\n\
-             value    - ???\n\
+             typename - extension name\n\
+             value    - extension value\n\
 Returns:   The X509Extension object\n\
 ";
 
@@ -607,13 +655,11 @@ static PyObject *
 crypto_X509Extension(PyObject *spam, PyObject *args)
 {
     char *type_name, *value;
-    int critical;
 
-    if (!PyArg_ParseTuple(args, "sis:X509Extension", &type_name, &critical,
-                &value))
+    if (!PyArg_ParseTuple(args, "ss:X509Extension", &type_name, &value))
         return NULL;
 
-    return (PyObject *)crypto_X509Extension_New(type_name, critical, value);
+    return (PyObject *)crypto_X509Extension_New(type_name, value);
 }
 
 static char crypto_NetscapeSPKI_doc[] = "\n\
@@ -659,6 +705,8 @@ static PyMethodDef crypto_methods[] = {
     { "dump_certificate_request", (PyCFunction)crypto_dump_certificate_request, METH_VARARGS, crypto_dump_certificate_request_doc },
     { "load_pkcs7_data", (PyCFunction)crypto_load_pkcs7_data, METH_VARARGS, crypto_load_pkcs7_data_doc },
     { "load_pkcs12", (PyCFunction)crypto_load_pkcs12, METH_VARARGS, crypto_load_pkcs12_doc },
+    { "create_oid", (PyCFunction)crypto_create_oid, METH_VARARGS, crypto_create_oid_doc },
+    { "add_x509_extension_alias", (PyCFunction)crypto_add_x509_extension_alias, METH_VARARGS, crypto_add_x509_extension_alias_doc },
     /* Factory functions */
     { "X509",    (PyCFunction)crypto_X509,    METH_VARARGS, crypto_X509_doc },
     { "X509Name",(PyCFunction)crypto_X509Name,METH_VARARGS, crypto_X509Name_doc },

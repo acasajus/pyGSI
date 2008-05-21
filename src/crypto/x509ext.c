@@ -4,14 +4,14 @@
  * Export X.509 extension functions and data structures.
  * See the file RATIONALE for a short explanation of why this module was written.
  *
- * @(#) $Id: x509ext.c,v 1.1 2008/02/29 18:46:02 acasajus Exp $
+ * @(#) $Id: x509ext.c,v 1.2 2008/05/21 16:18:39 acasajus Exp $
  */
 
 #include <Python.h>
 #define crypto_MODULE
 #include "crypto.h"
 
-static char *CVSid = "@(#) $Id: x509ext.c,v 1.1 2008/02/29 18:46:02 acasajus Exp $";
+static char *CVSid = "@(#) $Id: x509ext.c,v 1.2 2008/05/21 16:18:39 acasajus Exp $";
 
 static char crypto_X509Extension_get_critical_doc[] = "\n\
 Returns the critical field of the X509Extension\n\
@@ -30,6 +30,97 @@ crypto_X509Extension_get_critical(crypto_X509ExtensionObj *self, PyObject *args)
     return PyInt_FromLong(X509_EXTENSION_get_critical(self->x509_extension));
 }
 
+static char crypto_X509Extension_get_value_doc[] = "\n\
+Returns the value of the X509Extension\n\
+\n\
+Arguments: self - The X509Extension object\n\
+           args - The argument tuple, should be empty\n\
+Returns: The value.\n\
+";
+
+static PyObject *
+crypto_X509Extension_get_value(crypto_X509ExtensionObj *self, PyObject *args)
+{
+    int str_len;
+    char *tmp_str;
+    PyObject *str;
+    BIO *bio = BIO_new(BIO_s_mem());
+
+    if (!PyArg_ParseTuple(args, ":get_value"))
+        return NULL;
+
+    if (!X509V3_EXT_print(bio, self->x509_extension, 0, 0))
+    {
+    	BIO_free(bio);
+        exception_from_error_queue();
+        return NULL;
+    }
+    str_len = BIO_get_mem_data(bio, &tmp_str);
+    str = PyString_FromStringAndSize(tmp_str, str_len);
+
+    BIO_free(bio);
+
+    return str;
+}
+
+static char crypto_X509Extension_get_nid_doc[] = "\n\
+Returns the nid of the X509Extension\n\
+\n\
+Arguments: self - The X509Extension object\n\
+           args - The argument tuple, should be empty\n\
+Returns: Extension nid\n\
+";
+
+static PyObject *
+crypto_X509Extension_get_nid(crypto_X509ExtensionObj *self, PyObject *args)
+{
+	ASN1_OBJECT *obj;
+
+    if (!PyArg_ParseTuple(args, ":get_nid"))
+        return NULL;
+
+    obj = X509_EXTENSION_get_object( self->x509_extension );
+    if( !obj )
+    {
+    	exception_from_error_queue();
+    	return NULL;
+    }
+
+    return PyInt_FromLong( OBJ_obj2nid( obj ) );
+}
+
+static char crypto_X509Extension_get_name_doc[] = "\n\
+Returns the name of the X509Extension\n\
+\n\
+Arguments: self - The X509Extension object\n\
+           args - The argument tuple, should be empty\n\
+Returns: Extension name\n\
+";
+
+static PyObject *
+crypto_X509Extension_get_name(crypto_X509ExtensionObj *self, PyObject *args)
+{
+	ASN1_OBJECT *obj;
+	char *sn;
+
+    if (!PyArg_ParseTuple(args, ":get_name"))
+        return NULL;
+
+    obj = X509_EXTENSION_get_object( self->x509_extension );
+    if( !obj )
+    {
+    	exception_from_error_queue();
+    	return NULL;
+    }
+    sn = OBJ_nid2sn( OBJ_obj2nid( obj ) );
+    if( !sn )
+    {
+    	exception_from_error_queue();
+    	return NULL;
+    }
+    return PyString_FromString( sn );
+}
+
 /*
  * ADD_METHOD(name) expands to a correct PyMethodDef declaration
  *   {  'name', (PyCFunction)crypto_X509Extension_name, METH_VARARGS }
@@ -40,6 +131,9 @@ crypto_X509Extension_get_critical(crypto_X509ExtensionObj *self, PyObject *args)
 static PyMethodDef crypto_X509Extension_methods[] =
 {
     ADD_METHOD(get_critical),
+    ADD_METHOD(get_value),
+    ADD_METHOD(get_nid),
+    ADD_METHOD(get_name),
     { NULL, NULL }
 };
 #undef ADD_METHOD
@@ -53,21 +147,11 @@ static PyMethodDef crypto_X509Extension_methods[] =
  * Returns:   The newly created X509Extension object
  */
 crypto_X509ExtensionObj *
-crypto_X509Extension_New(char *type_name, int critical, char *value)
+crypto_X509Extension_New(char *type_name, char *value)
 {
     crypto_X509ExtensionObj *self;
-    int ext_len, ext_nid;
-    unsigned char *ext_der, *p;
-    X509V3_EXT_METHOD *ext_method = NULL;
-    ASN1_OCTET_STRING *ext_oct;
-    STACK_OF(CONF_VALUE) *nval;
-    void * ext_struct;
+    int ext_nid;
     X509_EXTENSION *extension = NULL;
-
-    self = PyObject_New(crypto_X509ExtensionObj, &crypto_X509Extension_Type);
-
-    if (self == NULL)
-        return NULL;
 
     /* Try to get a NID for the name */
     if ((ext_nid = OBJ_sn2nid(type_name)) == NID_undef)
@@ -75,72 +159,20 @@ crypto_X509Extension_New(char *type_name, int critical, char *value)
         PyErr_SetString(PyExc_ValueError, "Unknown extension name");
         return NULL;
     }
-
-    /* Lookup the extension method structure */
-    if (!(ext_method = X509V3_EXT_get_nid(ext_nid)))
+    extension = X509V3_EXT_conf_nid(NULL, NULL, ext_nid, value);
+    if( !extension )
     {
-        PyErr_SetString(PyExc_ValueError, "Unknown extension");
-        return NULL;
+    	//PyErr_SetString(PyExc_ValueError, "Can't create extension");
+    	exception_from_error_queue();
+    	return NULL;
     }
 
-    /* Look if it has a function to convert value to an 
-     * internal structure.
-     */
-    if (!ext_method->v2i)
+    self = PyObject_New(crypto_X509ExtensionObj, &crypto_X509Extension_Type);
+    if (self == NULL)
     {
-        PyErr_SetString(PyExc_ValueError, "Can't initialize exception");
+    	X509_EXTENSION_free(extension);
         return NULL;
     }
-
-    /* Parse the value */
-    nval = X509V3_parse_list(value);
-    if (!nval)
-    {
-        PyErr_SetString(PyExc_ValueError, "Invalid extension string");
-        return NULL;
-    }
-
-    /* And use it to get the internal structure */
-    if(!(ext_struct = ext_method->v2i(ext_method, NULL, nval))) {
-        exception_from_error_queue();
-        return NULL;
-    }
-
-    /* Deallocate the configuration value stack */
-    sk_CONF_VALUE_pop_free(nval, X509V3_conf_free);
-        
-    /* Find out how much memory we need */
-    ext_len = ext_method->i2d(ext_struct, NULL);
-                
-    /* Allocate */
-    if(!(ext_der = malloc(ext_len))) {
-        PyErr_SetString(PyExc_MemoryError, "Could not allocate memory");
-        return NULL;
-    }
-
-    /* And create the ASN1_OCTET_STRING */
-    p = ext_der;
-    ext_method->i2d(ext_struct, &p);
-    if(!(ext_oct = M_ASN1_OCTET_STRING_new())) {
-        exception_from_error_queue();
-        return NULL;
-    }
-        
-    ext_oct->data = ext_der;
-    ext_oct->length = ext_len;
-
-    /* Now that we got all ingredients, make the extension */
-    extension = X509_EXTENSION_create_by_NID(NULL, ext_nid, critical, ext_oct);
-    if (extension == NULL)
-    {
-        exception_from_error_queue();
-        M_ASN1_OCTET_STRING_free(ext_oct);
-        ext_method->ext_free(ext_struct);
-        return NULL;
-    }
-    
-    M_ASN1_OCTET_STRING_free(ext_oct);
-    ext_method->ext_free(ext_struct);
 
     self->x509_extension = extension;
     self->dealloc = 1;
@@ -171,7 +203,7 @@ crypto_X509Extension_dealloc(crypto_X509ExtensionObj *self)
  *            name - The attribute name
  * Returns: A Python object for the attribute, or NULL if something
  *          went wrong.
- */       
+ */
 static PyObject *
 crypto_X509Extension_getattr(crypto_X509ExtensionObj *self, char *name)
 {
@@ -182,7 +214,7 @@ crypto_X509Extension_getattr(crypto_X509ExtensionObj *self, char *name)
  * Print a nice text representation of the certificate request.
  */
 static PyObject *
-crypto_X509Extension_str(crypto_X509ExtensionObj *self)
+crypto_X509Extension_value_str(crypto_X509ExtensionObj *self)
 {
     int str_len;
     char *tmp_str;
@@ -191,11 +223,10 @@ crypto_X509Extension_str(crypto_X509ExtensionObj *self)
 
     if (!X509V3_EXT_print(bio, self->x509_extension, 0, 0))
     {
-        BIO_free(bio);
+    	BIO_free(bio);
         exception_from_error_queue();
         return NULL;
     }
-
     str_len = BIO_get_mem_data(bio, &tmp_str);
     str = PyString_FromStringAndSize(tmp_str, str_len);
 
@@ -210,18 +241,18 @@ PyTypeObject crypto_X509Extension_Type = {
     "X509Extension",
     sizeof(crypto_X509ExtensionObj),
     0,
-    (destructor)crypto_X509Extension_dealloc, 
+    (destructor)crypto_X509Extension_dealloc,
     NULL, /* print */
-    (getattrfunc)crypto_X509Extension_getattr, 
+    (getattrfunc)crypto_X509Extension_getattr,
     NULL, /* setattr  (setattrfunc)crypto_X509Name_setattr, */
     NULL, /* compare */
-    NULL, /* repr */ 
+    NULL, /* repr */
     NULL, /* as_number */
     NULL, /* as_sequence */
     NULL, /* as_mapping */
     NULL, /* hash */
     NULL, /* call */
-    (reprfunc)crypto_X509Extension_str /* str */
+    (reprfunc)crypto_X509Extension_value_str /* str */
 };
 
 /*
