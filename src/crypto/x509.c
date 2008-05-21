@@ -15,7 +15,7 @@
 
 
 
-static char *CVSid = "@(#) $Id: x509.c,v 1.3 2008/05/21 16:18:39 acasajus Exp $";
+static char *CVSid = "@(#) $Id: x509.c,v 1.4 2008/05/21 19:47:27 acasajus Exp $";
 
 /*
  * X.509 is a standard for digital certificates.  See e.g. the OpenSSL homepage
@@ -130,6 +130,29 @@ crypto_X509_get_issuer(crypto_X509Obj *self, PyObject *args)
         Py_INCREF(self);
     }
     return (PyObject *)pyname;
+}
+
+static char crypto_X509_check_issued_doc[] = "\n\
+Check if the given certificate is the issuer\n\
+\n\
+Arguments: self - The X509 object\n\
+           args - The Python argument tuple, should be:\n\
+			- issuer - X509 object to check if it's issuer\n\
+		Returns:   An X509Name object\n\
+";
+
+static PyObject *
+crypto_X509_check_issued(crypto_X509Obj *self, PyObject *args)
+{
+    crypto_X509Obj *issuerCert;
+
+    if (!PyArg_ParseTuple(args, "O!:check_issued", &crypto_X509_Type, &issuerCert))
+        return NULL;
+
+    if ( X509_check_issued( issuerCert->x509, self->x509 ) == X509_V_OK )
+    	Py_RETURN_TRUE;
+    else
+    	Py_RETURN_FALSE;
 }
 
 static char crypto_X509_set_issuer_doc[] = "\n\
@@ -349,6 +372,31 @@ crypto_X509_sign(crypto_X509Obj *self, PyObject *args)
 
     Py_INCREF(Py_None);
     return Py_None;
+}
+
+static char crypto_X509_verify_doc[] = "\n\
+Verify if the certificate was signed with the key\n\
+\n\
+Arguments: self - The X509 object\n\
+           args - The Python argument tuple, should be:\n\
+             pkey   - The key that signed\n\
+             digest - The message digest to use\n\
+Returns:   None\n\
+";
+
+static PyObject *
+crypto_X509_verify(crypto_X509Obj *self, PyObject *args)
+{
+    crypto_PKeyObj *pkey;
+    char *digest_name;
+
+    if (!PyArg_ParseTuple(args, "O!:verify", &crypto_PKey_Type, &pkey))
+        return NULL;
+
+    if( X509_verify(self->x509, pkey->pkey ) )
+    	Py_RETURN_TRUE;
+    else
+    	Py_RETURN_FALSE;
 }
 
 static char crypto_X509_has_expired_doc[] = "\n\
@@ -665,6 +713,7 @@ static PyMethodDef crypto_X509_methods[] =
     ADD_METHOD(set_serial_number),
     ADD_METHOD(get_issuer),
     ADD_METHOD(set_issuer),
+    ADD_METHOD(check_issued),
     ADD_METHOD(get_subject),
     ADD_METHOD(set_subject),
     ADD_METHOD(get_pubkey),
@@ -672,6 +721,7 @@ static PyMethodDef crypto_X509_methods[] =
     ADD_METHOD(gmtime_adj_notBefore),
     ADD_METHOD(gmtime_adj_notAfter),
     ADD_METHOD(sign),
+    ADD_METHOD(verify),
     ADD_METHOD(has_expired),
     ADD_METHOD(subject_name_hash),
     ADD_METHOD(digest),
