@@ -4,14 +4,14 @@
  * Export X.509 extension functions and data structures.
  * See the file RATIONALE for a short explanation of why this module was written.
  *
- * @(#) $Id: x509ext.c,v 1.2 2008/05/21 16:18:39 acasajus Exp $
+ * @(#) $Id: x509ext.c,v 1.3 2008/05/22 19:48:18 acasajus Exp $
  */
 
 #include <Python.h>
 #define crypto_MODULE
 #include "crypto.h"
 
-static char *CVSid = "@(#) $Id: x509ext.c,v 1.2 2008/05/21 16:18:39 acasajus Exp $";
+static char *CVSid = "@(#) $Id: x509ext.c,v 1.3 2008/05/22 19:48:18 acasajus Exp $";
 
 static char crypto_X509Extension_get_critical_doc[] = "\n\
 Returns the critical field of the X509Extension\n\
@@ -89,21 +89,21 @@ crypto_X509Extension_get_nid(crypto_X509ExtensionObj *self, PyObject *args)
     return PyInt_FromLong( OBJ_obj2nid( obj ) );
 }
 
-static char crypto_X509Extension_get_name_doc[] = "\n\
-Returns the name of the X509Extension\n\
+static char crypto_X509Extension_get_sn_doc[] = "\n\
+Returns the short name of the X509Extension\n\
 \n\
 Arguments: self - The X509Extension object\n\
            args - The argument tuple, should be empty\n\
-Returns: Extension name\n\
+Returns: Extension short name\n\
 ";
 
 static PyObject *
-crypto_X509Extension_get_name(crypto_X509ExtensionObj *self, PyObject *args)
+crypto_X509Extension_get_sn(crypto_X509ExtensionObj *self, PyObject *args)
 {
 	ASN1_OBJECT *obj;
 	char *sn;
 
-    if (!PyArg_ParseTuple(args, ":get_name"))
+    if (!PyArg_ParseTuple(args, ":get_sn"))
         return NULL;
 
     obj = X509_EXTENSION_get_object( self->x509_extension );
@@ -121,6 +121,37 @@ crypto_X509Extension_get_name(crypto_X509ExtensionObj *self, PyObject *args)
     return PyString_FromString( sn );
 }
 
+static char crypto_X509Extension_get_ln_doc[] = "\n\
+Returns the short name of the X509Extension\n\
+\n\
+Arguments: self - The X509Extension object\n\
+           args - The argument tuple, should be empty\n\
+Returns: Extension short name\n\
+";
+
+static PyObject *
+crypto_X509Extension_get_ln(crypto_X509ExtensionObj *self, PyObject *args)
+{
+	ASN1_OBJECT *obj;
+	char *ln;
+
+    if (!PyArg_ParseTuple(args, ":get_ln"))
+        return NULL;
+
+    obj = X509_EXTENSION_get_object( self->x509_extension );
+    if( !obj )
+    {
+    	exception_from_error_queue();
+    	return NULL;
+    }
+    ln = OBJ_nid2ln( OBJ_obj2nid( obj ) );
+    if( !ln )
+    {
+    	exception_from_error_queue();
+    	return NULL;
+    }
+    return PyString_FromString( ln );
+}
 /*
  * ADD_METHOD(name) expands to a correct PyMethodDef declaration
  *   {  'name', (PyCFunction)crypto_X509Extension_name, METH_VARARGS }
@@ -133,7 +164,8 @@ static PyMethodDef crypto_X509Extension_methods[] =
     ADD_METHOD(get_critical),
     ADD_METHOD(get_value),
     ADD_METHOD(get_nid),
-    ADD_METHOD(get_name),
+    ADD_METHOD(get_sn),
+    ADD_METHOD(get_ln),
     { NULL, NULL }
 };
 #undef ADD_METHOD

@@ -18,7 +18,7 @@ Main file of crypto sub module.\n\
 See the file RATIONALE for a short explanation of why this module was written.\n\
 ";
 
-static char *CVSid = "@(#) $Id: crypto.c,v 1.4 2008/05/21 19:36:03 acasajus Exp $";
+static char *CVSid = "@(#) $Id: crypto.c,v 1.5 2008/05/22 19:48:58 acasajus Exp $";
 
 void **ssl_API;
 
@@ -638,6 +638,11 @@ crypto_create_oid(PyObject *spam, PyObject *args)
         return NULL;
 
     nid = OBJ_create( oid, sn, ln);
+    if( !nid )
+    {
+    	exception_from_error_queue();
+    	return NULL;
+    }
 
     return PyInt_FromLong( nid );
 }
