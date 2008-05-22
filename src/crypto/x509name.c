@@ -12,7 +12,7 @@
 #define crypto_MODULE
 #include "crypto.h"
 
-static char *CVSid = "@(#) $Id: x509name.c,v 1.6 2008/05/22 18:14:26 acasajus Exp $";
+static char *CVSid = "@(#) $Id: x509name.c,v 1.7 2008/05/22 19:50:03 acasajus Exp $";
 
 
 static char crypto_X509Name_one_line_doc[] = "\n\
@@ -374,7 +374,7 @@ crypto_X509Name_setattr(crypto_X509NameObj *self, char *name, PyObject *value)
     	newRND++;
     }
 
-    if ((nid = OBJ_txt2nid(name)) == NID_undef)
+    if ((nid = OBJ_txt2nid(realName)) == NID_undef)
     {
         PyErr_SetString(PyExc_AttributeError, "No such attribute");
         return -1;
