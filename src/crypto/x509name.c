@@ -12,7 +12,7 @@
 #define crypto_MODULE
 #include "crypto.h"
 
-static char *CVSid = "@(#) $Id: x509name.c,v 1.5 2008/05/20 16:48:44 acasajus Exp $";
+static char *CVSid = "@(#) $Id: x509name.c,v 1.6 2008/05/22 18:14:26 acasajus Exp $";
 
 
 static char crypto_X509Name_one_line_doc[] = "\n\
@@ -38,6 +38,31 @@ crypto_X509Name_one_line(crypto_X509NameObj *self, PyObject *args)
    pyString = PyString_FromString( subject );
    OPENSSL_free(subject);
    return pyString;
+}
+
+static char crypto_X509Name_clone_doc[] = "\n\
+Return a copy of this X509Name object\n\
+\n\
+Arguments: self - The X509 object\n\
+           args - The Python argument tuple, should be empty\n\
+Returns:   X509Name copy\n\
+";
+
+static PyObject *
+crypto_X509Name_clone(crypto_X509NameObj *self, PyObject *args)
+{
+   X509_NAME *newName;
+
+   if (!PyArg_ParseTuple(args, ":clone"))
+      return NULL;
+
+   newName = X509_NAME_dup( self->x509_name );
+   if( !newName )
+   {
+	   exception_from_error_queue();
+	   return NULL;
+   }
+   return crypto_X509Name_New( newName, 1 );
 }
 
 static char crypto_X509Name_hash_doc[] = "\n\
@@ -154,6 +179,7 @@ crypto_X509Name_get_components(crypto_X509NameObj *self, PyObject *args)
 static PyMethodDef crypto_X509Name_methods[] =
 {
     ADD_METHOD(one_line),
+    ADD_METHOD(clone),
     ADD_METHOD(hash),
     ADD_METHOD(der),
     ADD_METHOD(get_components),
@@ -224,12 +250,15 @@ get_name_by_nid(X509_NAME *name, int nid, char **utf8string)
  *
  * Arguments: name  - The X509_NAME object
  *            nid   - The name identifier
- *            nidIndex - Index of the nid in case there are more than one
+ * 			  chtype - type of value
  *            value - The string to set
+ *            pos - position to insert, -1 to append
+ *            sec - 1/-1 create a new RND. 0 should be default.
+
  * Returns:   0 for success, -1 on failure
  */
 static int
-set_name_by_nid(X509_NAME *name, int nid, int nidIndex, char *utf8string)
+set_name_by_nid(X509_NAME *name, int nid, unsigned int chtype, char *value, int pos, int sec)
 {
     X509_NAME_ENTRY *ne;
     int i, entry_count, temp_nid;
@@ -251,8 +280,13 @@ set_name_by_nid(X509_NAME *name, int nid, int nidIndex, char *utf8string)
     */
 
     /* Add the new entry */
-    if (!X509_NAME_add_entry_by_NID(name, nid, MBSTRING_UTF8, utf8string,
-                -1, nidIndex, 0))
+    if (!X509_NAME_add_entry_by_NID( name,
+    								 nid,
+    								 chtype,
+    								 value,
+    								 -1,
+    								 pos,
+    								 sec ))
     {
         exception_from_error_queue();
         return -1;
@@ -317,16 +351,27 @@ crypto_X509Name_getattr(crypto_X509NameObj *self, char *name)
 static int
 crypto_X509Name_setattr(crypto_X509NameObj *self, char *name, PyObject *value)
 {
-    int nid,result,nidIndex;
+    int nid,result;
+    int pos = -1;
+    int newRND = 0;
+    int i,len;
     char *buffer, *divP;
+    char *realName;
+    unsigned int chtype;
 
+    //Find . to split and get order
     divP = strchr( name, '.' );
-    if( !divP )
-    	nidIndex = -1;
-    else
+    if( divP )
     {
     	*divP = 0;
-    	nidIndex = atoi( divP+1 );
+    	pos = atoi( divP + 1 );
+    }
+    //Find + at the begginning of the name for generating a new RND
+    realName = name;
+    if( *name == '+' )
+    {
+    	realName++;
+    	newRND++;
     }
 
     if ((nid = OBJ_txt2nid(name)) == NID_undef)
@@ -336,10 +381,14 @@ crypto_X509Name_setattr(crypto_X509NameObj *self, char *name, PyObject *value)
     }
 
     /* Something of a hack to get nice unicode behaviour */
-    if (!PyArg_Parse(value, "es:setattr", "utf-8", &buffer))
-        return -1;
+    if( PyArg_Parse(value, "es:setattr", "ascii", &buffer) )
+    	chtype = MBSTRING_ASC;
+    else if( PyArg_Parse(value, "es:setattr", "utf8", &buffer) )
+    	chtype = MBSTRING_UTF8;
+    else
+    	return -1;
 
-    result = set_name_by_nid(self->x509_name, nid, nidIndex, buffer);
+    result = set_name_by_nid(self->x509_name, nid, chtype, buffer, pos, newRND );
     PyMem_Free(buffer);
     return result;
 }
