@@ -12,7 +12,7 @@
 #define crypto_MODULE
 #include "crypto.h"
 
-static char *CVSid = "@(#) $Id: x509name.c,v 1.7 2008/05/22 19:50:03 acasajus Exp $";
+static char *CVSid = "@(#) $Id: x509name.c,v 1.8 2008/05/23 14:14:18 acasajus Exp $";
 
 
 static char crypto_X509Name_one_line_doc[] = "\n\
@@ -62,7 +62,7 @@ crypto_X509Name_clone(crypto_X509NameObj *self, PyObject *args)
 	   exception_from_error_queue();
 	   return NULL;
    }
-   return crypto_X509Name_New( newName, 1 );
+   return (PyObject*)crypto_X509Name_New( newName, 1 );
 }
 
 static char crypto_X509Name_hash_doc[] = "\n\
@@ -142,7 +142,6 @@ crypto_X509Name_get_components(crypto_X509NameObj *self, PyObject *args)
         ASN1_STRING *fval;
         int nid;
         int l;
-        unsigned char buf[100];
         unsigned char *str;
         PyObject *tuple;
 
@@ -160,7 +159,7 @@ crypto_X509Name_get_components(crypto_X509NameObj *self, PyObject *args)
 
         tuple = PyTuple_New(2);
         PyTuple_SetItem(tuple, 0, PyString_FromString(OBJ_nid2sn(nid)));
-        PyTuple_SetItem(tuple, 1, PyString_FromStringAndSize(str, l));
+        PyTuple_SetItem(tuple, 1, PyString_FromStringAndSize((char*)str, l));
 
         PyList_SetItem(list, i, tuple);
     }
@@ -260,30 +259,11 @@ get_name_by_nid(X509_NAME *name, int nid, char **utf8string)
 static int
 set_name_by_nid(X509_NAME *name, int nid, unsigned int chtype, char *value, int pos, int sec)
 {
-    X509_NAME_ENTRY *ne;
-    int i, entry_count, temp_nid;
-
-    /* If there's an old entry for this NID, remove it */
-    /*
-    entry_count = X509_NAME_entry_count(name);
-    for (i = 0; i < entry_count; i++)
-    {
-        ne = X509_NAME_get_entry(name, i);
-        temp_nid = OBJ_obj2nid(X509_NAME_ENTRY_get_object(ne));
-        if (temp_nid == nid)
-        {
-            ne = X509_NAME_delete_entry(name, i);
-            X509_NAME_ENTRY_free(ne);
-            break;
-        }
-    }
-    */
-
     /* Add the new entry */
     if (!X509_NAME_add_entry_by_NID( name,
     								 nid,
     								 chtype,
-    								 value,
+    								 (unsigned char*)value,
     								 -1,
     								 pos,
     								 sec ))
@@ -354,7 +334,6 @@ crypto_X509Name_setattr(crypto_X509NameObj *self, char *name, PyObject *value)
     int nid,result;
     int pos = -1;
     int newRND = 0;
-    int i,len;
     char *buffer, *divP;
     char *realName;
     unsigned int chtype;

@@ -15,7 +15,7 @@
 
 
 
-static char *CVSid = "@(#) $Id: x509.c,v 1.4 2008/05/21 19:47:27 acasajus Exp $";
+static char *CVSid = "@(#) $Id: x509.c,v 1.5 2008/05/23 14:13:25 acasajus Exp $";
 
 /*
  * X.509 is a standard for digital certificates.  See e.g. the OpenSSL homepage
@@ -388,7 +388,6 @@ static PyObject *
 crypto_X509_verify(crypto_X509Obj *self, PyObject *args)
 {
     crypto_PKeyObj *pkey;
-    char *digest_name;
 
     if (!PyArg_ParseTuple(args, "O!:verify", &crypto_PKey_Type, &pkey))
         return NULL;
@@ -422,63 +421,75 @@ crypto_X509_has_expired(crypto_X509Obj *self, PyObject *args)
         return PyInt_FromLong(0L);
 }
 
+unsigned short
+convertASN1_TIMETotm( const ASN1_TIME *asn1Time, struct tm *time_tm )
+{
+	unsigned char *asn1String;
+	int len;
+	char zone;
+
+	asn1String = ASN1_STRING_data( asn1Time );
+	len = strlen((char*)asn1String);
+	/* dont understand */
+	if ((len != 13) && (len != 15))
+	{
+		return 0;
+	}
+
+	if (len == 13)
+	{
+		len = sscanf( (char*)asn1String, "%02d%02d%02d%02d%02d%02d%c",
+                                                           &(time_tm->tm_year),
+                                                           &(time_tm->tm_mon),
+                                                           &(time_tm->tm_mday),
+                                                           &(time_tm->tm_hour),
+                                                           &(time_tm->tm_min),
+                                                           &(time_tm->tm_sec),
+                                                           &zone
+                                                           );
+		//HACK: We don't expect this code to run past 2100s or receive certs pre-2000
+		time_tm->tm_year += 2000;
+		/* dont understand */
+		if ( ( len != 7 ) || ( zone != 'Z' ) )
+		{
+			return 0;
+		}
+	}
+
+	if (len == 15)
+	{
+		len = sscanf(( char*)asn1String, "20%02d%02d%02d%02d%02d%02d%c",
+                                                           &(time_tm->tm_year),
+                                                           &(time_tm->tm_mon),
+                                                           &(time_tm->tm_mday),
+                                                           &(time_tm->tm_hour),
+                                                           &(time_tm->tm_min),
+                                                           &(time_tm->tm_sec),
+                                                           &zone
+                                                           );
+		/* dont understand */
+		if ( ( len != 7 ) || ( zone != 'Z' ) )
+		{
+			return 0;
+		}
+	}
+#ifdef _BSD_SOURCE
+	time_tm->tm_zone = zone;
+#endif
+
+	return 1;
+}
+
 static PyObject *
 convertASN1_TIMEToDateTime( const ASN1_TIME *asn1Time )
 {
    PyObject *datetime;
-   unsigned char *asn1String;
-   char zone;
-   int len;
    struct tm time_tm;
 
-
-   asn1String = ASN1_STRING_data( asn1Time );
-   len = strlen((char*)asn1String);
-   /* dont understand */
-   if ((len != 13) && (len != 15))
+   if( !convertASN1_TIMETotm( asn1Time, &time_tm) )
    {
-      Py_INCREF( Py_None );
-      return Py_None;
-   }
-
-   if (len == 13)
-   {
-      len = sscanf( (char*)asn1String, "%02d%02d%02d%02d%02d%02d%c",
-                                                               &(time_tm.tm_year),
-                                                               &(time_tm.tm_mon),
-                                                               &(time_tm.tm_mday),
-                                                               &(time_tm.tm_hour),
-                                                               &(time_tm.tm_min),
-                                                               &(time_tm.tm_sec),
-                                                               &zone
-                                                               );
-      //HACK: We don't expect this code to run past 2100s or receive certs pre-2000
-      time_tm.tm_year += 2000;
-      /* dont understand */
-      if ( ( len != 7 ) || ( zone != 'Z' ) )
-      {
-         Py_INCREF( Py_None );
-         return Py_None;
-      }
-   }
-
-   if (len == 15)
-   {
-      len = sscanf(( char*)asn1String, "20%02d%02d%02d%02d%02d%02d%c",
-                                                               &(time_tm.tm_year),
-                                                               &(time_tm.tm_mon),
-                                                               &(time_tm.tm_mday),
-                                                               &(time_tm.tm_hour),
-                                                               &(time_tm.tm_min),
-                                                               &(time_tm.tm_sec),
-                                                               &zone
-                                                               );
-      /* dont understand */
-      if ( ( len != 7 ) || ( zone != 'Z' ) )
-      {
-         Py_INCREF( Py_None );
-         return Py_None;
-      }
+	   Py_INCREF( Py_None );
+	   return Py_None;
    }
 
    PyDateTime_IMPORT;
@@ -635,7 +646,7 @@ crypto_X509_get_extensions(crypto_X509Obj *self, PyObject *args)
     		}
     		pyext->x509_extension = ext;
     		pyext->dealloc = 0;
-    		PyList_SetItem( extList, i, pyext );
+    		PyList_SetItem( extList, i, (PyObject*)pyext );
     	}
     	else
     	{
