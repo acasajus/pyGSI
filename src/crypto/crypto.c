@@ -18,7 +18,7 @@ Main file of crypto sub module.\n\
 See the file RATIONALE for a short explanation of why this module was written.\n\
 ";
 
-static char *CVSid = "@(#) $Id: crypto.c,v 1.5 2008/05/22 19:48:58 acasajus Exp $";
+static char *CVSid = "@(#) $Id: crypto.c,v 1.6 2008/05/23 14:28:09 acasajus Exp $";
 
 void **ssl_API;
 
@@ -88,7 +88,7 @@ crypto_load_privatekey(PyObject *spam, PyObject *args)
             cb = global_passphrase_callback;
             cb_arg = pw;
         }
-        else
+        else if (PyObject_IsTrue(pw))
         {
             PyErr_SetString(PyExc_TypeError, "Last argument must be string or callable");
             return NULL;
