@@ -8,7 +8,7 @@
  *
  * Reviewed 2001-07-23
  *
- * @(#) $Id: util.h,v 1.3 2008/03/05 13:55:40 acasajus Exp $
+ * @(#) $Id: util.h,v 1.4 2008/05/27 16:15:20 acasajus Exp $
  */
 #ifndef PyGSI_UTIL_H_
 #define PyGSI_UTIL_H_
@@ -16,6 +16,9 @@
 #include <Python.h>
 #include <time.h>
 #include <openssl/err.h>
+#include <string.h>
+#include <stdlib.h>
+
 
 /*
  * pymemcompat written by Michael Hudson and lets you program to the
