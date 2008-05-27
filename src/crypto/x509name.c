@@ -12,7 +12,7 @@
 #define crypto_MODULE
 #include "crypto.h"
 
-static char *CVSid = "@(#) $Id: x509name.c,v 1.9 2008/05/27 15:16:16 acasajus Exp $";
+static char *CVSid = "@(#) $Id: x509name.c,v 1.10 2008/05/27 19:06:46 acasajus Exp $";
 
 /*
  * Return a name string given a X509_NAME object and a name identifier. Used
@@ -206,9 +206,9 @@ Insert entry by position in name\n\
 \n\
 Arguments: self - The X509 object\n\
            args - The Python argument tuple, should be:\n\
-			- integer - position os entry\n\
 			- string - name of entry \n\
 			- string - value of entry \n\
+			- integer - position os entry <optional>\n\
 			- integer - type of entry <optional>\n\
 Returns: None\n\
 ";
@@ -216,12 +216,12 @@ Returns: None\n\
 static PyObject *
 crypto_X509Name_insert_entry(crypto_X509NameObj *self, PyObject *args)
 {
-   int pos;
    char *name, *value;
+   int pos = -1;
    int type = 0;
    int nid;
 
-   if (!PyArg_ParseTuple(args, "iss|i:remove_entry", &pos, &name, &value, &type))
+   if (!PyArg_ParseTuple(args, "ss|ii:remove_entry", &name, &value, &pos, &type))
       return NULL;
 
    if( !type )
