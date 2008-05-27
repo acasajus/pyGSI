@@ -12,8 +12,69 @@
 #define crypto_MODULE
 #include "crypto.h"
 
-static char *CVSid = "@(#) $Id: x509name.c,v 1.8 2008/05/23 14:14:18 acasajus Exp $";
+static char *CVSid = "@(#) $Id: x509name.c,v 1.9 2008/05/27 15:16:16 acasajus Exp $";
 
+/*
+ * Return a name string given a X509_NAME object and a name identifier. Used
+ * by the getattr function.
+ *
+ * Arguments: name - The X509_NAME object
+ *            nid  - The name identifier
+ * Returns:   The name as a Python string object
+ */
+static int
+get_name_by_nid(X509_NAME *name, int nid, char **utf8string)
+{
+    int entry_idx;
+    X509_NAME_ENTRY *entry;
+    ASN1_STRING *data;
+    int len;
+
+    if ((entry_idx = X509_NAME_get_index_by_NID(name, nid, -1)) == -1)
+    {
+        return 0;
+    }
+    entry = X509_NAME_get_entry(name, entry_idx);
+    data = X509_NAME_ENTRY_get_data(entry);
+    if ((len = ASN1_STRING_to_UTF8((unsigned char **)utf8string, data)) < 0)
+    {
+        exception_from_error_queue();
+        return -1;
+    }
+
+    return len;
+}
+
+/*
+ * Given a X509_NAME object and a name identifier, set the corresponding
+ * attribute to the given string. Used by the setattr function.
+ *
+ * Arguments: name  - The X509_NAME object
+ *            nid   - The name identifier
+ * 			  chtype - type of value
+ *            value - The string to set
+ *            pos - position to insert, -1 to append
+ *            sec - 1/-1 create a new RND. 0 should be default.
+
+ * Returns:   0 for success, -1 on failure
+ */
+static int
+set_name_by_nid(X509_NAME *name, int nid, unsigned int chtype, char *value, int pos, int sec)
+{
+    /* Add the new entry */
+    if (!X509_NAME_add_entry_by_NID( name,
+    								 nid,
+    								 chtype,
+    								 (unsigned char*)value,
+    								 -1,
+    								 pos,
+    								 sec ))
+    {
+        exception_from_error_queue();
+        return -1;
+    }
+    return 0;
+}
 
 static char crypto_X509Name_one_line_doc[] = "\n\
 Return X509 subject in one line.\n\
@@ -38,6 +99,143 @@ crypto_X509Name_one_line(crypto_X509NameObj *self, PyObject *args)
    pyString = PyString_FromString( subject );
    OPENSSL_free(subject);
    return pyString;
+}
+
+static char crypto_X509Name_num_entries_doc[] = "\n\
+Return number of entries in X509Name.\n\
+\n\
+Arguments: self - The X509 object\n\
+           args - The Python argument tuple, should be empty\n\
+Returns:   Int containing the number\n\
+";
+
+static PyObject *
+crypto_X509Name_num_entries(crypto_X509NameObj *self, PyObject *args)
+{
+   if (!PyArg_ParseTuple(args, ":num_entries"))
+      return NULL;
+
+   return PyInt_FromLong( X509_NAME_entry_count(self->x509_name) );
+}
+
+static char crypto_X509Name_get_entry_doc[] = "\n\
+Get entry by position in name\n\
+\n\
+Arguments: self - The X509 object\n\
+           args - The Python argument tuple, should be:\n\
+			- integer - position os entry\n\
+Returns: Tuple containing ( name, value, type )\n\
+";
+
+static PyObject *
+crypto_X509Name_get_entry(crypto_X509NameObj *self, PyObject *args)
+{
+   int pos;
+   X509_NAME_ENTRY *ent;
+   ASN1_OBJECT *fname;
+   ASN1_STRING *fval;
+   int l,nid;
+   unsigned char *str;
+   PyObject *tuple;
+
+   if (!PyArg_ParseTuple(args, "i:get_entry", &pos))
+      return NULL;
+
+   if( pos < 0 || pos > X509_NAME_entry_count(self->x509_name) )
+   {
+	   PyErr_SetString(PyExc_AttributeError, "There's no entry at that position" );
+	   return NULL;
+   }
+
+   ent = X509_NAME_get_entry(self->x509_name, pos);
+   if( !ent )
+   {
+	   exception_from_error_queue();
+	   return NULL;
+   }
+
+   fname = X509_NAME_ENTRY_get_object(ent);
+   nid = OBJ_obj2nid(fname);
+   fval = X509_NAME_ENTRY_get_data(ent);
+   str = ASN1_STRING_data(fval);
+   l = ASN1_STRING_length(fval);
+
+   tuple = PyTuple_New( 3 );
+   PyTuple_SetItem( tuple, 0, PyString_FromString( OBJ_nid2sn( nid ) ) );
+   PyTuple_SetItem( tuple, 1, PyString_FromStringAndSize( (char*)str, l ) );
+   PyTuple_SetItem( tuple, 2, PyInt_FromLong(ent->value->type) );
+
+   return tuple;
+}
+
+static char crypto_X509Name_remove_entry_doc[] = "\n\
+Delete entry by position in name\n\
+\n\
+Arguments: self - The X509 object\n\
+           args - The Python argument tuple, should be:\n\
+			- integer - position os entry\n\
+Returns: True if successful\n\
+";
+
+static PyObject *
+crypto_X509Name_remove_entry(crypto_X509NameObj *self, PyObject *args)
+{
+   int pos;
+   X509_NAME_ENTRY *ent;
+
+   if (!PyArg_ParseTuple(args, "i:remove_entry", &pos))
+      return NULL;
+
+   if( pos < 0 || pos > X509_NAME_entry_count(self->x509_name) )
+   {
+	   Py_RETURN_FALSE;
+   }
+
+   ent = X509_NAME_delete_entry(self->x509_name,pos);
+   if( !ent )
+   {
+	   Py_RETURN_FALSE;
+   }
+   X509_NAME_ENTRY_free( ent );
+
+   Py_RETURN_TRUE;
+}
+
+static char crypto_X509Name_insert_entry_doc[] = "\n\
+Insert entry by position in name\n\
+\n\
+Arguments: self - The X509 object\n\
+           args - The Python argument tuple, should be:\n\
+			- integer - position os entry\n\
+			- string - name of entry \n\
+			- string - value of entry \n\
+			- integer - type of entry <optional>\n\
+Returns: None\n\
+";
+
+static PyObject *
+crypto_X509Name_insert_entry(crypto_X509NameObj *self, PyObject *args)
+{
+   int pos;
+   char *name, *value;
+   int type = 0;
+   int nid;
+
+   if (!PyArg_ParseTuple(args, "iss|i:remove_entry", &pos, &name, &value, &type))
+      return NULL;
+
+   if( !type )
+	   type = MBSTRING_UTF8;
+
+   if ((nid = OBJ_txt2nid(name)) == NID_undef)
+   {
+      PyErr_SetString(PyExc_AttributeError, "No such attribute");
+      return NULL;
+   }
+
+   set_name_by_nid(self->x509_name,nid,type,value,pos,0);
+   Py_INCREF( Py_None );
+   return Py_None;
 }
 
 static char crypto_X509Name_clone_doc[] = "\n\
@@ -178,6 +376,10 @@ crypto_X509Name_get_components(crypto_X509NameObj *self, PyObject *args)
 static PyMethodDef crypto_X509Name_methods[] =
 {
     ADD_METHOD(one_line),
+    ADD_METHOD(num_entries),
+    ADD_METHOD(get_entry),
+    ADD_METHOD(remove_entry),
+    ADD_METHOD(insert_entry),
     ADD_METHOD(clone),
     ADD_METHOD(hash),
     ADD_METHOD(der),
@@ -211,69 +413,6 @@ crypto_X509Name_New(X509_NAME *name, int dealloc)
     PyObject_GC_Track(self);
     return self;
 }
-
-/*
- * Return a name string given a X509_NAME object and a name identifier. Used
- * by the getattr function.
- *
- * Arguments: name - The X509_NAME object
- *            nid  - The name identifier
- * Returns:   The name as a Python string object
- */
-static int
-get_name_by_nid(X509_NAME *name, int nid, char **utf8string)
-{
-    int entry_idx;
-    X509_NAME_ENTRY *entry;
-    ASN1_STRING *data;
-    int len;
-
-    if ((entry_idx = X509_NAME_get_index_by_NID(name, nid, -1)) == -1)
-    {
-        return 0;
-    }
-    entry = X509_NAME_get_entry(name, entry_idx);
-    data = X509_NAME_ENTRY_get_data(entry);
-    if ((len = ASN1_STRING_to_UTF8((unsigned char **)utf8string, data)) < 0)
-    {
-        exception_from_error_queue();
-        return -1;
-    }
-
-    return len;
-}
-
-/*
- * Given a X509_NAME object and a name identifier, set the corresponding
- * attribute to the given string. Used by the setattr function.
- *
- * Arguments: name  - The X509_NAME object
- *            nid   - The name identifier
- * 			  chtype - type of value
- *            value - The string to set
- *            pos - position to insert, -1 to append
- *            sec - 1/-1 create a new RND. 0 should be default.
-
- * Returns:   0 for success, -1 on failure
- */
-static int
-set_name_by_nid(X509_NAME *name, int nid, unsigned int chtype, char *value, int pos, int sec)
-{
-    /* Add the new entry */
-    if (!X509_NAME_add_entry_by_NID( name,
-    								 nid,
-    								 chtype,
-    								 (unsigned char*)value,
-    								 -1,
-    								 pos,
-    								 sec ))
-    {
-        exception_from_error_queue();
-        return -1;
-    }
-    return 0;
-}
-
 
 /*
  * Find attribute. An X509Name object has the following attributes:
