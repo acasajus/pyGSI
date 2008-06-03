@@ -24,7 +24,7 @@
 #endif
 
 static char *CVSid =
-	"@(#) $Id: connection.c,v 1.4 2008/03/05 14:44:58 acasajus Exp $";
+	"@(#) $Id: connection.c,v 1.5 2008/06/03 16:29:16 acasajus Exp $";
 //static int handshaked = 0;
 
 /**
@@ -951,6 +951,56 @@ static PyObject *ssl_Connection_get_peer_certificate( ssl_ConnectionObj *
 	}
 }
 
+static char ssl_Connection_get_peer_certificate_chain_doc[] = "\n\
+Retrieve the other side's certificate chain (if any)\n\
+\n\
+Arguments: self - The Connection object\n\
+           args - The Python argument tuple, should be empty\n\
+Returns:   List with the peer's certificate chain\n\
+";
+static PyObject *ssl_Connection_get_peer_certificate_chain( ssl_ConnectionObj *
+													  self,
+													  PyObject * args )
+{
+	STACK_OF(X509) *certStack;
+	X509 *cert;
+	PyObject *list;
+	int numCert, i;
+
+	if ( !PyArg_ParseTuple( args, ":get_peer_certificate_chain" ) )
+		return NULL;
+
+	certStack = SSL_get_peer_cert_chain( self->ssl );
+	if ( certStack != NULL )
+	{
+		numCert = sk_X509_num( certStack );
+		if( numCert < 0 )
+			numCert = 0;
+		list = PyList_New( numCert );
+		for( i = 0; i < numCert; i++ )
+		{
+			cert = sk_X509_value( certStack, i );
+			if( !cert )
+			{
+				Py_DECREF( list );
+				exception_from_error_queue();
+				return NULL;
+			}
+    		if( PyList_SetItem( list, i, (PyObject*)crypto_X509_New( cert, 1 ) ) == -1 )
+    		{
+    			Py_DECREF( list );
+    			return NULL;
+    		}
+		}
+		return list;
+	}
+	else
+	{
+		Py_INCREF( Py_None );
+		return Py_None;
+	}
+}
+
 static char ssl_Connection_want_read_doc[] = "\n\
 Checks if more data has to be read from the transport layer to complete an\n\
 operation.\n\
@@ -1216,6 +1266,7 @@ static PyMethodDef ssl_Connection_methods[] = {
 	ADD_METHOD( state_string ),
 	ADD_METHOD( sock_shutdown ),
 	ADD_METHOD( get_peer_certificate ),
+	ADD_METHOD( get_peer_certificate_chain ),
 	ADD_METHOD( want_read ),
 	ADD_METHOD( want_write ),
 	ADD_METHOD( set_accept_state ),
