@@ -10,7 +10,7 @@
 #define crypto_MODULE
 #include "crypto.h"
 
-static char *CVSid = "@(#) $Id: x509req.c,v 1.2 2008/05/20 19:25:12 acasajus Exp $";
+static char *CVSid = "@(#) $Id: x509req.c,v 1.3 2008/06/03 08:46:16 acasajus Exp $";
 
 
 static char crypto_X509Req_get_subject_doc[] = "\n\
@@ -37,6 +37,34 @@ crypto_X509Req_get_subject(crypto_X509ReqObj *self, PyObject *args)
     }
 
     return (PyObject *)crypto_X509Name_New(name, 0);
+}
+
+static char crypto_X509Req_set_subject_doc[] = "\n\
+Set X509Name object for the subject of the certificate request\n\
+\n\
+Arguments: self - The X509Req object\n\
+           args - The Python argument tuple, should be:\n\
+            - name : an X509Name object\n\
+Returns:   None\n\
+";
+
+static PyObject *
+crypto_X509Req_set_subject(crypto_X509ReqObj *self, PyObject *args)
+{
+    crypto_X509NameObj *subject;
+
+    if (!PyArg_ParseTuple(args, "O!:set_subject", &crypto_X509Name_Type,
+			  &subject))
+        return NULL;
+
+    if (!X509_REQ_set_subject_name(self->x509_req, subject->x509_name))
+    {
+        exception_from_error_queue();
+        return NULL;
+    }
+
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 static char crypto_X509Req_get_pubkey_doc[] = "\n\
@@ -243,6 +271,8 @@ crypto_X509Req_get_extensions(crypto_X509ReqObj *self, PyObject *args)
 
     extstack = X509_REQ_get_extensions( self->x509_req );
     extNum = sk_X509_EXTENSION_num( extstack );
+    if( extNum < 0 )
+    	extNum = 0;
     extList = PyList_New(extNum);
     for( i=0; i< extNum; i++)
     {
@@ -284,6 +314,7 @@ crypto_X509Req_get_extensions(crypto_X509ReqObj *self, PyObject *args)
 static PyMethodDef crypto_X509Req_methods[] =
 {
     ADD_METHOD(get_subject),
+    ADD_METHOD(set_subject),
     ADD_METHOD(get_pubkey),
     ADD_METHOD(set_pubkey),
     ADD_METHOD(sign),

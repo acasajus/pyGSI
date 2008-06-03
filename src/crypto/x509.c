@@ -15,7 +15,7 @@
 
 
 
-static char *CVSid = "@(#) $Id: x509.c,v 1.5 2008/05/23 14:13:25 acasajus Exp $";
+static char *CVSid = "@(#) $Id: x509.c,v 1.6 2008/06/03 08:46:16 acasajus Exp $";
 
 /*
  * X.509 is a standard for digital certificates.  See e.g. the OpenSSL homepage
@@ -631,6 +631,8 @@ crypto_X509_get_extensions(crypto_X509Obj *self, PyObject *args)
         return NULL;
 
     extNum = X509_get_ext_count( self->x509 );
+	if( extNum < 0 )
+    	extNum = 0;
     extList = PyList_New(extNum);
     for( i=0; i< extNum; i++)
     {
