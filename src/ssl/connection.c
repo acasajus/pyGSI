@@ -24,7 +24,7 @@
 #endif
 
 static char *CVSid =
-	"@(#) $Id: connection.c,v 1.5 2008/06/03 16:29:16 acasajus Exp $";
+	"@(#) $Id: connection.c,v 1.6 2008/06/03 16:46:49 acasajus Exp $";
 //static int handshaked = 0;
 
 /**
@@ -986,7 +986,7 @@ static PyObject *ssl_Connection_get_peer_certificate_chain( ssl_ConnectionObj *
 				exception_from_error_queue();
 				return NULL;
 			}
-    		if( PyList_SetItem( list, i, (PyObject*)crypto_X509_New( cert, 1 ) ) == -1 )
+    		if( PyList_SetItem( list, i, (PyObject*)crypto_X509_New( cert, 0 ) ) == -1 )
     		{
     			Py_DECREF( list );
     			return NULL;
