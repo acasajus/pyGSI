@@ -13,7 +13,7 @@
 #include "ssl.h"
 
 static char *CVSid =
-   "@(#) $Id: context.c,v 1.4 2008/03/05 14:44:58 acasajus Exp $";
+   "@(#) $Id: context.c,v 1.5 2008/06/04 16:38:38 acasajus Exp $";
 
 /*
  * CALLBACKS
@@ -432,6 +432,74 @@ static PyObject *ssl_Context_use_certificate( ssl_ContextObj * self,
    }
 }
 
+static char ssl_Context_use_certificate_chain_doc[] = "\n\
+Load a certificate chain from a list of X509 object\n\
+\n\
+Arguments: self - The Context object\n\
+           args - The Python argument tuple, should be:\n\
+             certList - List of X509 objects\n\
+Returns:   None\n\
+";
+static PyObject *ssl_Context_use_certificate_chain( ssl_ContextObj * self,
+                                   PyObject * args )
+{
+   crypto_X509Obj *cert;
+   PyObject *certList;
+   int i, numContents;
+
+   /* We need to check that cert really is an X509 object before we deal
+      with it. The problem is we can't just quickly verify the type
+      (since that comes from another module). This should do the trick
+      (reasonably well at least): Once we have one verified object, we
+      use it's type object for future comparisons. */
+
+   if ( !PyArg_ParseTuple( args, "O:use_certificate_chain", &certList ) )
+      return NULL;
+
+   certList = PySequence_Fast( certList, "Expected a sequence object" );
+   if( !certList )
+      return NULL;
+
+   numContents = PySequence_Fast_GET_SIZE( certList );
+   if( numContents < 0 )
+   {
+  	  Py_DECREF( certList );
+  	  PyErr_SetString( PyExc_TypeError, "Can't get length of sequence" );
+  	  return NULL;
+   }
+   for( i=0; i<numContents; i++ )
+   {
+   	  cert = (crypto_X509Obj*)PySequence_Fast_GET_ITEM( certList, i );
+      if ( ! crypto_X509_Check( cert ) )
+      {
+         Py_DECREF( certList );
+         PyErr_SetString( PyExc_TypeError, "Contents of sequence need to be X509 objects" );
+         return NULL;
+      }
+      if( i == 0 )
+      {
+	      if ( !SSL_CTX_use_certificate( self->ctx, cert->x509 ) )
+	      {
+	      	 Py_DECREF( certList );
+	         exception_from_error_queue(  );
+	         return NULL;
+	      }
+      }
+      else
+      {
+	      if ( !SSL_CTX_add_extra_chain_cert( self->ctx, cert->x509 ) )
+	      {
+	      	 Py_DECREF( certList );
+	         exception_from_error_queue(  );
+	         return NULL;
+	      }
+      }
+   }
+
+   Py_INCREF( Py_None );
+   return Py_None;
+}
+
 static char ssl_Context_use_privatekey_file_doc[] = "\n\
 Load a private key from a file\n\
 \n\
@@ -484,7 +552,6 @@ Returns:   None\n\
 static PyObject *ssl_Context_use_privatekey( ssl_ContextObj * self,
                                   PyObject * args )
 {
-   static PyTypeObject *crypto_PKey_type = NULL;
    crypto_PKeyObj *pkey;
 
    /* We need to check that cert really is a PKey object before we deal
@@ -493,23 +560,14 @@ static PyObject *ssl_Context_use_privatekey( ssl_ContextObj * self,
       (reasonably well at least): Once we have one verified object, we
       use it's type object for future comparisons. */
 
-   if ( !crypto_PKey_type )
-   {
-      if ( !PyArg_ParseTuple( args, "O:use_privatekey", &pkey ) )
-         return NULL;
-
-      if ( strcmp( pkey->ob_type->tp_name, "PKey" ) != 0 ||
-          pkey->ob_type->tp_basicsize != sizeof( crypto_PKeyObj ) )
-      {
-         PyErr_SetString( PyExc_TypeError, "Expected a PKey object" );
-         return NULL;
-      }
-
-      crypto_PKey_type = pkey->ob_type;
-   }
-   else if ( !PyArg_ParseTuple
-           ( args, "O!:use_privatekey", crypto_PKey_type, &pkey ) )
+   if ( !PyArg_ParseTuple( args, "O:use_privatekey", &pkey ) )
       return NULL;
+
+   if ( !crypto_PKey_Check(pkey) )
+   {
+      PyErr_SetString( PyExc_TypeError, "Expected a PKey object" );
+      return NULL;
+   }
 
    if ( !SSL_CTX_use_PrivateKey( self->ctx, pkey->pkey ) )
    {
@@ -1109,6 +1167,7 @@ static PyMethodDef ssl_Context_methods[] = {
    ADD_METHOD( set_passwd_cb ),
    ADD_METHOD( use_certificate_chain_file ),
    ADD_METHOD( use_certificate_file ),
+   ADD_METHOD( use_certificate_chain ),
    ADD_METHOD( use_certificate ),
    ADD_METHOD( use_privatekey_file ),
    ADD_METHOD( use_privatekey ),
