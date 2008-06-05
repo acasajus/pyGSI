@@ -57,6 +57,88 @@ static PyObject *ssl_Session_valid( ssl_SessionObj * self,
 	return PyInt_FromLong( ( long ) ret );
 }
 
+static char ssl_Session_get_time_doc[] = "\n\
+Retreve when a session was established.\n\
+\n\
+Arguments: self - The Connection object\n\
+           args - The Python argument tuple, should be empty\n\
+Returns:   Int, 0 on error\n\
+";
+static PyObject *ssl_Session_get_time( ssl_SessionObj * self,
+									PyObject * args )
+{
+	if ( !PyArg_ParseTuple( args, ":get_time" ) )
+		return NULL;
+
+	if ( self->session )
+		return PyInt_FromLong( SSL_SESSION_get_time( self->session ) );
+
+	return PyInt_FromLong( 0 );
+}
+
+static char ssl_Session_get_timeout_doc[] = "\n\
+Retrieve the timeout of the session.\n\
+\n\
+Arguments: self - The Connection object\n\
+           args - The Python argument tuple, should be empty\n\
+Returns:   Int, 0 on error\n\
+";
+static PyObject *ssl_Session_get_timeout( ssl_SessionObj * self,
+									PyObject * args )
+{
+	if ( !PyArg_ParseTuple( args, ":get_timeout" ) )
+		return NULL;
+
+	if ( self->session )
+		return PyInt_FromLong( SSL_SESSION_get_timeout( self->session ) );
+
+	return PyInt_FromLong( 0 );
+}
+
+static char ssl_Session_set_time_doc[] = "\n\
+Set the time when a session was established.\n\
+\n\
+Arguments: self - The Connection object\n\
+           args - The Python argument tuple, should be:\n\
+           	-int : time of creation\n\
+Returns:   Int, 0 on error\n\
+";
+static PyObject *ssl_Session_set_time( ssl_SessionObj * self,
+									PyObject * args )
+{
+	long time;
+
+	if ( !PyArg_ParseTuple( args, "l:set_time", &time ) )
+		return NULL;
+
+	SSL_SESSION_set_time( self->session, time );
+
+	Py_INCREF( Py_None );
+	return Py_None;
+}
+
+static char ssl_Session_set_timeout_doc[] = "\n\
+Set the time when a session was established.\n\
+\n\
+Arguments: self - The Connection object\n\
+           args - The Python argument tuple, should be:\n\
+           	-int : time of creation\n\
+Returns:   Int, 0 on error\n\
+";
+static PyObject *ssl_Session_set_timeout( ssl_SessionObj * self,
+									PyObject * args )
+{
+	long time;
+
+	if ( !PyArg_ParseTuple( args, "l:set_timeout", &time ) )
+		return NULL;
+
+	SSL_SESSION_set_timeout( self->session, time );
+
+	Py_INCREF( Py_None );
+	return Py_None;
+}
+
 #define ADD_METHOD(name)        \
     { #name, (PyCFunction)ssl_Session_##name, METH_VARARGS, ssl_Session_##name##_doc }
 
@@ -71,6 +153,10 @@ static PyObject *ssl_Session_valid( ssl_SessionObj * self,
 static PyMethodDef ssl_Session_methods[] = {
 	ADD_METHOD( free ),
 	ADD_METHOD( valid ),
+	ADD_METHOD( get_time ),
+	ADD_METHOD( get_timeout ),
+	ADD_METHOD( set_time ),
+	ADD_METHOD( set_timeout ),
 	{NULL, NULL}
 };
 
