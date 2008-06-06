@@ -36,7 +36,7 @@ else
 	echo "-release mode-"
 	./config -shared threads                          || exit 1
 fi
-make                                                 || exit 1
+make -j4                                              || exit 1
 )
 
 (
