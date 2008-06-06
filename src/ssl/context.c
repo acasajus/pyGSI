@@ -13,7 +13,7 @@
 #include "ssl.h"
 
 static char *CVSid =
-   "@(#) $Id: context.c,v 1.5 2008/06/04 16:38:38 acasajus Exp $";
+   "@(#) $Id: context.c,v 1.6 2008/06/06 13:02:59 acasajus Exp $";
 
 /*
  * CALLBACKS
@@ -443,6 +443,7 @@ Returns:   None\n\
 static PyObject *ssl_Context_use_certificate_chain( ssl_ContextObj * self,
                                    PyObject * args )
 {
+   static PyTypeObject *crypto_X509_Type = NULL;
    crypto_X509Obj *cert;
    PyObject *certList;
    int i, numContents;
@@ -470,7 +471,19 @@ static PyObject *ssl_Context_use_certificate_chain( ssl_ContextObj * self,
    for( i=0; i<numContents; i++ )
    {
    	  cert = (crypto_X509Obj*)PySequence_Fast_GET_ITEM( certList, i );
-      if ( ! crypto_X509_Check( cert ) )
+   	  if( !crypto_X509_Type )
+   	  {
+		  if ( strcmp( cert->ob_type->tp_name, "X509" ) != 0 ||
+		      cert->ob_type->tp_basicsize != sizeof( crypto_X509Obj ) )
+		  {
+		  	 Py_DECREF( certList );
+		     PyErr_SetString( PyExc_TypeError, "Expected an X509 object" );
+		     return NULL;
+		  }
+
+		  crypto_X509_Type = cert->ob_type;
+   	  }
+      else if ( !crypto_X509_Check( cert ) )
       {
          Py_DECREF( certList );
          PyErr_SetString( PyExc_TypeError, "Contents of sequence need to be X509 objects" );
@@ -552,6 +565,7 @@ Returns:   None\n\
 static PyObject *ssl_Context_use_privatekey( ssl_ContextObj * self,
                                   PyObject * args )
 {
+   static PyTypeObject *crypto_PKey_Type = NULL;
    crypto_PKeyObj *pkey;
 
    /* We need to check that cert really is a PKey object before we deal
@@ -563,7 +577,18 @@ static PyObject *ssl_Context_use_privatekey( ssl_ContextObj * self,
    if ( !PyArg_ParseTuple( args, "O:use_privatekey", &pkey ) )
       return NULL;
 
-   if ( !crypto_PKey_Check(pkey) )
+   if( !crypto_PKey_Type )
+   {
+      if ( strcmp( pkey->ob_type->tp_name, "PKey" ) != 0 ||
+		   pkey->ob_type->tp_basicsize != sizeof( crypto_PKeyObj ) )
+	  {
+	     PyErr_SetString( PyExc_TypeError, "Expected an PKey object" );
+	     return NULL;
+	  }
+
+	  crypto_PKey_Type = pkey->ob_type;
+   }
+   else if ( !crypto_PKey_Check(pkey) )
    {
       PyErr_SetString( PyExc_TypeError, "Expected a PKey object" );
       return NULL;
