@@ -15,7 +15,7 @@
 
 
 
-static char *CVSid = "@(#) $Id: x509.c,v 1.6 2008/06/03 08:46:16 acasajus Exp $";
+static char *CVSid = "@(#) $Id: x509.c,v 1.7 2008/06/10 18:41:57 acasajus Exp $";
 
 /*
  * X.509 is a standard for digital certificates.  See e.g. the OpenSSL homepage
@@ -374,18 +374,17 @@ crypto_X509_sign(crypto_X509Obj *self, PyObject *args)
     return Py_None;
 }
 
-static char crypto_X509_verify_doc[] = "\n\
-Verify if the certificate was signed with the key\n\
+static char crypto_X509_verify_pkey_is_issuer_doc[] = "\n\
+Verify if the certificate was issued with the key\n\
 \n\
 Arguments: self - The X509 object\n\
            args - The Python argument tuple, should be:\n\
-             pkey   - The key that signed\n\
-             digest - The message digest to use\n\
+             pkey   - The key that issued\n\
 Returns:   None\n\
 ";
 
 static PyObject *
-crypto_X509_verify(crypto_X509Obj *self, PyObject *args)
+crypto_X509_verify_pkey_is_issuer(crypto_X509Obj *self, PyObject *args)
 {
     crypto_PKeyObj *pkey;
 
@@ -734,7 +733,7 @@ static PyMethodDef crypto_X509_methods[] =
     ADD_METHOD(gmtime_adj_notBefore),
     ADD_METHOD(gmtime_adj_notAfter),
     ADD_METHOD(sign),
-    ADD_METHOD(verify),
+    ADD_METHOD(verify_pkey_is_issuer),
     ADD_METHOD(has_expired),
     ADD_METHOD(subject_name_hash),
     ADD_METHOD(digest),
