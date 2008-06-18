@@ -18,7 +18,7 @@ Main file of crypto sub module.\n\
 See the file RATIONALE for a short explanation of why this module was written.\n\
 ";
 
-static char *CVSid = "@(#) $Id: crypto.c,v 1.6 2008/05/23 14:28:09 acasajus Exp $";
+static char *CVSid = "@(#) $Id: crypto.c,v 1.7 2008/06/18 19:55:30 acasajus Exp $";
 
 void **ssl_API;
 
@@ -220,6 +220,66 @@ crypto_dump_privatekey(PyObject *spam, PyObject *args)
 
     return buffer;
 }
+
+static char crypto_dump_publickey_doc[] = "\n\
+Dump a public key to a buffer\n\
+\n\
+Arguments: spam - Always NULL\n\
+           args - The Python argument tuple, should be:\n\
+             type       - The file type (one of FILETYPE_PEM, FILETYPE_ASN1)\n\
+             pkey       - The PKey to dump\n\
+Returns:   The buffer with the dumped key in\n\
+";
+
+static PyObject *
+crypto_dump_publickey(PyObject *spam, PyObject *args)
+{
+    int type, ret, buf_len;
+    char *temp;
+    PyObject *buffer;
+    BIO *bio;
+    crypto_PKeyObj *pkey;
+
+    if (!PyArg_ParseTuple(args, "iO!:dump_privatekey", &type,
+           &crypto_PKey_Type, &pkey))
+        return NULL;
+
+    bio = BIO_new(BIO_s_mem());
+    switch (type)
+    {
+        case X509_FILETYPE_PEM:
+            ret = PEM_write_bio_PUBKEY(bio, pkey->pkey );
+            if (PyErr_Occurred())
+            {
+                BIO_free(bio);
+                return NULL;
+            }
+            break;
+
+        case X509_FILETYPE_ASN1:
+            ret = i2d_PUBKEY_bio(bio, pkey->pkey);
+            break;
+
+        default:
+            PyErr_SetString(PyExc_ValueError, "type argument must be FILETYPE_PEM or FILETYPE_ASN1");
+            BIO_free(bio);
+            return NULL;
+    }
+
+    if (ret == 0)
+    {
+        BIO_free(bio);
+        exception_from_error_queue();
+        return NULL;
+    }
+
+    buf_len = BIO_get_mem_data(bio, &temp);
+    buffer = PyString_FromStringAndSize(temp, buf_len);
+    BIO_free(bio);
+
+    return buffer;
+}
+
 
 static char crypto_load_certificate_doc[] = "\n\
 Load a certificate from a buffer\n\
@@ -781,6 +841,7 @@ static PyMethodDef crypto_methods[] = {
     /* Module functions */
     { "load_privatekey",  (PyCFunction)crypto_load_privatekey,  METH_VARARGS, crypto_load_privatekey_doc },
     { "dump_privatekey",  (PyCFunction)crypto_dump_privatekey,  METH_VARARGS, crypto_dump_privatekey_doc },
+    { "dump_publickey",  (PyCFunction)crypto_dump_publickey,  METH_VARARGS, crypto_dump_publickey_doc },
     { "load_certificate", (PyCFunction)crypto_load_certificate, METH_VARARGS, crypto_load_certificate_doc },
     { "load_certificate_chain", (PyCFunction)crypto_load_certificate_chain, METH_VARARGS, crypto_load_certificate_chain_doc },
     { "dump_certificate", (PyCFunction)crypto_dump_certificate, METH_VARARGS, crypto_dump_certificate_doc },
