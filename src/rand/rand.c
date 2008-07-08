@@ -1,3 +1,4 @@
+
 /*
  * rand.c
  *
@@ -25,7 +26,8 @@ PRNG management routines, thin wrappers.\n\
 See the file RATIONALE for a short explanation of why this module was written.\n\
 ";
 
-static char *CVSid = "@(#) $Id: rand.c,v 1.2 2008/03/05 13:55:40 acasajus Exp $";
+static char *CVSid =
+    "@(#) $Id: rand.c,v 1.3 2008/07/08 10:54:56 acasajus Exp $";
 
 static char rand_add_doc[] = "\n\
 Add data with a given entropy to the PRNG\n\
@@ -38,18 +40,18 @@ Returns:   None\n\
 ";
 
 static PyObject *
-rand_add(PyObject *spam, PyObject *args)
+rand_add( PyObject * spam, PyObject * args )
 {
     char *buf;
     int size;
     double entropy;
 
-    if (!PyArg_ParseTuple(args, "s#d:add", &buf, &size, &entropy))
+    if ( !PyArg_ParseTuple( args, "s#d:add", &buf, &size, &entropy ) )
         return NULL;
 
-    RAND_add(buf, size, entropy);
+    RAND_add( buf, size, entropy );
 
-    Py_INCREF(Py_None);
+    Py_INCREF( Py_None );
     return Py_None;
 }
 
@@ -63,17 +65,17 @@ Returns:   None\n\
 ";
 
 static PyObject *
-rand_seed(PyObject *spam, PyObject *args)
+rand_seed( PyObject * spam, PyObject * args )
 {
     char *buf;
     int size;
 
-    if (!PyArg_ParseTuple(args, "s#:seed", &buf, &size))
+    if ( !PyArg_ParseTuple( args, "s#:seed", &buf, &size ) )
         return NULL;
 
-    RAND_seed(buf, size);
+    RAND_seed( buf, size );
 
-    Py_INCREF(Py_None);
+    Py_INCREF( Py_None );
     return Py_None;
 }
 
@@ -86,12 +88,12 @@ Returns:   True if the PRNG is seeded enough, false otherwise\n\
 ";
 
 static PyObject *
-rand_status(PyObject *spam, PyObject *args)
+rand_status( PyObject * spam, PyObject * args )
 {
-    if (!PyArg_ParseTuple(args, ":status"))
+    if ( !PyArg_ParseTuple( args, ":status" ) )
         return NULL;
 
-    return PyInt_FromLong((long)RAND_status());
+    return PyInt_FromLong( ( long ) RAND_status(  ) );
 }
 
 #ifdef MS_WINDOWS
@@ -105,13 +107,13 @@ Returns:   None\n\
 ";
 
 static PyObject *
-rand_screen(PyObject *spam, PyObject *args)
+rand_screen( PyObject * spam, PyObject * args )
 {
-    if (!PyArg_ParseTuple(args, ":screen"))
+    if ( !PyArg_ParseTuple( args, ":screen" ) )
         return NULL;
 
-    RAND_screen();
-    Py_INCREF(Py_None);
+    RAND_screen(  );
+    Py_INCREF( Py_None );
     return Py_None;
 }
 #endif
@@ -130,15 +132,15 @@ Returns:   The number of bytes read (NB: a value of 0 isn't necessarily an\n\
 ";
 
 static PyObject *
-rand_egd(PyObject *spam, PyObject *args)
+rand_egd( PyObject * spam, PyObject * args )
 {
     char *path;
     int bytes = 255;
 
-    if (!PyArg_ParseTuple(args, "s|i:egd", &path, &bytes))
+    if ( !PyArg_ParseTuple( args, "s|i:egd", &path, &bytes ) )
         return NULL;
 
-    return PyInt_FromLong((long)RAND_egd_bytes(path, bytes));
+    return PyInt_FromLong( ( long ) RAND_egd_bytes( path, bytes ) );
 }
 
 static char rand_cleanup_doc[] = "\n\
@@ -150,14 +152,14 @@ Returns:   None\n\
 ";
 
 static PyObject *
-rand_cleanup(PyObject *spam, PyObject *args)
+rand_cleanup( PyObject * spam, PyObject * args )
 {
-    if (!PyArg_ParseTuple(args, ":cleanup"))
+    if ( !PyArg_ParseTuple( args, ":cleanup" ) )
         return NULL;
 
-    RAND_cleanup();
+    RAND_cleanup(  );
 
-    Py_INCREF(Py_None);
+    Py_INCREF( Py_None );
     return Py_None;
 }
 
@@ -173,15 +175,15 @@ Returns:   The number of bytes read\n\
 ";
 
 static PyObject *
-rand_load_file(PyObject *spam, PyObject *args)
+rand_load_file( PyObject * spam, PyObject * args )
 {
     char *filename;
     int maxbytes = -1;
 
-    if (!PyArg_ParseTuple(args, "s|i:load_file", &filename, &maxbytes))
+    if ( !PyArg_ParseTuple( args, "s|i:load_file", &filename, &maxbytes ) )
         return NULL;
 
-    return PyInt_FromLong((long)RAND_load_file(filename, maxbytes));
+    return PyInt_FromLong( ( long ) RAND_load_file( filename, maxbytes ) );
 }
 
 static char rand_write_file_doc[] = "\n\
@@ -194,30 +196,32 @@ Returns:   The number of bytes written\n\
 ";
 
 static PyObject *
-rand_write_file(PyObject *spam, PyObject *args)
+rand_write_file( PyObject * spam, PyObject * args )
 {
     char *filename;
 
-    if (!PyArg_ParseTuple(args, "s:write_file", &filename))
+    if ( !PyArg_ParseTuple( args, "s:write_file", &filename ) )
         return NULL;
 
-    return PyInt_FromLong((long)RAND_write_file(filename));
+    return PyInt_FromLong( ( long ) RAND_write_file( filename ) );
 }
 
 
 /* Methods in the GSI.rand module */
 static PyMethodDef rand_methods[] = {
-    { "add",       (PyCFunction)rand_add,          METH_VARARGS, rand_add_doc },
-    { "seed",      (PyCFunction)rand_seed,         METH_VARARGS, rand_seed_doc },
-    { "status",    (PyCFunction)rand_status,       METH_VARARGS, rand_status_doc },
+    {"add", ( PyCFunction ) rand_add, METH_VARARGS, rand_add_doc},
+    {"seed", ( PyCFunction ) rand_seed, METH_VARARGS, rand_seed_doc},
+    {"status", ( PyCFunction ) rand_status, METH_VARARGS, rand_status_doc},
 #ifdef MS_WINDOWS
-    { "screen",    (PyCFunction)rand_screen,       METH_VARARGS, rand_screen_doc },
+    {"screen", ( PyCFunction ) rand_screen, METH_VARARGS, rand_screen_doc},
 #endif
-    { "egd",       (PyCFunction)rand_egd,          METH_VARARGS, rand_egd_doc },
-    { "cleanup",   (PyCFunction)rand_cleanup,      METH_VARARGS, rand_cleanup_doc },
-    { "load_file", (PyCFunction)rand_load_file,    METH_VARARGS, rand_load_file_doc },
-    { "write_file",(PyCFunction)rand_write_file,   METH_VARARGS, rand_write_file_doc },
-    { NULL, NULL }
+    {"egd", ( PyCFunction ) rand_egd, METH_VARARGS, rand_egd_doc},
+    {"cleanup", ( PyCFunction ) rand_cleanup, METH_VARARGS, rand_cleanup_doc},
+    {"load_file", ( PyCFunction ) rand_load_file, METH_VARARGS,
+     rand_load_file_doc},
+    {"write_file", ( PyCFunction ) rand_write_file, METH_VARARGS,
+     rand_write_file_doc},
+    {NULL, NULL}
 };
 
 
@@ -228,13 +232,13 @@ static PyMethodDef rand_methods[] = {
  * Returns:   None
  */
 void
-initrand(void)
+initrand( void )
 {
     PyObject *module;
 
-    ERR_load_RAND_strings();
+    ERR_load_RAND_strings(  );
 
-    if ((module = Py_InitModule3("rand", rand_methods, rand_doc)) == NULL)
+    if ( ( module =
+           Py_InitModule3( "rand", rand_methods, rand_doc ) ) == NULL )
         return;
 }
-

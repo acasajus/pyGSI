@@ -1,3 +1,4 @@
+
 /*
  * pkcs12.c
  *
@@ -14,14 +15,15 @@
 #define crypto_MODULE
 #include "crypto.h"
 
-static char *CVSid = "@(#) $Id: pkcs12.c,v 1.1 2008/02/29 18:46:02 acasajus Exp $";
+static char *CVSid =
+    "@(#) $Id: pkcs12.c,v 1.2 2008/07/08 10:54:54 acasajus Exp $";
 
 /* 
  * PKCS12 is a standard exchange format for digital certificates.  
  * See e.g. the OpenSSL homepage http://www.openssl.org/ for more information
  */
 
-static void crypto_PKCS12_dealloc(crypto_PKCS12Obj *self);
+static void crypto_PKCS12_dealloc( crypto_PKCS12Obj * self );
 
 static char crypto_PKCS12_get_certificate_doc[] = "\n\
 Return certificate portion of the PKCS12 structure\n\
@@ -31,12 +33,12 @@ Arguments: self - The PKCS12 object\n\
 Returns:   X509 object containing the certificate\n\
 ";
 static PyObject *
-crypto_PKCS12_get_certificate(crypto_PKCS12Obj *self, PyObject *args)
+crypto_PKCS12_get_certificate( crypto_PKCS12Obj * self, PyObject * args )
 {
-    if (!PyArg_ParseTuple(args, ":get_certificate"))
+    if ( !PyArg_ParseTuple( args, ":get_certificate" ) )
         return NULL;
 
-    Py_INCREF(self->cert);
+    Py_INCREF( self->cert );
     return self->cert;
 }
 
@@ -48,12 +50,12 @@ Arguments: self - The PKCS12 object\n\
 Returns:   PKey object containing the private key\n\
 ";
 static PyObject *
-crypto_PKCS12_get_privatekey(crypto_PKCS12Obj *self, PyObject *args)
+crypto_PKCS12_get_privatekey( crypto_PKCS12Obj * self, PyObject * args )
 {
-    if (!PyArg_ParseTuple(args, ":get_privatekey"))
+    if ( !PyArg_ParseTuple( args, ":get_privatekey" ) )
         return NULL;
 
-    Py_INCREF(self->key);
+    Py_INCREF( self->key );
     return self->key;
 }
 
@@ -66,12 +68,12 @@ Returns:   A newly created tuple containing the CA certificates in the chain,\n\
            if any are present, or None if no CA certificates are present.\n\
 ";
 static PyObject *
-crypto_PKCS12_get_ca_certificates(crypto_PKCS12Obj *self, PyObject *args)
+crypto_PKCS12_get_ca_certificates( crypto_PKCS12Obj * self, PyObject * args )
 {
-    if (!PyArg_ParseTuple(args, ":get_ca_certificates"))
+    if ( !PyArg_ParseTuple( args, ":get_ca_certificates" ) )
         return NULL;
 
-    Py_INCREF(self->cacerts);
+    Py_INCREF( self->cacerts );
     return self->cacerts;
 }
 
@@ -82,13 +84,13 @@ crypto_PKCS12_get_ca_certificates(crypto_PKCS12Obj *self, PyObject *args)
  */
 #define ADD_METHOD(name)        \
     { #name, (PyCFunction)crypto_PKCS12_##name, METH_VARARGS, crypto_PKCS12_##name##_doc }
-static PyMethodDef crypto_PKCS12_methods[] =
-{
-    ADD_METHOD(get_certificate),
-    ADD_METHOD(get_privatekey),
-    ADD_METHOD(get_ca_certificates),
-    { NULL, NULL }
+static PyMethodDef crypto_PKCS12_methods[] = {
+    ADD_METHOD( get_certificate ),
+    ADD_METHOD( get_privatekey ),
+    ADD_METHOD( get_ca_certificates ),
+    {NULL, NULL}
 };
+
 #undef ADD_METHOD
 
 /*
@@ -101,64 +103,69 @@ static PyMethodDef crypto_PKCS12_methods[] =
  * Returns:   The newly created PKCS12 object
  */
 crypto_PKCS12Obj *
-crypto_PKCS12_New(PKCS12 *p12, char *passphrase)
+crypto_PKCS12_New( PKCS12 * p12, char *passphrase )
 {
     crypto_PKCS12Obj *self;
     PyObject *cacertobj = NULL;
 
     X509 *cert = NULL;
     EVP_PKEY *pkey = NULL;
-    STACK_OF(X509) *cacerts = NULL;
+
+    STACK_OF( X509 ) * cacerts = NULL;
 
     int i, cacert_count = 0;
 
     /* allocate space for the CA cert stack */
-    cacerts = sk_X509_new_null();
+    cacerts = sk_X509_new_null(  );
 
     /* parse the PKCS12 lump */
-    if (!(cacerts && PKCS12_parse(p12, passphrase, &pkey, &cert, &cacerts)))
+    if ( !
+         ( cacerts
+           && PKCS12_parse( p12, passphrase, &pkey, &cert, &cacerts ) ) )
     {
-        exception_from_error_queue();
+        exception_from_error_queue(  );
         return NULL;
     }
 
-    if (!(self = PyObject_GC_New(crypto_PKCS12Obj, &crypto_PKCS12_Type)))
+    if ( !
+         ( self = PyObject_GC_New( crypto_PKCS12Obj, &crypto_PKCS12_Type ) ) )
         return NULL;
 
     self->cert = NULL;
     self->key = NULL;
-    Py_INCREF(Py_None);
+    Py_INCREF( Py_None );
     self->cacerts = Py_None;
 
-    if ((self->cert = (PyObject *)crypto_X509_New(cert, 1)) == NULL)
+    if ( ( self->cert = ( PyObject * ) crypto_X509_New( cert, 1 ) ) == NULL )
         goto error;
 
-    if ((self->key = (PyObject *)crypto_PKey_New(pkey, 1)) == NULL)
+    if ( ( self->key = ( PyObject * ) crypto_PKey_New( pkey, 1 ) ) == NULL )
         goto error;
 
     /* Make a tuple for the CA certs */
-    cacert_count = sk_X509_num(cacerts);
-    if (cacert_count > 0)
+    cacert_count = sk_X509_num( cacerts );
+    if ( cacert_count > 0 )
     {
-        Py_DECREF(self->cacerts);
-        if ((self->cacerts = PyTuple_New(cacert_count)) == NULL)
+        Py_DECREF( self->cacerts );
+        if ( ( self->cacerts = PyTuple_New( cacert_count ) ) == NULL )
             goto error;
 
-        for (i = 0; i < cacert_count; i++)
+        for ( i = 0; i < cacert_count; i++ )
         {
-            cert = sk_X509_value(cacerts, i);
-            if ((cacertobj = (PyObject *)crypto_X509_New(cert, 1)) == NULL)
+            cert = sk_X509_value( cacerts, i );
+            if ( ( cacertobj =
+                   ( PyObject * ) crypto_X509_New( cert, 1 ) ) == NULL )
                 goto error;
-            PyTuple_SET_ITEM(self->cacerts, i, cacertobj);
+            PyTuple_SET_ITEM( self->cacerts, i, cacertobj );
         }
     }
 
-    sk_X509_free(cacerts); /* don't free the certs, just the stack */
-    PyObject_GC_Track(self);
+    sk_X509_free( cacerts );    /* don't free the certs, just the stack */
+    PyObject_GC_Track( self );
 
     return self;
-error:
-    crypto_PKCS12_dealloc(self);
+  error:
+    crypto_PKCS12_dealloc( self );
     return NULL;
 }
 
@@ -171,9 +178,9 @@ error:
  *            wrong
  */
 static PyObject *
-crypto_PKCS12_getattr(crypto_PKCS12Obj *self, char *name)
+crypto_PKCS12_getattr( crypto_PKCS12Obj * self, char *name )
 {
-    return Py_FindMethod(crypto_PKCS12_methods, (PyObject *)self, name);
+    return Py_FindMethod( crypto_PKCS12_methods, ( PyObject * ) self, name );
 }
 
 /*
@@ -186,16 +193,16 @@ crypto_PKCS12_getattr(crypto_PKCS12Obj *self, char *name)
  *            call that gave non-zero result.
  */
 static int
-crypto_PKCS12_traverse(crypto_PKCS12Obj *self, visitproc visit, void *arg)
+crypto_PKCS12_traverse( crypto_PKCS12Obj * self, visitproc visit, void *arg )
 {
     int ret = 0;
 
-    if (ret == 0 && self->cert != NULL)
-        ret = visit(self->cert, arg);
-    if (ret == 0 && self->key != NULL)
-        ret = visit(self->key, arg);
-    if (ret == 0 && self->cacerts != NULL)
-        ret = visit(self->cacerts, arg);
+    if ( ret == 0 && self->cert != NULL )
+        ret = visit( self->cert, arg );
+    if ( ret == 0 && self->key != NULL )
+        ret = visit( self->key, arg );
+    if ( ret == 0 && self->cacerts != NULL )
+        ret = visit( self->cacerts, arg );
     return ret;
 }
 
@@ -206,13 +213,13 @@ crypto_PKCS12_traverse(crypto_PKCS12Obj *self, visitproc visit, void *arg)
  * Returns:   Always 0.
  */
 static int
-crypto_PKCS12_clear(crypto_PKCS12Obj *self)
+crypto_PKCS12_clear( crypto_PKCS12Obj * self )
 {
-    Py_XDECREF(self->cert);
+    Py_XDECREF( self->cert );
     self->cert = NULL;
-    Py_XDECREF(self->key);
+    Py_XDECREF( self->key );
     self->key = NULL;
-    Py_XDECREF(self->cacerts);
+    Py_XDECREF( self->cacerts );
     self->cacerts = NULL;
     return 0;
 }
@@ -224,38 +231,37 @@ crypto_PKCS12_clear(crypto_PKCS12Obj *self)
  * Returns:   None
  */
 static void
-crypto_PKCS12_dealloc(crypto_PKCS12Obj *self)
+crypto_PKCS12_dealloc( crypto_PKCS12Obj * self )
 {
-    PyObject_GC_UnTrack(self);
-    crypto_PKCS12_clear(self);
-    PyObject_GC_Del(self);
+    PyObject_GC_UnTrack( self );
+    crypto_PKCS12_clear( self );
+    PyObject_GC_Del( self );
 }
 
 PyTypeObject crypto_PKCS12_Type = {
-    PyObject_HEAD_INIT(NULL)
-    0,
+    PyObject_HEAD_INIT( NULL ) 0,
     "PKCS12",
-    sizeof(crypto_PKCS12Obj),
+    sizeof( crypto_PKCS12Obj ),
     0,
-    (destructor)crypto_PKCS12_dealloc,
-    NULL, /* print */
-    (getattrfunc)crypto_PKCS12_getattr,
-    NULL, /* setattr */
-    NULL, /* compare */
-    NULL, /* repr */
-    NULL, /* as_number */
-    NULL, /* as_sequence */
-    NULL, /* as_mapping */
-    NULL, /* hash */
-    NULL, /* call */
-    NULL, /* str */
-    NULL, /* getattro */
-    NULL, /* setattro */
-    NULL, /* as_buffer */
+    ( destructor ) crypto_PKCS12_dealloc,
+    NULL,                       /* print */
+    ( getattrfunc ) crypto_PKCS12_getattr,
+    NULL,                       /* setattr */
+    NULL,                       /* compare */
+    NULL,                       /* repr */
+    NULL,                       /* as_number */
+    NULL,                       /* as_sequence */
+    NULL,                       /* as_mapping */
+    NULL,                       /* hash */
+    NULL,                       /* call */
+    NULL,                       /* str */
+    NULL,                       /* getattro */
+    NULL,                       /* setattro */
+    NULL,                       /* as_buffer */
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,
-    NULL, /* doc */
-    (traverseproc)crypto_PKCS12_traverse,
-    (inquiry)crypto_PKCS12_clear,
+    NULL,                       /* doc */
+    ( traverseproc ) crypto_PKCS12_traverse,
+    ( inquiry ) crypto_PKCS12_clear,
 };
 
 /*
@@ -265,11 +271,11 @@ PyTypeObject crypto_PKCS12_Type = {
  * Returns:   None
  */
 int
-init_crypto_pkcs12(PyObject *dict)
+init_crypto_pkcs12( PyObject * dict )
 {
     crypto_PKCS12_Type.ob_type = &PyType_Type;
-    Py_INCREF(&crypto_PKCS12_Type);
-    PyDict_SetItemString(dict, "PKCS12Type", (PyObject *)&crypto_PKCS12_Type);
+    Py_INCREF( &crypto_PKCS12_Type );
+    PyDict_SetItemString( dict, "PKCS12Type",
+                          ( PyObject * ) & crypto_PKCS12_Type );
     return 1;
 }
-

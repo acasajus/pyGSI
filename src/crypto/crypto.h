@@ -1,3 +1,4 @@
+
 /*
  * crypto.h
  *
@@ -8,7 +9,7 @@
  *
  * Reviewed 2001-07-23
  *
- * @(#) $Id: crypto.h,v 1.4 2008/05/21 16:18:39 acasajus Exp $
+ * @(#) $Id: crypto.h,v 1.5 2008/07/08 10:54:54 acasajus Exp $
  */
 #ifndef PyGSI_CRYPTO_H_
 #define PyGSI_CRYPTO_H_
@@ -72,14 +73,18 @@ extern PyObject *crypto_Error;
 
 #ifdef crypto_MODULE
 
-extern crypto_X509_New_RETURN      crypto_X509_New      crypto_X509_New_PROTO;
-extern crypto_X509Name_New_RETURN  crypto_X509Name_New  crypto_X509Name_New_PROTO;
-extern crypto_X509Req_New_RETURN   crypto_X509Req_New   crypto_X509Req_New_PROTO;
-extern crypto_X509Store_New_RETURN crypto_X509Store_New crypto_X509Store_New_PROTO;
-extern crypto_PKey_New_RETURN      crypto_PKey_New      crypto_PKey_New_PROTO;
-extern crypto_X509Extension_New_RETURN crypto_X509Extension_New crypto_X509Extension_New_PROTO;
-extern crypto_PKCS7_New_RETURN     crypto_PKCS7_New     crypto_PKCS7_New_PROTO;
-extern crypto_NetscapeSPKI_New_RETURN  crypto_NetscapeSPKI_New  crypto_NetscapeSPKI_New_PROTO;
+extern crypto_X509_New_RETURN crypto_X509_New crypto_X509_New_PROTO;
+extern crypto_X509Name_New_RETURN crypto_X509Name_New
+    crypto_X509Name_New_PROTO;
+extern crypto_X509Req_New_RETURN crypto_X509Req_New crypto_X509Req_New_PROTO;
+extern crypto_X509Store_New_RETURN crypto_X509Store_New
+    crypto_X509Store_New_PROTO;
+extern crypto_PKey_New_RETURN crypto_PKey_New crypto_PKey_New_PROTO;
+extern crypto_X509Extension_New_RETURN crypto_X509Extension_New
+    crypto_X509Extension_New_PROTO;
+extern crypto_PKCS7_New_RETURN crypto_PKCS7_New crypto_PKCS7_New_PROTO;
+extern crypto_NetscapeSPKI_New_RETURN crypto_NetscapeSPKI_New
+    crypto_NetscapeSPKI_New_PROTO;
 
 #else /* crypto_MODULE */
 

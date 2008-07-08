@@ -1,3 +1,4 @@
+
 /*
  * connection.c
  *
@@ -21,19 +22,20 @@ Arguments: self - The Connection object\n\
            args - The Python argument tuple, should be empty\n\
 Returns:   None.\n\
 ";
-static PyObject *ssl_Session_free( ssl_SessionObj * self, PyObject * args )
+static PyObject *
+ssl_Session_free( ssl_SessionObj * self, PyObject * args )
 {
-	if ( !PyArg_ParseTuple( args, ":free" ) )
-		return NULL;
+    if ( !PyArg_ParseTuple( args, ":free" ) )
+        return NULL;
 
-	if ( self->session )
-	{
-		SSL_SESSION_free( self->session );
-		self->session = NULL;
-	}
+    if ( self->session )
+    {
+        SSL_SESSION_free( self->session );
+        self->session = NULL;
+    }
 
-	Py_INCREF( Py_None );
-	return Py_None;
+    Py_INCREF( Py_None );
+    return Py_None;
 }
 
 static char ssl_Session_valid_doc[] = "\n\
@@ -43,18 +45,18 @@ Arguments: self - The Connection object\n\
            args - The Python argument tuple, should be empty\n\
 Returns:   True if its a valid session.\n\
 ";
-static PyObject *ssl_Session_valid( ssl_SessionObj * self,
-									PyObject * args )
+static PyObject *
+ssl_Session_valid( ssl_SessionObj * self, PyObject * args )
 {
-	int ret = 0;
+    int ret = 0;
 
-	if ( !PyArg_ParseTuple( args, ":valid" ) )
-		return NULL;
+    if ( !PyArg_ParseTuple( args, ":valid" ) )
+        return NULL;
 
-	if ( self->session )
-		ret = 1;
+    if ( self->session )
+        ret = 1;
 
-	return PyInt_FromLong( ( long ) ret );
+    return PyInt_FromLong( ( long ) ret );
 }
 
 static char ssl_Session_get_time_doc[] = "\n\
@@ -64,16 +66,16 @@ Arguments: self - The Connection object\n\
            args - The Python argument tuple, should be empty\n\
 Returns:   Int, 0 on error\n\
 ";
-static PyObject *ssl_Session_get_time( ssl_SessionObj * self,
-									PyObject * args )
+static PyObject *
+ssl_Session_get_time( ssl_SessionObj * self, PyObject * args )
 {
-	if ( !PyArg_ParseTuple( args, ":get_time" ) )
-		return NULL;
+    if ( !PyArg_ParseTuple( args, ":get_time" ) )
+        return NULL;
 
-	if ( self->session )
-		return PyInt_FromLong( SSL_SESSION_get_time( self->session ) );
+    if ( self->session )
+        return PyInt_FromLong( SSL_SESSION_get_time( self->session ) );
 
-	return PyInt_FromLong( 0 );
+    return PyInt_FromLong( 0 );
 }
 
 static char ssl_Session_get_timeout_doc[] = "\n\
@@ -83,16 +85,16 @@ Arguments: self - The Connection object\n\
            args - The Python argument tuple, should be empty\n\
 Returns:   Int, 0 on error\n\
 ";
-static PyObject *ssl_Session_get_timeout( ssl_SessionObj * self,
-									PyObject * args )
+static PyObject *
+ssl_Session_get_timeout( ssl_SessionObj * self, PyObject * args )
 {
-	if ( !PyArg_ParseTuple( args, ":get_timeout" ) )
-		return NULL;
+    if ( !PyArg_ParseTuple( args, ":get_timeout" ) )
+        return NULL;
 
-	if ( self->session )
-		return PyInt_FromLong( SSL_SESSION_get_timeout( self->session ) );
+    if ( self->session )
+        return PyInt_FromLong( SSL_SESSION_get_timeout( self->session ) );
 
-	return PyInt_FromLong( 0 );
+    return PyInt_FromLong( 0 );
 }
 
 static char ssl_Session_set_time_doc[] = "\n\
@@ -103,18 +105,18 @@ Arguments: self - The Connection object\n\
            	-int : time of creation\n\
 Returns:   Int, 0 on error\n\
 ";
-static PyObject *ssl_Session_set_time( ssl_SessionObj * self,
-									PyObject * args )
+static PyObject *
+ssl_Session_set_time( ssl_SessionObj * self, PyObject * args )
 {
-	long time;
+    long time;
 
-	if ( !PyArg_ParseTuple( args, "l:set_time", &time ) )
-		return NULL;
+    if ( !PyArg_ParseTuple( args, "l:set_time", &time ) )
+        return NULL;
 
-	SSL_SESSION_set_time( self->session, time );
+    SSL_SESSION_set_time( self->session, time );
 
-	Py_INCREF( Py_None );
-	return Py_None;
+    Py_INCREF( Py_None );
+    return Py_None;
 }
 
 static char ssl_Session_set_timeout_doc[] = "\n\
@@ -125,18 +127,18 @@ Arguments: self - The Connection object\n\
            	-int : time of creation\n\
 Returns:   Int, 0 on error\n\
 ";
-static PyObject *ssl_Session_set_timeout( ssl_SessionObj * self,
-									PyObject * args )
+static PyObject *
+ssl_Session_set_timeout( ssl_SessionObj * self, PyObject * args )
 {
-	long time;
+    long time;
 
-	if ( !PyArg_ParseTuple( args, "l:set_timeout", &time ) )
-		return NULL;
+    if ( !PyArg_ParseTuple( args, "l:set_timeout", &time ) )
+        return NULL;
 
-	SSL_SESSION_set_timeout( self->session, time );
+    SSL_SESSION_set_timeout( self->session, time );
 
-	Py_INCREF( Py_None );
-	return Py_None;
+    Py_INCREF( Py_None );
+    return Py_None;
 }
 
 #define ADD_METHOD(name)        \
@@ -151,13 +153,13 @@ static PyObject *ssl_Session_set_timeout( ssl_SessionObj * self,
  * function with the name 'name'
  */
 static PyMethodDef ssl_Session_methods[] = {
-	ADD_METHOD( free ),
-	ADD_METHOD( valid ),
-	ADD_METHOD( get_time ),
-	ADD_METHOD( get_timeout ),
-	ADD_METHOD( set_time ),
-	ADD_METHOD( set_timeout ),
-	{NULL, NULL}
+    ADD_METHOD( free ),
+    ADD_METHOD( valid ),
+    ADD_METHOD( get_time ),
+    ADD_METHOD( get_timeout ),
+    ADD_METHOD( set_time ),
+    ADD_METHOD( set_timeout ),
+    {NULL, NULL}
 };
 
 
@@ -167,24 +169,25 @@ static PyMethodDef ssl_Session_methods[] = {
  * Arguments: None
  * Returns:   The newly created Session object
  */
-ssl_SessionObj *ssl_Session_New(  )
+ssl_SessionObj *
+ssl_Session_New(  )
 {
-	ssl_SessionObj *self;
+    ssl_SessionObj *self;
 
-	self = PyObject_GC_New( ssl_SessionObj, &ssl_Session_Type );
-	if ( self == NULL )
-		return NULL;
+    self = PyObject_GC_New( ssl_SessionObj, &ssl_Session_Type );
+    if ( self == NULL )
+        return NULL;
 
-	self->session = NULL;
+    self->session = NULL;
 
-	Py_INCREF( Py_None );
-	self->app_data = Py_None;
+    Py_INCREF( Py_None );
+    self->app_data = Py_None;
 
-	self->tstate = NULL;
+    self->tstate = NULL;
 
-	PyObject_GC_Track( self );
+    PyObject_GC_Track( self );
 
-	return self;
+    return self;
 }
 
 /*
@@ -195,13 +198,14 @@ ssl_SessionObj *ssl_Session_New(  )
  * Returns:   A Python object for the attribute, or NULL if something went
  *            wrong
  */
-static PyObject *ssl_Session_getattr( ssl_SessionObj * self, char *name )
+static PyObject *
+ssl_Session_getattr( ssl_SessionObj * self, char *name )
 {
-	PyObject *meth;
+    PyObject *meth;
 
-	meth = Py_FindMethod( ssl_Session_methods, ( PyObject * ) self, name );
+    meth = Py_FindMethod( ssl_Session_methods, ( PyObject * ) self, name );
 
-	return meth;
+    return meth;
 }
 
 
@@ -212,10 +216,11 @@ static PyObject *ssl_Session_getattr( ssl_SessionObj * self, char *name )
  * Arguments: self - The Session object
  * Returns:   Always 0.
  */
-static int ssl_Session_clear( ssl_SessionObj * self )
+static int
+ssl_Session_clear( ssl_SessionObj * self )
 {
-	Py_CLEAR( self->app_data );
-	return 0;
+    Py_CLEAR( self->app_data );
+    return 0;
 }
 
 /*
@@ -224,16 +229,17 @@ static int ssl_Session_clear( ssl_SessionObj * self )
  * Arguments: self - The Sonnection object
  * Returns:   None
  */
-static void ssl_Session_dealloc( ssl_SessionObj * self )
+static void
+ssl_Session_dealloc( ssl_SessionObj * self )
 {
-	PyObject_GC_UnTrack( self );
-	ssl_Session_clear( self );
-	if ( self->session )
-	{
-		SSL_SESSION_free( self->session );
-		self->session = NULL;
-	}
-	PyObject_GC_Del( self );
+    PyObject_GC_UnTrack( self );
+    ssl_Session_clear( self );
+    if ( self->session )
+    {
+        SSL_SESSION_free( self->session );
+        self->session = NULL;
+    }
+    PyObject_GC_Del( self );
 }
 
 
@@ -249,34 +255,34 @@ static void ssl_Session_dealloc( ssl_SessionObj * self )
 static int
 ssl_Session_traverse( ssl_SessionObj * self, visitproc visit, void *arg )
 {
-	Py_VISIT( self->app_data );
-	return 0;
+    Py_VISIT( self->app_data );
+    return 0;
 }
 
 PyTypeObject ssl_Session_Type = {
-	PyObject_HEAD_INIT( NULL ) 0,
-	"Session",
-	sizeof( ssl_SessionObj ),
-	0,
-	( destructor ) ssl_Session_dealloc,
-	NULL,						/* print */
-	( getattrfunc ) ssl_Session_getattr,
-	NULL,						/* setattr */
-	NULL,						/* compare */
-	NULL,						/* repr */
-	NULL,						/* as_number */
-	NULL,						/* as_sequence */
-	NULL,						/* as_mapping */
-	NULL,						/* hash */
-	NULL,						/* call */
-	NULL,						/* str */
-	NULL,						/* getattro */
-	NULL,						/* setattro */
-	NULL,						/* as_buffer */
-	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,
-	NULL,						/* doc */
-	( traverseproc ) ssl_Session_traverse,
-	( inquiry ) ssl_Session_clear,
+    PyObject_HEAD_INIT( NULL ) 0,
+    "Session",
+    sizeof( ssl_SessionObj ),
+    0,
+    ( destructor ) ssl_Session_dealloc,
+    NULL,                       /* print */
+    ( getattrfunc ) ssl_Session_getattr,
+    NULL,                       /* setattr */
+    NULL,                       /* compare */
+    NULL,                       /* repr */
+    NULL,                       /* as_number */
+    NULL,                       /* as_sequence */
+    NULL,                       /* as_mapping */
+    NULL,                       /* hash */
+    NULL,                       /* call */
+    NULL,                       /* str */
+    NULL,                       /* getattro */
+    NULL,                       /* setattro */
+    NULL,                       /* as_buffer */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,
+    NULL,                       /* doc */
+    ( traverseproc ) ssl_Session_traverse,
+    ( inquiry ) ssl_Session_clear,
 };
 
 
@@ -286,13 +292,14 @@ PyTypeObject ssl_Session_Type = {
  * Arguments: dict - Dictionary of the OpenSSL.SSL module
  * Returns:   1 for success, 0 otherwise
  */
-int init_ssl_session( PyObject * dict )
+int
+init_ssl_session( PyObject * dict )
 {
-	ssl_Session_Type.ob_type = &PyType_Type;
-	Py_INCREF( &ssl_Session_Type );
-	if ( PyDict_SetItemString
-		 ( dict, "SessionType", ( PyObject * ) & ssl_Session_Type ) != 0 )
-		return 0;
+    ssl_Session_Type.ob_type = &PyType_Type;
+    Py_INCREF( &ssl_Session_Type );
+    if ( PyDict_SetItemString
+         ( dict, "SessionType", ( PyObject * ) & ssl_Session_Type ) != 0 )
+        return 0;
 
-	return 1;
+    return 1;
 }

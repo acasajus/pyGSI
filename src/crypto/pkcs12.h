@@ -1,3 +1,4 @@
+
 /*
  * pkcs12.h
  *
@@ -14,17 +15,17 @@
 #include <openssl/pkcs12.h>
 #include <openssl/asn1.h>
 
-extern  int       init_crypto_pkcs12   (PyObject *);
+extern int init_crypto_pkcs12( PyObject * );
 
-extern  PyTypeObject      crypto_PKCS12_Type;
+extern PyTypeObject crypto_PKCS12_Type;
 
 #define crypto_PKCS12_Check(v) ((v)->ob_type == &crypto_PKCS12_Type)
 
-typedef struct {
-    PyObject_HEAD
-    PyObject            *cert;
-    PyObject            *key;
-    PyObject            *cacerts;
+typedef struct
+{
+    PyObject_HEAD PyObject *cert;
+    PyObject *key;
+    PyObject *cacerts;
 } crypto_PKCS12Obj;
 
 #endif

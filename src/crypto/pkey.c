@@ -1,3 +1,4 @@
+
 /*
  * pkey.c
  *
@@ -11,7 +12,8 @@
 #define crypto_MODULE
 #include "crypto.h"
 
-static char *CVSid = "@(#) $Id: pkey.c,v 1.1 2008/02/29 18:46:02 acasajus Exp $";
+static char *CVSid =
+    "@(#) $Id: pkey.c,v 1.2 2008/07/08 10:54:54 acasajus Exp $";
 
 /*
  * This is done every time something fails, so turning it into a macro is
@@ -25,7 +27,7 @@ do {                                    \
     exception_from_error_queue();       \
     return NULL;                        \
 } while (0)
-    
+
 
 static char crypto_PKey_generate_key_doc[] = "\n\
 Generate a key of a given type, with a given number of a bits\n\
@@ -38,38 +40,40 @@ Returns:   None\n\
 ";
 
 static PyObject *
-crypto_PKey_generate_key(crypto_PKeyObj *self, PyObject *args)
+crypto_PKey_generate_key( crypto_PKeyObj * self, PyObject * args )
 {
     int type, bits;
     RSA *rsa;
     DSA *dsa;
 
-    if (!PyArg_ParseTuple(args, "ii:generate_key", &type, &bits))
+    if ( !PyArg_ParseTuple( args, "ii:generate_key", &type, &bits ) )
         return NULL;
 
-    switch (type)
+    switch ( type )
     {
-        case crypto_TYPE_RSA:
-            if ((rsa = RSA_generate_key(bits, 0x10001, NULL, NULL)) == NULL)
-                FAIL();
-            if (!EVP_PKEY_assign_RSA(self->pkey, rsa))
-                FAIL();
-            Py_INCREF(Py_None);
-            return Py_None;
+    case crypto_TYPE_RSA:
+        if ( ( rsa = RSA_generate_key( bits, 0x10001, NULL, NULL ) ) == NULL )
+            FAIL(  );
+        if ( !EVP_PKEY_assign_RSA( self->pkey, rsa ) )
+            FAIL(  );
+        Py_INCREF( Py_None );
+        return Py_None;
 
-        case crypto_TYPE_DSA:
-            if ((dsa = DSA_generate_parameters(bits, NULL, 0, NULL, NULL, NULL, NULL)) == NULL)
-                FAIL();
-            if (!DSA_generate_key(dsa))
-                FAIL();
-            if (!EVP_PKEY_assign_DSA(self->pkey, dsa))
-                FAIL();
-            Py_INCREF(Py_None);
-            return Py_None;
+    case crypto_TYPE_DSA:
+        if ( ( dsa =
+               DSA_generate_parameters( bits, NULL, 0, NULL, NULL, NULL,
+                                        NULL ) ) == NULL )
+            FAIL(  );
+        if ( !DSA_generate_key( dsa ) )
+            FAIL(  );
+        if ( !EVP_PKEY_assign_DSA( self->pkey, dsa ) )
+            FAIL(  );
+        Py_INCREF( Py_None );
+        return Py_None;
     }
 
-    PyErr_SetString(crypto_Error, "No such key type");
-    Py_INCREF(Py_None);
+    PyErr_SetString( crypto_Error, "No such key type" );
+    Py_INCREF( Py_None );
     return Py_None;
 }
 
@@ -82,12 +86,12 @@ Returns: The number of bits of the key.\n\
 ";
 
 static PyObject *
-crypto_PKey_bits(crypto_PKeyObj *self, PyObject *args)
+crypto_PKey_bits( crypto_PKeyObj * self, PyObject * args )
 {
-    if (!PyArg_ParseTuple(args, ":bits"))
+    if ( !PyArg_ParseTuple( args, ":bits" ) )
         return NULL;
 
-    return PyInt_FromLong(EVP_PKEY_bits(self->pkey));
+    return PyInt_FromLong( EVP_PKEY_bits( self->pkey ) );
 }
 
 static char crypto_PKey_type_doc[] = "\n\
@@ -99,12 +103,12 @@ Returns: The type of the key.\n\
 ";
 
 static PyObject *
-crypto_PKey_type(crypto_PKeyObj *self, PyObject *args)
+crypto_PKey_type( crypto_PKeyObj * self, PyObject * args )
 {
-    if (!PyArg_ParseTuple(args, ":type"))
+    if ( !PyArg_ParseTuple( args, ":type" ) )
         return NULL;
 
-    return PyInt_FromLong(self->pkey->type);
+    return PyInt_FromLong( self->pkey->type );
 }
 
 
@@ -115,13 +119,13 @@ crypto_PKey_type(crypto_PKeyObj *self, PyObject *args)
  */
 #define ADD_METHOD(name)        \
     { #name, (PyCFunction)crypto_PKey_##name, METH_VARARGS, crypto_PKey_##name##_doc }
-static PyMethodDef crypto_PKey_methods[] =
-{
-    ADD_METHOD(generate_key),
-    ADD_METHOD(bits),
-    ADD_METHOD(type),
-    { NULL, NULL }
+static PyMethodDef crypto_PKey_methods[] = {
+    ADD_METHOD( generate_key ),
+    ADD_METHOD( bits ),
+    ADD_METHOD( type ),
+    {NULL, NULL}
 };
+
 #undef ADD_METHOD
 
 
@@ -134,13 +138,13 @@ static PyMethodDef crypto_PKey_methods[] =
  * Returns:   The newly created PKey object
  */
 crypto_PKeyObj *
-crypto_PKey_New(EVP_PKEY *pkey, int dealloc)
+crypto_PKey_New( EVP_PKEY * pkey, int dealloc )
 {
     crypto_PKeyObj *self;
 
-    self = PyObject_New(crypto_PKeyObj, &crypto_PKey_Type);
+    self = PyObject_New( crypto_PKeyObj, &crypto_PKey_Type );
 
-    if (self == NULL)
+    if ( self == NULL )
         return NULL;
 
     self->pkey = pkey;
@@ -156,13 +160,13 @@ crypto_PKey_New(EVP_PKEY *pkey, int dealloc)
  * Returns:   None
  */
 static void
-crypto_PKey_dealloc(crypto_PKeyObj *self)
+crypto_PKey_dealloc( crypto_PKeyObj * self )
 {
     /* Sometimes we don't have to dealloc the "real" EVP_PKEY pointer ourselves */
-    if (self->dealloc)
-        EVP_PKEY_free(self->pkey);
+    if ( self->dealloc )
+        EVP_PKEY_free( self->pkey );
 
-    PyObject_Del(self);
+    PyObject_Del( self );
 }
 
 /*
@@ -174,27 +178,26 @@ crypto_PKey_dealloc(crypto_PKeyObj *self)
  *            wrong
  */
 static PyObject *
-crypto_PKey_getattr(crypto_PKeyObj *self, char *name)
+crypto_PKey_getattr( crypto_PKeyObj * self, char *name )
 {
-    return Py_FindMethod(crypto_PKey_methods, (PyObject *)self, name);
+    return Py_FindMethod( crypto_PKey_methods, ( PyObject * ) self, name );
 }
 
 PyTypeObject crypto_PKey_Type = {
-    PyObject_HEAD_INIT(NULL)
-    0,
+    PyObject_HEAD_INIT( NULL ) 0,
     "PKey",
-    sizeof(crypto_PKeyObj),
+    sizeof( crypto_PKeyObj ),
     0,
-    (destructor)crypto_PKey_dealloc,
-    NULL, /* print */
-    (getattrfunc)crypto_PKey_getattr,
-    NULL, /* setattr */
-    NULL, /* compare */
-    NULL, /* repr */
-    NULL, /* as_number */
-    NULL, /* as_sequence */
-    NULL, /* as_mapping */
-    NULL, /* hash */
+    ( destructor ) crypto_PKey_dealloc,
+    NULL,                       /* print */
+    ( getattrfunc ) crypto_PKey_getattr,
+    NULL,                       /* setattr */
+    NULL,                       /* compare */
+    NULL,                       /* repr */
+    NULL,                       /* as_number */
+    NULL,                       /* as_sequence */
+    NULL,                       /* as_mapping */
+    NULL,                       /* hash */
 };
 
 
@@ -205,11 +208,11 @@ PyTypeObject crypto_PKey_Type = {
  * Returns:   None
  */
 int
-init_crypto_pkey(PyObject *dict)
+init_crypto_pkey( PyObject * dict )
 {
     crypto_PKey_Type.ob_type = &PyType_Type;
-    Py_INCREF(&crypto_PKey_Type);
-    PyDict_SetItemString(dict, "PKeyType", (PyObject *)&crypto_PKey_Type);
+    Py_INCREF( &crypto_PKey_Type );
+    PyDict_SetItemString( dict, "PKeyType",
+                          ( PyObject * ) & crypto_PKey_Type );
     return 1;
 }
-

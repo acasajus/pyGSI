@@ -1,3 +1,4 @@
+
 /*
  * x509store.c
  *
@@ -10,7 +11,8 @@
 #define crypto_MODULE
 #include "crypto.h"
 
-static char *CVSid = "@(#) $Id: x509store.c,v 1.1 2008/02/29 18:46:02 acasajus Exp $";
+static char *CVSid =
+    "@(#) $Id: x509store.c,v 1.2 2008/07/08 10:54:54 acasajus Exp $";
 
 static char crypto_X509Store_add_cert_doc[] = "\n\
 Add a certificate\n\
@@ -22,20 +24,20 @@ Returns:   None\n\
 ";
 
 static PyObject *
-crypto_X509Store_add_cert(crypto_X509StoreObj *self, PyObject *args)
+crypto_X509Store_add_cert( crypto_X509StoreObj * self, PyObject * args )
 {
     crypto_X509Obj *cert;
 
-    if (!PyArg_ParseTuple(args, "O!:add_cert", &crypto_X509_Type, &cert))
+    if ( !PyArg_ParseTuple( args, "O!:add_cert", &crypto_X509_Type, &cert ) )
         return NULL;
 
-    if (!X509_STORE_add_cert(self->x509_store, cert->x509))
+    if ( !X509_STORE_add_cert( self->x509_store, cert->x509 ) )
     {
-        exception_from_error_queue();
+        exception_from_error_queue(  );
         return NULL;
     }
 
-    Py_INCREF(Py_None);
+    Py_INCREF( Py_None );
     return Py_None;
 }
 
@@ -47,8 +49,8 @@ Arguments: self - The Context object\n\
              flags - Flags to X509 Store\n\
 Returns:   None\n\
 ";
-static PyObject *crypto_X509Store_set_flags( crypto_X509StoreObj * self,
-                                             PyObject * args )
+static PyObject *
+crypto_X509Store_set_flags( crypto_X509StoreObj * self, PyObject * args )
 {
     int mode;
 
@@ -68,12 +70,12 @@ static PyObject *crypto_X509Store_set_flags( crypto_X509StoreObj * self,
  */
 #define ADD_METHOD(name)        \
     { #name, (PyCFunction)crypto_X509Store_##name, METH_VARARGS, crypto_X509Store_##name##_doc }
-static PyMethodDef crypto_X509Store_methods[] =
-{
-    ADD_METHOD(add_cert),
-    ADD_METHOD(set_flags),
-    { NULL, NULL }
+static PyMethodDef crypto_X509Store_methods[] = {
+    ADD_METHOD( add_cert ),
+    ADD_METHOD( set_flags ),
+    {NULL, NULL}
 };
+
 #undef ADD_METHOD
 
 
@@ -86,13 +88,13 @@ static PyMethodDef crypto_X509Store_methods[] =
  * Returns:   The newly created X509Store object
  */
 crypto_X509StoreObj *
-crypto_X509Store_New(X509_STORE *store, int dealloc)
+crypto_X509Store_New( X509_STORE * store, int dealloc )
 {
     crypto_X509StoreObj *self;
 
-    self = PyObject_New(crypto_X509StoreObj, &crypto_X509Store_Type);
+    self = PyObject_New( crypto_X509StoreObj, &crypto_X509Store_Type );
 
-    if (self == NULL)
+    if ( self == NULL )
         return NULL;
 
     self->x509_store = store;
@@ -108,13 +110,12 @@ crypto_X509Store_New(X509_STORE *store, int dealloc)
  * Returns:   None
  */
 static void
-crypto_X509Store_dealloc(crypto_X509StoreObj *self)
+crypto_X509Store_dealloc( crypto_X509StoreObj * self )
 {
     /* Sometimes we don't have to dealloc this */
-    if (self->dealloc)
-        X509_STORE_free(self->x509_store);
-
-    PyObject_Del(self);
+    if ( self->dealloc )
+        X509_STORE_free( self->x509_store );
+    PyObject_Del( self );
 }
 
 
@@ -127,27 +128,27 @@ crypto_X509Store_dealloc(crypto_X509StoreObj *self)
  *            wrong
  */
 static PyObject *
-crypto_X509Store_getattr(crypto_X509StoreObj *self, char *name)
+crypto_X509Store_getattr( crypto_X509StoreObj * self, char *name )
 {
-    return Py_FindMethod(crypto_X509Store_methods, (PyObject *)self, name);
+    return Py_FindMethod( crypto_X509Store_methods, ( PyObject * ) self,
+                          name );
 }
 
 PyTypeObject crypto_X509Store_Type = {
-    PyObject_HEAD_INIT(NULL)
-    0,
+    PyObject_HEAD_INIT( NULL ) 0,
     "X509Store",
-    sizeof(crypto_X509StoreObj),
+    sizeof( crypto_X509StoreObj ),
     0,
-    (destructor)crypto_X509Store_dealloc,
-    NULL, /* print */
-    (getattrfunc)crypto_X509Store_getattr,
-    NULL, /* setattr */
-    NULL, /* compare */
-    NULL, /* repr */
-    NULL, /* as_number */
-    NULL, /* as_sequence */
-    NULL, /* as_mapping */
-    NULL  /* hash */
+    ( destructor ) crypto_X509Store_dealloc,
+    NULL,                       /* print */
+    ( getattrfunc ) crypto_X509Store_getattr,
+    NULL,                       /* setattr */
+    NULL,                       /* compare */
+    NULL,                       /* repr */
+    NULL,                       /* as_number */
+    NULL,                       /* as_sequence */
+    NULL,                       /* as_mapping */
+    NULL                        /* hash */
 };
 
 
@@ -158,10 +159,11 @@ PyTypeObject crypto_X509Store_Type = {
  * Returns:   None
  */
 int
-init_crypto_x509store(PyObject *dict)
+init_crypto_x509store( PyObject * dict )
 {
     crypto_X509Store_Type.ob_type = &PyType_Type;
-    Py_INCREF(&crypto_X509Store_Type);
-    PyDict_SetItemString(dict, "X509StoreType", (PyObject *)&crypto_X509Store_Type);
+    Py_INCREF( &crypto_X509Store_Type );
+    PyDict_SetItemString( dict, "X509StoreType",
+                          ( PyObject * ) & crypto_X509Store_Type );
     return 1;
 }

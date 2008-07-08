@@ -1,3 +1,4 @@
+
 /*
  * ssl.h
  *
@@ -8,7 +9,7 @@
  *
  * Reviewed 2001-07-23
  *
- * @(#) $Id: ssl.h,v 1.3 2008/03/05 13:55:31 acasajus Exp $
+ * @(#) $Id: ssl.h,v 1.4 2008/07/08 10:54:55 acasajus Exp $
  */
 #ifndef PyGSI_SSL_H_
 #define PyGSI_SSL_H_
@@ -22,12 +23,12 @@
 #include "../util.h"
 #include "../crypto/crypto.h"
 
-extern PyObject *ssl_Error,		/* Base class */
-*ssl_ZeroReturnError,			/* Used with SSL_get_erorr */
-*ssl_WantReadError,				/* ...  */
-*ssl_WantWriteError,			/* ...  */
-*ssl_WantX509LookupError,		/* ...  */
-*ssl_SysCallError;				/* Uses (errno,errstr) */
+extern PyObject *ssl_Error,     /* Base class */
+ *ssl_ZeroReturnError,          /* Used with SSL_get_erorr */
+ *ssl_WantReadError,            /* ...  */
+ *ssl_WantWriteError,           /* ...  */
+ *ssl_WantX509LookupError,      /* ...  */
+ *ssl_SysCallError;             /* Uses (errno,errstr) */
 
 #ifdef exception_from_error_queue
 #  undef exception_from_error_queue
@@ -55,11 +56,10 @@ extern PyObject *ssl_Error,		/* Base class */
 #ifdef SSL_MODULE
 
 extern ssl_Context_New_RETURN ssl_Context_New ssl_Context_New_PROTO;
-extern ssl_Connection_New_RETURN ssl_Connection_New
-	ssl_Connection_New_PROTO;
+extern ssl_Connection_New_RETURN ssl_Connection_New ssl_Connection_New_PROTO;
 extern ssl_Session_New_RETURN ssl_Session_New ssl_Session_New_PROTO;
 
-#else							/* SSL_MODULE */
+#else /* SSL_MODULE */
 
 extern void **ssl_API;
 
@@ -82,6 +82,6 @@ extern void **ssl_API;
   } \
 }
 
-#endif							/* SSL_MODULE */
+#endif /* SSL_MODULE */
 
-#endif							/* PyGSI_SSL_H_ */
+#endif /* PyGSI_SSL_H_ */

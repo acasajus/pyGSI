@@ -1,3 +1,4 @@
+
 /*
  * util.c
  *
@@ -11,7 +12,8 @@
 #include <Python.h>
 #include "util.h"
 
-static char *CVSid = "@(#) $Id: util.c,v 1.2 2008/03/03 21:07:23 acasajus Exp $";
+static char *CVSid =
+    "@(#) $Id: util.c,v 1.3 2008/07/08 10:54:55 acasajus Exp $";
 
 
 /*
@@ -22,20 +24,20 @@ static char *CVSid = "@(#) $Id: util.c,v 1.2 2008/03/03 21:07:23 acasajus Exp $"
  * Returns:   A list of errors (new reference)
  */
 PyObject *
-error_queue_to_list(void)
+error_queue_to_list( void )
 {
     PyObject *errlist, *tuple;
     long err;
 
-    errlist = PyList_New(0);
+    errlist = PyList_New( 0 );
 
-    while ((err = ERR_get_error()) != 0)
+    while ( ( err = ERR_get_error(  ) ) != 0 )
     {
-	tuple = Py_BuildValue("(sss)", ERR_lib_error_string(err),
-		                       ERR_func_error_string(err),
-				       ERR_reason_error_string(err));
-        PyList_Append(errlist, tuple);
-        Py_DECREF(tuple);
+        tuple = Py_BuildValue( "(sss)", ERR_lib_error_string( err ),
+                               ERR_func_error_string( err ),
+                               ERR_reason_error_string( err ) );
+        PyList_Append( errlist, tuple );
+        Py_DECREF( tuple );
     }
 
     return errlist;
@@ -48,8 +50,7 @@ error_queue_to_list(void)
  * Returns:   None
  */
 void
-flush_error_queue(void)
+flush_error_queue( void )
 {
-    Py_DECREF(error_queue_to_list());
+    Py_DECREF( error_queue_to_list(  ) );
 }
-

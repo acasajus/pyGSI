@@ -1,3 +1,4 @@
+
 /*
  * x509name.h
  *
@@ -8,7 +9,7 @@
  *
  * Reviewed 2001-07-23
  *
- * @(#) $Id: x509name.h,v 1.2 2008/03/05 13:55:23 acasajus Exp $
+ * @(#) $Id: x509name.h,v 1.3 2008/07/08 10:54:54 acasajus Exp $
  */
 #ifndef PyGSI_crypto_X509NAME_H_
 #define PyGSI_crypto_X509NAME_H_
@@ -16,17 +17,17 @@
 #include <Python.h>
 #include <openssl/ssl.h>
 
-extern  int     init_crypto_x509name       (PyObject *);
+extern int init_crypto_x509name( PyObject * );
 
-extern  PyTypeObject      crypto_X509Name_Type;
+extern PyTypeObject crypto_X509Name_Type;
 
 #define crypto_X509Name_Check(v) ((v)->ob_type == &crypto_X509Name_Type)
 
-typedef struct {
-    PyObject_HEAD
-    X509_NAME           *x509_name;
-    int                  dealloc;
-    PyObject            *parent_cert;
+typedef struct
+{
+    PyObject_HEAD X509_NAME *x509_name;
+    int dealloc;
+    PyObject *parent_cert;
 } crypto_X509NameObj;
 
 

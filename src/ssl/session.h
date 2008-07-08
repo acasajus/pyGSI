@@ -1,3 +1,4 @@
+
 /*
  * connection.h
  *
@@ -8,7 +9,7 @@
  *
  * Reviewed 2001-07-23
  *
- * @(#) $Id: session.h,v 1.2 2008/03/05 13:55:31 acasajus Exp $
+ * @(#) $Id: session.h,v 1.3 2008/07/08 10:54:55 acasajus Exp $
  */
 #ifndef PyGSI_SSL_SESSION_H_
 #define PyGSI_SSL_SESSION_H_
@@ -25,11 +26,10 @@ extern PyTypeObject ssl_Session_Type;
 
 typedef struct
 {
-	PyObject_HEAD
-	SSL_SESSION *session;
-	PyObject *socket;
-	PyThreadState *tstate;
-	PyObject *app_data;
+    PyObject_HEAD SSL_SESSION *session;
+    PyObject *socket;
+    PyThreadState *tstate;
+    PyObject *app_data;
 } ssl_SessionObj;
 
 

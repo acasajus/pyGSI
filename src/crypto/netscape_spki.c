@@ -1,3 +1,4 @@
+
 /*
  * netscape_spki.c
  *
@@ -9,7 +10,8 @@
 #define crypto_MODULE
 #include "crypto.h"
 
-static char *CVSid = "@(#) $Id: netscape_spki.c,v 1.1 2008/02/29 18:46:02 acasajus Exp $";
+static char *CVSid =
+    "@(#) $Id: netscape_spki.c,v 1.2 2008/07/08 10:54:54 acasajus Exp $";
 
 
 /*
@@ -21,13 +23,13 @@ static char *CVSid = "@(#) $Id: netscape_spki.c,v 1.1 2008/02/29 18:46:02 acasaj
  * Returns:   The newly created NetscapeSPKI object
  */
 crypto_NetscapeSPKIObj *
-crypto_NetscapeSPKI_New(NETSCAPE_SPKI *name, int dealloc)
+crypto_NetscapeSPKI_New( NETSCAPE_SPKI * name, int dealloc )
 {
     crypto_NetscapeSPKIObj *self;
 
-    self = PyObject_New(crypto_NetscapeSPKIObj, &crypto_NetscapeSPKI_Type);
+    self = PyObject_New( crypto_NetscapeSPKIObj, &crypto_NetscapeSPKI_Type );
 
-    if (self == NULL)
+    if ( self == NULL )
         return NULL;
 
     self->netscape_spki = name;
@@ -43,13 +45,13 @@ crypto_NetscapeSPKI_New(NETSCAPE_SPKI *name, int dealloc)
  * Returns:   None
  */
 static void
-crypto_NetscapeSPKI_dealloc(crypto_NetscapeSPKIObj *self)
+crypto_NetscapeSPKI_dealloc( crypto_NetscapeSPKIObj * self )
 {
     /* Sometimes we don't have to dealloc this */
-    if (self->dealloc)
-        NETSCAPE_SPKI_free(self->netscape_spki);
+    if ( self->dealloc )
+        NETSCAPE_SPKI_free( self->netscape_spki );
 
-    PyObject_Del(self);
+    PyObject_Del( self );
 }
 
 static char crypto_NetscapeSPKI_sign_doc[] = "\n\
@@ -63,29 +65,29 @@ Returns:   None\n\
 ";
 
 static PyObject *
-crypto_NetscapeSPKI_sign(crypto_NetscapeSPKIObj *self, PyObject *args)
+crypto_NetscapeSPKI_sign( crypto_NetscapeSPKIObj * self, PyObject * args )
 {
     crypto_PKeyObj *pkey;
     char *digest_name;
     const EVP_MD *digest;
 
-    if (!PyArg_ParseTuple(args, "O!s:sign", &crypto_PKey_Type, &pkey,
-			  &digest_name))
+    if ( !PyArg_ParseTuple( args, "O!s:sign", &crypto_PKey_Type, &pkey,
+                            &digest_name ) )
         return NULL;
 
-    if ((digest = EVP_get_digestbyname(digest_name)) == NULL)
+    if ( ( digest = EVP_get_digestbyname( digest_name ) ) == NULL )
     {
-        PyErr_SetString(PyExc_ValueError, "No such digest method");
+        PyErr_SetString( PyExc_ValueError, "No such digest method" );
         return NULL;
     }
 
-    if (!NETSCAPE_SPKI_sign(self->netscape_spki, pkey->pkey, digest))
+    if ( !NETSCAPE_SPKI_sign( self->netscape_spki, pkey->pkey, digest ) )
     {
-        exception_from_error_queue();
+        exception_from_error_queue(  );
         return NULL;
     }
 
-    Py_INCREF(Py_None);
+    Py_INCREF( Py_None );
     return Py_None;
 }
 
@@ -99,21 +101,22 @@ Returns:   True, if the signature is correct, 0 otherwise.\n\
 ";
 
 PyObject *
-crypto_NetscapeSPKI_verify(crypto_NetscapeSPKIObj *self, PyObject *args)
+crypto_NetscapeSPKI_verify( crypto_NetscapeSPKIObj * self, PyObject * args )
 {
     crypto_PKeyObj *pkey;
     int answer;
 
-    if (!PyArg_ParseTuple(args, "O!:verify", &crypto_PKey_Type, &pkey)) 
+    if ( !PyArg_ParseTuple( args, "O!:verify", &crypto_PKey_Type, &pkey ) )
         return NULL;
 
-    if ((answer = NETSCAPE_SPKI_verify(self->netscape_spki, pkey->pkey)) < 0)
+    if ( ( answer =
+           NETSCAPE_SPKI_verify( self->netscape_spki, pkey->pkey ) ) < 0 )
     {
-        exception_from_error_queue();
+        exception_from_error_queue(  );
         return NULL;
     }
 
-    return PyInt_FromLong((long)answer);
+    return PyInt_FromLong( ( long ) answer );
 }
 
 static char crypto_NetscapeSPKI_b64_encode_doc[] = "\n\
@@ -125,15 +128,16 @@ Returns:   The base64 encoded string\n\
 ";
 
 PyObject *
-crypto_NetscapeSPKI_b64_encode(crypto_NetscapeSPKIObj *self, PyObject *args)
+crypto_NetscapeSPKI_b64_encode( crypto_NetscapeSPKIObj * self,
+                                PyObject * args )
 {
     char *str;
 
-    if (!PyArg_ParseTuple(args, ":b64_encode"))
+    if ( !PyArg_ParseTuple( args, ":b64_encode" ) )
         return NULL;
 
-    str = NETSCAPE_SPKI_b64_encode(self->netscape_spki);
-    return PyString_FromString(str);
+    str = NETSCAPE_SPKI_b64_encode( self->netscape_spki );
+    return PyString_FromString( str );
 }
 
 
@@ -146,21 +150,22 @@ Returns:   The public key\n\
 ";
 
 static PyObject *
-crypto_NetscapeSPKI_get_pubkey(crypto_NetscapeSPKIObj *self, PyObject *args)
+crypto_NetscapeSPKI_get_pubkey( crypto_NetscapeSPKIObj * self,
+                                PyObject * args )
 {
-    crypto_PKeyObj *crypto_PKey_New(EVP_PKEY *, int);
+    crypto_PKeyObj *crypto_PKey_New( EVP_PKEY *, int );
     EVP_PKEY *pkey;
 
-    if (!PyArg_ParseTuple(args, ":get_pubkey"))
+    if ( !PyArg_ParseTuple( args, ":get_pubkey" ) )
         return NULL;
 
-    if ((pkey = NETSCAPE_SPKI_get_pubkey(self->netscape_spki)) == NULL)
+    if ( ( pkey = NETSCAPE_SPKI_get_pubkey( self->netscape_spki ) ) == NULL )
     {
-        exception_from_error_queue();
+        exception_from_error_queue(  );
         return NULL;
     }
 
-    return (PyObject *)crypto_PKey_New(pkey, 0);
+    return ( PyObject * ) crypto_PKey_New( pkey, 0 );
 }
 
 static char crypto_NetscapeSPKI_set_pubkey_doc[] = "\n\
@@ -173,20 +178,22 @@ Returns:   None\n\
 ";
 
 static PyObject *
-crypto_NetscapeSPKI_set_pubkey(crypto_NetscapeSPKIObj *self, PyObject *args)
+crypto_NetscapeSPKI_set_pubkey( crypto_NetscapeSPKIObj * self,
+                                PyObject * args )
 {
     crypto_PKeyObj *pkey;
 
-    if (!PyArg_ParseTuple(args, "O!:set_pubkey", &crypto_PKey_Type, &pkey))
+    if ( !PyArg_ParseTuple
+         ( args, "O!:set_pubkey", &crypto_PKey_Type, &pkey ) )
         return NULL;
 
-    if (!NETSCAPE_SPKI_set_pubkey(self->netscape_spki, pkey->pkey))
+    if ( !NETSCAPE_SPKI_set_pubkey( self->netscape_spki, pkey->pkey ) )
     {
-        exception_from_error_queue();
+        exception_from_error_queue(  );
         return NULL;
     }
 
-    Py_INCREF(Py_None);
+    Py_INCREF( Py_None );
     return Py_None;
 }
 
@@ -197,15 +204,15 @@ crypto_NetscapeSPKI_set_pubkey(crypto_NetscapeSPKIObj *self, PyObject *args)
  */
 #define ADD_METHOD(name)        \
     { #name, (PyCFunction)crypto_NetscapeSPKI_##name, METH_VARARGS, crypto_NetscapeSPKI_##name##_doc }
-static PyMethodDef crypto_NetscapeSPKI_methods[] =
-{
-    ADD_METHOD(get_pubkey),
-    ADD_METHOD(set_pubkey),
-    ADD_METHOD(b64_encode),
-    ADD_METHOD(sign),
-    ADD_METHOD(verify),
-    { NULL, NULL }
+static PyMethodDef crypto_NetscapeSPKI_methods[] = {
+    ADD_METHOD( get_pubkey ),
+    ADD_METHOD( set_pubkey ),
+    ADD_METHOD( b64_encode ),
+    ADD_METHOD( sign ),
+    ADD_METHOD( verify ),
+    {NULL, NULL}
 };
+
 #undef ADD_METHOD
 
 /*
@@ -217,27 +224,27 @@ static PyMethodDef crypto_NetscapeSPKI_methods[] =
  *            wrong
  */
 static PyObject *
-crypto_NetscapeSPKI_getattr(crypto_NetscapeSPKIObj *self, char *name)
+crypto_NetscapeSPKI_getattr( crypto_NetscapeSPKIObj * self, char *name )
 {
-    return Py_FindMethod(crypto_NetscapeSPKI_methods, (PyObject *)self, name);
+    return Py_FindMethod( crypto_NetscapeSPKI_methods, ( PyObject * ) self,
+                          name );
 }
 
 PyTypeObject crypto_NetscapeSPKI_Type = {
-    PyObject_HEAD_INIT(NULL)
-    0,
+    PyObject_HEAD_INIT( NULL ) 0,
     "NetscapeSPKI",
-    sizeof(crypto_NetscapeSPKIObj),
+    sizeof( crypto_NetscapeSPKIObj ),
     0,
-    (destructor)crypto_NetscapeSPKI_dealloc,
-    NULL, /* print */
-    (getattrfunc)crypto_NetscapeSPKI_getattr,
-    NULL, /* setattr */
-    NULL, /* compare */
-    NULL, /* repr */
-    NULL, /* as_number */
-    NULL, /* as_sequence */
-    NULL, /* as_mapping */
-    NULL  /* hash */
+    ( destructor ) crypto_NetscapeSPKI_dealloc,
+    NULL,                       /* print */
+    ( getattrfunc ) crypto_NetscapeSPKI_getattr,
+    NULL,                       /* setattr */
+    NULL,                       /* compare */
+    NULL,                       /* repr */
+    NULL,                       /* as_number */
+    NULL,                       /* as_sequence */
+    NULL,                       /* as_mapping */
+    NULL                        /* hash */
 };
 
 
@@ -248,10 +255,11 @@ PyTypeObject crypto_NetscapeSPKI_Type = {
  * Returns:   None
  */
 int
-init_crypto_netscape_spki(PyObject *dict)
+init_crypto_netscape_spki( PyObject * dict )
 {
     crypto_NetscapeSPKI_Type.ob_type = &PyType_Type;
-    Py_INCREF(&crypto_NetscapeSPKI_Type);
-    PyDict_SetItemString(dict, "NetscapeSPKIType", (PyObject *)&crypto_NetscapeSPKI_Type);
+    Py_INCREF( &crypto_NetscapeSPKI_Type );
+    PyDict_SetItemString( dict, "NetscapeSPKIType",
+                          ( PyObject * ) & crypto_NetscapeSPKI_Type );
     return 1;
 }

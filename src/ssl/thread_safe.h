@@ -10,7 +10,7 @@
 int initialize_locks( void );
 void clean_locks( void );
 void locking_thread_callback( int mode, int type, const char *file,
-							  int line );
+                              int line );
 unsigned long thread_id( void );
 
 #endif

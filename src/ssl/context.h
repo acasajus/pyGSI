@@ -1,3 +1,4 @@
+
 /*
  * context.h
  *
@@ -8,7 +9,7 @@
  *
  * Reviewed 2001-07-23
  *
- * @(#) $Id: context.h,v 1.4 2008/03/05 13:55:31 acasajus Exp $
+ * @(#) $Id: context.h,v 1.5 2008/07/08 10:54:55 acasajus Exp $
  */
 #ifndef PyGSI_SSL_CONTEXT_H_
 #define PyGSI_SSL_CONTEXT_H_
@@ -24,12 +25,11 @@ extern PyTypeObject ssl_Context_Type;
 
 typedef struct
 {
-	PyObject_HEAD
-	SSL_CTX *ctx;
-   char clientMethod;
-	PyObject *passphrase_callback,
-		*passphrase_userdata, *verify_callback, *info_callback, *app_data;
-	PyThreadState *tstate;
+    PyObject_HEAD SSL_CTX *ctx;
+    char clientMethod;
+    PyObject *passphrase_callback,
+        *passphrase_userdata, *verify_callback, *info_callback, *app_data;
+    PyThreadState *tstate;
 } ssl_ContextObj;
 
 #define ssl_SSLv2_METHOD         (1)

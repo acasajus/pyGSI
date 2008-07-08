@@ -1,3 +1,4 @@
+
 /*
  * util.h
  *
@@ -8,7 +9,7 @@
  *
  * Reviewed 2001-07-23
  *
- * @(#) $Id: util.h,v 1.4 2008/05/27 16:15:20 acasajus Exp $
+ * @(#) $Id: util.h,v 1.5 2008/07/08 10:54:55 acasajus Exp $
  */
 #ifndef PyGSI_UTIL_H_
 #define PyGSI_UTIL_H_
@@ -26,8 +27,8 @@
  */
 #include "pymemcompat.h"
 
-extern  PyObject *error_queue_to_list(void);
-extern  void      flush_error_queue(void);
+extern PyObject *error_queue_to_list( void );
+extern void flush_error_queue( void );
 
 /*
  * These are needed because there is no "official" way to specify
@@ -35,90 +36,104 @@ extern  void      flush_error_queue(void);
  */
 
 #ifdef WITH_THREAD
-#  define MY_BEGIN_ALLOW_THREADS(st)    							\
+#  define MY_BEGIN_ALLOW_THREADS(st) \
     st = PyEval_SaveThread();
-#  define MY_BEGIN_ALLOW_THREADS_RETURN(st, ret)    				\
-    st = PyEval_SaveThread(); 									\
+#  define MY_BEGIN_ALLOW_THREADS_RETURN(st, ret) \
+    st = PyEval_SaveThread();                    \
 	return ret
-#  define MY_END_ALLOW_THREADS(st)      							\
-    if(st) 															\
-	{ 																\
-		PyEval_RestoreThread(st); 									\
-		st = NULL; 													\
+#  define MY_END_ALLOW_THREADS(st) \
+    if(st)                         \
+	{                               \
+		PyEval_RestoreThread(st); 	  \
+		st = NULL;                   \
 	} else assert("Thread State not set");
-#  define MY_END_ALLOW_THREADS_RETURN(st,ret)      					\
-    MY_END_ALLOW_THREADS( st );										\
+#  define MY_END_ALLOW_THREADS_RETURN(st,ret) \
+    MY_END_ALLOW_THREADS( st );               \
 	return ret
 #else
 #  define MY_BEGIN_ALLOW_THREADS(st)
-#  define MY_BEGIN_ALLOW_THREADS_RETURN(st,ret)						\
+#  define MY_BEGIN_ALLOW_THREADS_RETURN(st,ret) \
 		return ret
-#  define MY_END_ALLOW_THREADS(st)      { st = NULL; }
-#  define MY_END_ALLOW_THREADS_RETURN(st,ret)      { st = NULL; }   \
+#  define MY_END_ALLOW_THREADS(st) { st = NULL; }
+#  define MY_END_ALLOW_THREADS_RETURN(st,ret) { st = NULL; } \
 		return ret
 #endif
 
 #if !defined(PY_MAJOR_VERSION) || PY_VERSION_HEX < 0x02000000
 static int
-PyModule_AddObject(PyObject *m, char *name, PyObject *o)
+PyModule_AddObject( PyObject * m, char *name, PyObject * o )
 {
     PyObject *dict;
-    if (!PyModule_Check(m) || o == NULL)
+
+    if ( !PyModule_Check( m ) || o == NULL )
         return -1;
-    dict = PyModule_GetDict(m);
-    if (dict == NULL)
+    dict = PyModule_GetDict( m );
+    if ( dict == NULL )
         return -1;
-    if (PyDict_SetItemString(dict, name, o))
+    if ( PyDict_SetItemString( dict, name, o ) )
         return -1;
-    Py_DECREF(o);
+    Py_DECREF( o );
     return 0;
 }
 
 static int
-PyModule_AddIntConstant(PyObject *m, char *name, long value)
+PyModule_AddIntConstant( PyObject * m, char *name, long value )
 {
-    return PyModule_AddObject(m, name, PyInt_FromLong(value));
+    return PyModule_AddObject( m, name, PyInt_FromLong( value ) );
 }
 
-static int PyObject_AsFileDescriptor(PyObject *o)
+static int
+PyObject_AsFileDescriptor( PyObject * o )
 {
     int fd;
     PyObject *meth;
 
-    if (PyInt_Check(o)) {
-        fd = PyInt_AsLong(o);
-    }
-    else if (PyLong_Check(o)) {
-        fd = PyLong_AsLong(o);
-    }
-    else if ((meth = PyObject_GetAttrString(o, "fileno")) != NULL)
+    if ( PyInt_Check( o ) )
     {
-        PyObject *fno = PyEval_CallObject(meth, NULL);
-        Py_DECREF(meth);
-        if (fno == NULL)
+        fd = PyInt_AsLong( o );
+    }
+    else if ( PyLong_Check( o ) )
+    {
+        fd = PyLong_AsLong( o );
+    }
+    else if ( ( meth = PyObject_GetAttrString( o, "fileno" ) ) != NULL )
+    {
+        PyObject *fno = PyEval_CallObject( meth, NULL );
+
+        Py_DECREF( meth );
+        if ( fno == NULL )
             return -1;
 
-        if (PyInt_Check(fno)) {
-            fd = PyInt_AsLong(fno);
-            Py_DECREF(fno);
+        if ( PyInt_Check( fno ) )
+        {
+            fd = PyInt_AsLong( fno );
+            Py_DECREF( fno );
         }
-        else if (PyLong_Check(fno)) {
-            fd = PyLong_AsLong(fno);
-            Py_DECREF(fno);
+        else if ( PyLong_Check( fno ) )
+        {
+            fd = PyLong_AsLong( fno );
+            Py_DECREF( fno );
         }
-        else {
-            PyErr_SetString(PyExc_TypeError, "fileno() returned a non-integer");
-            Py_DECREF(fno);
+        else
+        {
+            PyErr_SetString( PyExc_TypeError,
+                             "fileno() returned a non-integer" );
+            Py_DECREF( fno );
             return -1;
         }
     }
-    else {
-        PyErr_SetString(PyExc_TypeError, "argument must be an int, or have a fileno() method.");
+    else
+    {
+        PyErr_SetString( PyExc_TypeError,
+                         "argument must be an int, or have a fileno() method." );
         return -1;
     }
 
-    if (fd < 0) {
-        PyErr_Format(PyExc_ValueError, "file descriptor cannot be a negative integer (%i)", fd);
+    if ( fd < 0 )
+    {
+        PyErr_Format( PyExc_ValueError,
+                      "file descriptor cannot be a negative integer (%i)",
+                      fd );
         return -1;
     }
     return fd;

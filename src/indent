@@ -1,0 +1,1 @@
+indent -bad -bap -bbb -bl -bli0 -i4 -nut -prs -npcs $*

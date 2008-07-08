@@ -1,3 +1,4 @@
+
 /*
  * x509req.c
  *
@@ -10,7 +11,8 @@
 #define crypto_MODULE
 #include "crypto.h"
 
-static char *CVSid = "@(#) $Id: x509req.c,v 1.3 2008/06/03 08:46:16 acasajus Exp $";
+static char *CVSid =
+    "@(#) $Id: x509req.c,v 1.4 2008/07/08 10:54:54 acasajus Exp $";
 
 
 static char crypto_X509Req_get_subject_doc[] = "\n\
@@ -22,21 +24,21 @@ Returns:   An X509Name object\n\
 ";
 
 static PyObject *
-crypto_X509Req_get_subject(crypto_X509ReqObj *self, PyObject *args)
+crypto_X509Req_get_subject( crypto_X509ReqObj * self, PyObject * args )
 {
-    crypto_X509NameObj *crypto_X509Name_New(X509_NAME *, int);
+    crypto_X509NameObj *crypto_X509Name_New( X509_NAME *, int );
     X509_NAME *name;
 
-    if (!PyArg_ParseTuple(args, ":get_subject"))
+    if ( !PyArg_ParseTuple( args, ":get_subject" ) )
         return NULL;
 
-    if ((name = X509_REQ_get_subject_name(self->x509_req)) == NULL)
+    if ( ( name = X509_REQ_get_subject_name( self->x509_req ) ) == NULL )
     {
-        exception_from_error_queue();
+        exception_from_error_queue(  );
         return NULL;
     }
 
-    return (PyObject *)crypto_X509Name_New(name, 0);
+    return ( PyObject * ) crypto_X509Name_New( name, 0 );
 }
 
 static char crypto_X509Req_set_subject_doc[] = "\n\
@@ -49,21 +51,21 @@ Returns:   None\n\
 ";
 
 static PyObject *
-crypto_X509Req_set_subject(crypto_X509ReqObj *self, PyObject *args)
+crypto_X509Req_set_subject( crypto_X509ReqObj * self, PyObject * args )
 {
     crypto_X509NameObj *subject;
 
-    if (!PyArg_ParseTuple(args, "O!:set_subject", &crypto_X509Name_Type,
-			  &subject))
+    if ( !PyArg_ParseTuple( args, "O!:set_subject", &crypto_X509Name_Type,
+                            &subject ) )
         return NULL;
 
-    if (!X509_REQ_set_subject_name(self->x509_req, subject->x509_name))
+    if ( !X509_REQ_set_subject_name( self->x509_req, subject->x509_name ) )
     {
-        exception_from_error_queue();
+        exception_from_error_queue(  );
         return NULL;
     }
 
-    Py_INCREF(Py_None);
+    Py_INCREF( Py_None );
     return Py_None;
 }
 
@@ -76,21 +78,21 @@ Returns:   The public key\n\
 ";
 
 static PyObject *
-crypto_X509Req_get_pubkey(crypto_X509ReqObj *self, PyObject *args)
+crypto_X509Req_get_pubkey( crypto_X509ReqObj * self, PyObject * args )
 {
-    crypto_PKeyObj *crypto_PKey_New(EVP_PKEY *, int);
+    crypto_PKeyObj *crypto_PKey_New( EVP_PKEY *, int );
     EVP_PKEY *pkey;
 
-    if (!PyArg_ParseTuple(args, ":get_pubkey"))
+    if ( !PyArg_ParseTuple( args, ":get_pubkey" ) )
         return NULL;
 
-    if ((pkey = X509_REQ_get_pubkey(self->x509_req)) == NULL)
+    if ( ( pkey = X509_REQ_get_pubkey( self->x509_req ) ) == NULL )
     {
-        exception_from_error_queue();
+        exception_from_error_queue(  );
         return NULL;
     }
 
-    return (PyObject *)crypto_PKey_New(pkey, 1);
+    return ( PyObject * ) crypto_PKey_New( pkey, 1 );
 }
 
 static char crypto_X509Req_set_pubkey_doc[] = "\n\
@@ -103,20 +105,21 @@ Returns:   None\n\
 ";
 
 static PyObject *
-crypto_X509Req_set_pubkey(crypto_X509ReqObj *self, PyObject *args)
+crypto_X509Req_set_pubkey( crypto_X509ReqObj * self, PyObject * args )
 {
     crypto_PKeyObj *pkey;
 
-    if (!PyArg_ParseTuple(args, "O!:set_pubkey", &crypto_PKey_Type, &pkey))
+    if ( !PyArg_ParseTuple
+         ( args, "O!:set_pubkey", &crypto_PKey_Type, &pkey ) )
         return NULL;
 
-    if (!X509_REQ_set_pubkey(self->x509_req, pkey->pkey))
+    if ( !X509_REQ_set_pubkey( self->x509_req, pkey->pkey ) )
     {
-        exception_from_error_queue();
+        exception_from_error_queue(  );
         return NULL;
     }
 
-    Py_INCREF(Py_None);
+    Py_INCREF( Py_None );
     return Py_None;
 }
 
@@ -131,29 +134,29 @@ Returns:   None\n\
 ";
 
 static PyObject *
-crypto_X509Req_sign(crypto_X509ReqObj *self, PyObject *args)
+crypto_X509Req_sign( crypto_X509ReqObj * self, PyObject * args )
 {
     crypto_PKeyObj *pkey;
     char *digest_name;
     const EVP_MD *digest;
 
-    if (!PyArg_ParseTuple(args, "O!s:sign", &crypto_PKey_Type, &pkey,
-			  &digest_name))
+    if ( !PyArg_ParseTuple( args, "O!s:sign", &crypto_PKey_Type, &pkey,
+                            &digest_name ) )
         return NULL;
 
-    if ((digest = EVP_get_digestbyname(digest_name)) == NULL)
+    if ( ( digest = EVP_get_digestbyname( digest_name ) ) == NULL )
     {
-        PyErr_SetString(PyExc_ValueError, "No such digest method");
+        PyErr_SetString( PyExc_ValueError, "No such digest method" );
         return NULL;
     }
 
-    if (!X509_REQ_sign(self->x509_req, pkey->pkey, digest))
+    if ( !X509_REQ_sign( self->x509_req, pkey->pkey, digest ) )
     {
-        exception_from_error_queue();
+        exception_from_error_queue(  );
         return NULL;
     }
 
-    Py_INCREF(Py_None);
+    Py_INCREF( Py_None );
     return Py_None;
 }
 
@@ -167,24 +170,24 @@ Returns:   True, if the signature is correct, 0 otherwise.\n\
 ";
 
 PyObject *
-crypto_X509Req_verify(crypto_X509ReqObj *self, PyObject *args)
+crypto_X509Req_verify( crypto_X509ReqObj * self, PyObject * args )
 {
     PyObject *obj;
     crypto_PKeyObj *key;
     int answer;
 
-    if (!PyArg_ParseTuple(args, "O!:verify", &crypto_PKey_Type, &obj))
+    if ( !PyArg_ParseTuple( args, "O!:verify", &crypto_PKey_Type, &obj ) )
         return NULL;
 
-    key = (crypto_PKeyObj *)obj;
+    key = ( crypto_PKeyObj * ) obj;
 
-    if ((answer = X509_REQ_verify(self->x509_req, key->pkey)) < 0)
+    if ( ( answer = X509_REQ_verify( self->x509_req, key->pkey ) ) < 0 )
     {
-        exception_from_error_queue();
+        exception_from_error_queue(  );
         return NULL;
     }
 
-    return PyInt_FromLong(answer);
+    return PyInt_FromLong( answer );
 }
 
 static char crypto_X509Req_add_extensions_doc[] = "\n\
@@ -197,55 +200,57 @@ Returns:   None\n\
 ";
 
 static PyObject *
-crypto_X509Req_add_extensions(crypto_X509ReqObj *self, PyObject *args)
+crypto_X509Req_add_extensions( crypto_X509ReqObj * self, PyObject * args )
 {
     PyObject *extensions;
     crypto_X509ExtensionObj *ext;
-    STACK_OF(X509_EXTENSION) *exts;
+
+    STACK_OF( X509_EXTENSION ) * exts;
     int nr_of_extensions, i;
 
-    if (!PyArg_ParseTuple(args, "O:add_extensions", &extensions))
+    if ( !PyArg_ParseTuple( args, "O:add_extensions", &extensions ) )
         return NULL;
 
-    if (!PySequence_Check(extensions))
+    if ( !PySequence_Check( extensions ) )
     {
-        PyErr_SetString(PyExc_TypeError, "Expected a sequence");
+        PyErr_SetString( PyExc_TypeError, "Expected a sequence" );
         return NULL;
     }
 
     /* Make a STACK_OF(X509_EXTENSION) from sequence */
-    if ((exts = sk_X509_EXTENSION_new_null()) == NULL)
+    if ( ( exts = sk_X509_EXTENSION_new_null(  ) ) == NULL )
     {
-        exception_from_error_queue();
+        exception_from_error_queue(  );
         return NULL;
     }
 
     /* Put the extensions in a stack */
-    nr_of_extensions = PySequence_Length(extensions);
+    nr_of_extensions = PySequence_Length( extensions );
 
-    for (i = 0; i < nr_of_extensions; i++)
+    for ( i = 0; i < nr_of_extensions; i++ )
     {
-        ext = (crypto_X509ExtensionObj *)PySequence_GetItem(extensions, i);
-	if (!(crypto_X509Extension_Check(ext)))
+        ext =
+            ( crypto_X509ExtensionObj * ) PySequence_GetItem( extensions, i );
+        if ( !( crypto_X509Extension_Check( ext ) ) )
         {
-            PyErr_SetString(PyExc_ValueError,
-                            "One of the elements is not an X509Extension");
-	    sk_X509_EXTENSION_free(exts);
+            PyErr_SetString( PyExc_ValueError,
+                             "One of the elements is not an X509Extension" );
+            sk_X509_EXTENSION_free( exts );
             return NULL;
         }
-        sk_X509_EXTENSION_push(exts, ext->x509_extension);
+        sk_X509_EXTENSION_push( exts, ext->x509_extension );
     }
 
-    if (!X509_REQ_add_extensions(self->x509_req, exts))
+    if ( !X509_REQ_add_extensions( self->x509_req, exts ) )
     {
-        sk_X509_EXTENSION_free(exts);
-        exception_from_error_queue();
+        sk_X509_EXTENSION_free( exts );
+        exception_from_error_queue(  );
         return NULL;
     }
 
-    sk_X509_EXTENSION_free(exts);
+    sk_X509_EXTENSION_free( exts );
 
-    Py_INCREF(Py_None);
+    Py_INCREF( Py_None );
     return Py_None;
 }
 
@@ -258,48 +263,52 @@ Returns:   None\n\
 ";
 
 static PyObject *
-crypto_X509Req_get_extensions(crypto_X509ReqObj *self, PyObject *args)
+crypto_X509Req_get_extensions( crypto_X509ReqObj * self, PyObject * args )
 {
     PyObject *extList;
     crypto_X509ExtensionObj *pyext;
     X509_EXTENSION *ext;
-    STACK_OF(X509_EXTENSION) *extstack;
-    int extNum,i;
 
-    if (!PyArg_ParseTuple(args, ":get_extensions"))
+    STACK_OF( X509_EXTENSION ) * extstack;
+    int extNum, i;
+
+    if ( !PyArg_ParseTuple( args, ":get_extensions" ) )
         return NULL;
 
     extstack = X509_REQ_get_extensions( self->x509_req );
     extNum = sk_X509_EXTENSION_num( extstack );
-    if( extNum < 0 )
-    	extNum = 0;
-    extList = PyList_New(extNum);
-    for( i=0; i< extNum; i++)
+    if ( extNum < 0 )
+        extNum = 0;
+    extList = PyList_New( extNum );
+    for ( i = 0; i < extNum; i++ )
     {
-    	ext = sk_X509_EXTENSION_value( extstack, i );
-    	if( ext )
-    	{
-    		pyext = PyObject_New(crypto_X509ExtensionObj, &crypto_X509Extension_Type);
-    		if( !pyext )
-    		{
-    			Py_DECREF( extList );
-    			PyErr_SetString(PyExc_OSError, "Can't create extension object");
-    			return NULL;
-    		}
-    		pyext->x509_extension = ext;
-    		pyext->dealloc = 0;
-    		if( PyList_SetItem( extList, i, pyext ) == -1 )
-    		{
-    			Py_DECREF( extList );
-    			return NULL;
-    		}
-    	}
-    	else
-    	{
-    		Py_DECREF( extList );
-    		exception_from_error_queue();
-    		return NULL;
-    	}
+        ext = sk_X509_EXTENSION_value( extstack, i );
+        if ( ext )
+        {
+            pyext =
+                PyObject_New( crypto_X509ExtensionObj,
+                              &crypto_X509Extension_Type );
+            if ( !pyext )
+            {
+                Py_DECREF( extList );
+                PyErr_SetString( PyExc_OSError,
+                                 "Can't create extension object" );
+                return NULL;
+            }
+            pyext->x509_extension = ext;
+            pyext->dealloc = 0;
+            if ( PyList_SetItem( extList, i, pyext ) == -1 )
+            {
+                Py_DECREF( extList );
+                return NULL;
+            }
+        }
+        else
+        {
+            Py_DECREF( extList );
+            exception_from_error_queue(  );
+            return NULL;
+        }
     }
     return extList;
 }
@@ -311,18 +320,18 @@ crypto_X509Req_get_extensions(crypto_X509ReqObj *self, PyObject *args)
  */
 #define ADD_METHOD(name)        \
     { #name, (PyCFunction)crypto_X509Req_##name, METH_VARARGS, crypto_X509Req_##name##_doc }
-static PyMethodDef crypto_X509Req_methods[] =
-{
-    ADD_METHOD(get_subject),
-    ADD_METHOD(set_subject),
-    ADD_METHOD(get_pubkey),
-    ADD_METHOD(set_pubkey),
-    ADD_METHOD(sign),
-    ADD_METHOD(verify),
-    ADD_METHOD(add_extensions),
-    ADD_METHOD(get_extensions),
-    { NULL, NULL }
+static PyMethodDef crypto_X509Req_methods[] = {
+    ADD_METHOD( get_subject ),
+    ADD_METHOD( set_subject ),
+    ADD_METHOD( get_pubkey ),
+    ADD_METHOD( set_pubkey ),
+    ADD_METHOD( sign ),
+    ADD_METHOD( verify ),
+    ADD_METHOD( add_extensions ),
+    ADD_METHOD( get_extensions ),
+    {NULL, NULL}
 };
+
 #undef ADD_METHOD
 
 
@@ -335,13 +344,13 @@ static PyMethodDef crypto_X509Req_methods[] =
  * Returns:   The newly created X509Req object
  */
 crypto_X509ReqObj *
-crypto_X509Req_New(X509_REQ *req, int dealloc)
+crypto_X509Req_New( X509_REQ * req, int dealloc )
 {
     crypto_X509ReqObj *self;
 
-    self = PyObject_New(crypto_X509ReqObj, &crypto_X509Req_Type);
+    self = PyObject_New( crypto_X509ReqObj, &crypto_X509Req_Type );
 
-    if (self == NULL)
+    if ( self == NULL )
         return NULL;
 
     self->x509_req = req;
@@ -357,13 +366,13 @@ crypto_X509Req_New(X509_REQ *req, int dealloc)
  * Returns:   None
  */
 static void
-crypto_X509Req_dealloc(crypto_X509ReqObj *self)
+crypto_X509Req_dealloc( crypto_X509ReqObj * self )
 {
     /* Sometimes we don't have to dealloc this */
-    if (self->dealloc)
-        X509_REQ_free(self->x509_req);
+    if ( self->dealloc )
+        X509_REQ_free( self->x509_req );
 
-    PyObject_Del(self);
+    PyObject_Del( self );
 }
 
 
@@ -376,20 +385,19 @@ crypto_X509Req_dealloc(crypto_X509ReqObj *self)
  *            wrong
  */
 static PyObject *
-crypto_X509Req_getattr(crypto_X509ReqObj *self, char *name)
+crypto_X509Req_getattr( crypto_X509ReqObj * self, char *name )
 {
-    return Py_FindMethod(crypto_X509Req_methods, (PyObject *)self, name);
+    return Py_FindMethod( crypto_X509Req_methods, ( PyObject * ) self, name );
 }
 
 PyTypeObject crypto_X509Req_Type = {
-    PyObject_HEAD_INIT(NULL)
-    0,
+    PyObject_HEAD_INIT( NULL ) 0,
     "X509Req",
-    sizeof(crypto_X509ReqObj),
+    sizeof( crypto_X509ReqObj ),
     0,
-    (destructor)crypto_X509Req_dealloc,
-    NULL, /* print */
-    (getattrfunc)crypto_X509Req_getattr,
+    ( destructor ) crypto_X509Req_dealloc,
+    NULL,                       /* print */
+    ( getattrfunc ) crypto_X509Req_getattr,
 };
 
 
@@ -400,10 +408,11 @@ PyTypeObject crypto_X509Req_Type = {
  * Returns:   None
  */
 int
-init_crypto_x509req(PyObject *dict)
+init_crypto_x509req( PyObject * dict )
 {
     crypto_X509Req_Type.ob_type = &PyType_Type;
-    Py_INCREF(&crypto_X509Req_Type);
-    PyDict_SetItemString(dict, "X509ReqType", (PyObject *)&crypto_X509Req_Type);
+    Py_INCREF( &crypto_X509Req_Type );
+    PyDict_SetItemString( dict, "X509ReqType",
+                          ( PyObject * ) & crypto_X509Req_Type );
     return 1;
 }

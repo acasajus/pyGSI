@@ -1,3 +1,4 @@
+
 /*
  * pkcs7.c
  *
@@ -11,7 +12,8 @@
 #define crypto_MODULE
 #include "crypto.h"
 
-static char *CVSid = "@(#) $Id: pkcs7.c,v 1.1 2008/02/29 18:46:02 acasajus Exp $";
+static char *CVSid =
+    "@(#) $Id: pkcs7.c,v 1.2 2008/07/08 10:54:54 acasajus Exp $";
 
 static char crypto_PKCS7_type_is_signed_doc[] = "\n\
 Check if this NID_pkcs7_signed object\n\
@@ -22,15 +24,15 @@ Returns:   True if the PKCS7 is of type signed\n\
 ";
 
 static PyObject *
-crypto_PKCS7_type_is_signed(crypto_PKCS7Obj *self, PyObject *args)
+crypto_PKCS7_type_is_signed( crypto_PKCS7Obj * self, PyObject * args )
 {
-    if (!PyArg_ParseTuple(args, ":type_is_signed")) 
+    if ( !PyArg_ParseTuple( args, ":type_is_signed" ) )
         return NULL;
 
-    if (PKCS7_type_is_signed(self->pkcs7))
-        return PyInt_FromLong(1L);
+    if ( PKCS7_type_is_signed( self->pkcs7 ) )
+        return PyInt_FromLong( 1L );
     else
-        return PyInt_FromLong(0L);
+        return PyInt_FromLong( 0L );
 }
 
 static char crypto_PKCS7_type_is_enveloped_doc[] = "\n\
@@ -42,15 +44,15 @@ Returns:   True if the PKCS7 is of type enveloped\n\
 ";
 
 static PyObject *
-crypto_PKCS7_type_is_enveloped(crypto_PKCS7Obj *self, PyObject *args)
+crypto_PKCS7_type_is_enveloped( crypto_PKCS7Obj * self, PyObject * args )
 {
-    if (!PyArg_ParseTuple(args, ":type_is_enveloped")) 
+    if ( !PyArg_ParseTuple( args, ":type_is_enveloped" ) )
         return NULL;
 
-    if (PKCS7_type_is_enveloped(self->pkcs7))
-        return PyInt_FromLong(1L);
+    if ( PKCS7_type_is_enveloped( self->pkcs7 ) )
+        return PyInt_FromLong( 1L );
     else
-        return PyInt_FromLong(0L);
+        return PyInt_FromLong( 0L );
 }
 
 static char crypto_PKCS7_type_is_signedAndEnveloped_doc[] = "\n\
@@ -62,15 +64,16 @@ Returns:   True if the PKCS7 is of type signedAndEnveloped\n\
 ";
 
 static PyObject *
-crypto_PKCS7_type_is_signedAndEnveloped(crypto_PKCS7Obj *self, PyObject *args)
+crypto_PKCS7_type_is_signedAndEnveloped( crypto_PKCS7Obj * self,
+                                         PyObject * args )
 {
-    if (!PyArg_ParseTuple(args, ":type_is_signedAndEnveloped")) 
+    if ( !PyArg_ParseTuple( args, ":type_is_signedAndEnveloped" ) )
         return NULL;
 
-    if (PKCS7_type_is_signedAndEnveloped(self->pkcs7))
-        return PyInt_FromLong(1L);
+    if ( PKCS7_type_is_signedAndEnveloped( self->pkcs7 ) )
+        return PyInt_FromLong( 1L );
     else
-        return PyInt_FromLong(0L);
+        return PyInt_FromLong( 0L );
 }
 
 static char crypto_PKCS7_type_is_data_doc[] = "\n\
@@ -82,15 +85,15 @@ Returns:   True if the PKCS7 is of type data\n\
 ";
 
 static PyObject *
-crypto_PKCS7_type_is_data(crypto_PKCS7Obj *self, PyObject *args)
+crypto_PKCS7_type_is_data( crypto_PKCS7Obj * self, PyObject * args )
 {
-    if (!PyArg_ParseTuple(args, ":type_is_data")) 
+    if ( !PyArg_ParseTuple( args, ":type_is_data" ) )
         return NULL;
 
-    if (PKCS7_type_is_data(self->pkcs7))
-        return PyInt_FromLong(1L);
+    if ( PKCS7_type_is_data( self->pkcs7 ) )
+        return PyInt_FromLong( 1L );
     else
-        return PyInt_FromLong(0L);
+        return PyInt_FromLong( 0L );
 }
 
 static char crypto_PKCS7_get_type_name_doc[] = "\n\
@@ -102,15 +105,16 @@ Returns:   A string with the typename\n\
 ";
 
 static PyObject *
-crypto_PKCS7_get_type_name(crypto_PKCS7Obj *self, PyObject *args)
+crypto_PKCS7_get_type_name( crypto_PKCS7Obj * self, PyObject * args )
 {
-    if (!PyArg_ParseTuple(args, ":get_type_name")) 
+    if ( !PyArg_ParseTuple( args, ":get_type_name" ) )
         return NULL;
 
     /* 
      * return a string with the typename
      */
-    return PyString_FromString(OBJ_nid2sn(OBJ_obj2nid(self->pkcs7->type)));
+    return
+        PyString_FromString( OBJ_nid2sn( OBJ_obj2nid( self->pkcs7->type ) ) );
 }
 
 /*
@@ -120,15 +124,15 @@ crypto_PKCS7_get_type_name(crypto_PKCS7Obj *self, PyObject *args)
  */
 #define ADD_METHOD(name)        \
     { #name, (PyCFunction)crypto_PKCS7_##name, METH_VARARGS, crypto_PKCS7_##name##_doc }
-static PyMethodDef crypto_PKCS7_methods[] =
-{
-    ADD_METHOD(type_is_signed),
-    ADD_METHOD(type_is_enveloped),
-    ADD_METHOD(type_is_signedAndEnveloped),
-    ADD_METHOD(type_is_data),
-    ADD_METHOD(get_type_name),
-    { NULL, NULL }
+static PyMethodDef crypto_PKCS7_methods[] = {
+    ADD_METHOD( type_is_signed ),
+    ADD_METHOD( type_is_enveloped ),
+    ADD_METHOD( type_is_signedAndEnveloped ),
+    ADD_METHOD( type_is_data ),
+    ADD_METHOD( get_type_name ),
+    {NULL, NULL}
 };
+
 #undef ADD_METHOD
 
 
@@ -141,13 +145,13 @@ static PyMethodDef crypto_PKCS7_methods[] =
  * Returns:   The newly created pkcs7 object
  */
 crypto_PKCS7Obj *
-crypto_PKCS7_New(PKCS7 *pkcs7, int dealloc)
+crypto_PKCS7_New( PKCS7 * pkcs7, int dealloc )
 {
     crypto_PKCS7Obj *self;
 
-    self = PyObject_New(crypto_PKCS7Obj, &crypto_PKCS7_Type);
+    self = PyObject_New( crypto_PKCS7Obj, &crypto_PKCS7_Type );
 
-    if (self == NULL)
+    if ( self == NULL )
         return NULL;
 
     self->pkcs7 = pkcs7;
@@ -163,13 +167,13 @@ crypto_PKCS7_New(PKCS7 *pkcs7, int dealloc)
  * Returns:   None
  */
 static void
-crypto_PKCS7_dealloc(crypto_PKCS7Obj *self)
+crypto_PKCS7_dealloc( crypto_PKCS7Obj * self )
 {
     /* Sometimes we don't have to dealloc the "real" PKCS7 pointer ourselves */
-    if (self->dealloc)
-        PKCS7_free(self->pkcs7);
+    if ( self->dealloc )
+        PKCS7_free( self->pkcs7 );
 
-    PyObject_Del(self);
+    PyObject_Del( self );
 }
 
 /*
@@ -181,29 +185,28 @@ crypto_PKCS7_dealloc(crypto_PKCS7Obj *self)
  *            wrong
  */
 static PyObject *
-crypto_PKCS7_getattr(crypto_PKCS7Obj *self, char *name)
+crypto_PKCS7_getattr( crypto_PKCS7Obj * self, char *name )
 {
-    return Py_FindMethod(crypto_PKCS7_methods, (PyObject *)self, name);
+    return Py_FindMethod( crypto_PKCS7_methods, ( PyObject * ) self, name );
 }
 
 PyTypeObject crypto_PKCS7_Type = {
-    PyObject_HEAD_INIT(NULL)
-    0,
+    PyObject_HEAD_INIT( NULL ) 0,
     "PKCS7",
-    sizeof(crypto_PKCS7Obj),
+    sizeof( crypto_PKCS7Obj ),
     0,
-    (destructor)crypto_PKCS7_dealloc,
-    NULL, /* print */
-    (getattrfunc)crypto_PKCS7_getattr,
-    NULL, /* setattr */
-    NULL, /* compare */
-    NULL, /* repr */
-    NULL, /* as_number */
-    NULL, /* as_sequence */
-    NULL, /* as_mapping */
-    NULL, /* hash */
-    NULL, /* call */
-    NULL  /* str */
+    ( destructor ) crypto_PKCS7_dealloc,
+    NULL,                       /* print */
+    ( getattrfunc ) crypto_PKCS7_getattr,
+    NULL,                       /* setattr */
+    NULL,                       /* compare */
+    NULL,                       /* repr */
+    NULL,                       /* as_number */
+    NULL,                       /* as_sequence */
+    NULL,                       /* as_mapping */
+    NULL,                       /* hash */
+    NULL,                       /* call */
+    NULL                        /* str */
 };
 
 /*
@@ -213,11 +216,11 @@ PyTypeObject crypto_PKCS7_Type = {
  * Returns:   None
  */
 int
-init_crypto_pkcs7(PyObject *dict)
+init_crypto_pkcs7( PyObject * dict )
 {
     crypto_PKCS7_Type.ob_type = &PyType_Type;
-    Py_INCREF(&crypto_PKCS7_Type);
-    PyDict_SetItemString(dict, "PKCS7Type", (PyObject *)&crypto_PKCS7_Type);
+    Py_INCREF( &crypto_PKCS7_Type );
+    PyDict_SetItemString( dict, "PKCS7Type",
+                          ( PyObject * ) & crypto_PKCS7_Type );
     return 1;
 }
-

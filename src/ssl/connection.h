@@ -1,3 +1,4 @@
+
 /*
  * connection.h
  *
@@ -8,7 +9,7 @@
  *
  * Reviewed 2001-07-23
  *
- * @(#) $Id: connection.h,v 1.4 2008/03/05 14:44:58 acasajus Exp $
+ * @(#) $Id: connection.h,v 1.5 2008/07/08 10:54:55 acasajus Exp $
  */
 #ifndef PyGSI_SSL_CONNECTION_H_
 #define PyGSI_SSL_CONNECTION_H_
@@ -41,14 +42,13 @@ extern PyTypeObject ssl_Connection_Type;
 
 typedef struct
 {
-	PyObject_HEAD
-	SSL *ssl;
-	ssl_ContextObj *context;
-   unsigned char remoteCertVerified;
-   int handshakeErrorId;
-	PyObject *socket;
-	PyThreadState *tstate;
-	PyObject *app_data;
+    PyObject_HEAD SSL *ssl;
+    ssl_ContextObj *context;
+    unsigned char remoteCertVerified;
+    int handshakeErrorId;
+    PyObject *socket;
+    PyThreadState *tstate;
+    PyObject *app_data;
 } ssl_ConnectionObj;
 
 

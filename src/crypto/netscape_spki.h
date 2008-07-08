@@ -1,3 +1,4 @@
+
 /*
  * netscape_spki.h
  *
@@ -13,16 +14,16 @@
 #include <Python.h>
 #include <openssl/ssl.h>
 
-extern  int     init_crypto_netscape_spki       (PyObject *);
+extern int init_crypto_netscape_spki( PyObject * );
 
-extern  PyTypeObject      crypto_NetscapeSPKI_Type;
+extern PyTypeObject crypto_NetscapeSPKI_Type;
 
 #define crypto_NetscapeSPKI_Check(v) ((v)->ob_type == &crypto_NetscapeSPKI_Type)
 
-typedef struct {
-    PyObject_HEAD
-    NETSCAPE_SPKI           *netscape_spki;
-    int                  dealloc;
+typedef struct
+{
+    PyObject_HEAD NETSCAPE_SPKI *netscape_spki;
+    int dealloc;
 } crypto_NetscapeSPKIObj;
 
 
