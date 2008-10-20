@@ -17,7 +17,7 @@
 
 
 static char *CVSid =
-    "@(#) $Id: x509.c,v 1.8 2008/07/08 10:54:11 acasajus Exp $";
+    "@(#) $Id: x509.c,v 1.9 2008/10/20 17:58:51 acasajus Exp $";
 
 /*
  * X.509 is a standard for digital certificates.  See e.g. the OpenSSL homepage
@@ -75,13 +75,24 @@ Returns:   Serial number as a Python integer\n\
 static PyObject *
 crypto_X509_get_serial_number( crypto_X509Obj * self, PyObject * args )
 {
-    ASN1_INTEGER *asn1_i;
+   ASN1_INTEGER *asn1_i;
+   int length;
+   PyObject *pySerial;
+   char *cbuf;
 
-    if ( !PyArg_ParseTuple( args, ":get_serial_number" ) )
-        return NULL;
+   if ( !PyArg_ParseTuple( args, ":get_serial_number" ) )
+      return NULL;
 
-    asn1_i = X509_get_serialNumber( self->x509 );
-    return PyInt_FromLong( ASN1_INTEGER_get( asn1_i ) );
+   asn1_i = X509_get_serialNumber( self->x509 );
+
+   length = i2c_ASN1_INTEGER( asn1_i, NULL );
+   if( !length )
+      return PyString_FromString( "" );
+   pySerial = PyString_FromStringAndSize( NULL, length );
+   cbuf = PyString_AsString( pySerial );
+   length = i2c_ASN1_INTEGER( asn1_i, &cbuf);
+
+   return pySerial;
 }
 
 static char crypto_X509_set_serial_number_doc[] = "\n\
@@ -96,15 +107,18 @@ Returns:   None\n\
 static PyObject *
 crypto_X509_set_serial_number( crypto_X509Obj * self, PyObject * args )
 {
-    long serial;
+   char *serial;
+   long serialLength;
+   ASN1_INTEGER *asn1_i;
 
-    if ( !PyArg_ParseTuple( args, "l:set_serial_number", &serial ) )
-        return NULL;
+   if ( !PyArg_ParseTuple( args, "s#:set_serial_number", &serial, &serialLength ) )
+      return NULL;
 
-    ASN1_INTEGER_set( X509_get_serialNumber( self->x509 ), serial );
+   asn1_i = X509_get_serialNumber( self->x509 );
+   c2i_ASN1_INTEGER( &asn1_i, &serial, serialLength );
 
-    Py_INCREF( Py_None );
-    return Py_None;
+   Py_INCREF( Py_None );
+   return Py_None;
 }
 
 static char crypto_X509_get_issuer_doc[] = "\n\
