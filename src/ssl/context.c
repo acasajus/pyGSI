@@ -14,7 +14,7 @@
 #include "ssl.h"
 
 static char *CVSid =
-    "@(#) $Id: context.c,v 1.9 2008/11/25 17:33:31 acasajus Exp $";
+    "@(#) $Id: context.c,v 1.10 2008/11/25 17:33:41 acasajus Exp $";
 
 /*
  * CALLBACKS
@@ -695,7 +695,7 @@ Arguments: self - The Context object\n\
              mode     - The verify mode, this is either SSL_VERIFY_NONE or\n\
                         SSL_VERIFY_PEER combined with possible other flags\n\
              callback - The Python callback to use\n\
-             enableGSI - Enable gsi authorization
+             enableGSI - Enable gsi authorization\n\
             optional:\n\
              gsiEnabled - Wether to enable gsi verification. True by default\n\
 Returns:   None\n\
