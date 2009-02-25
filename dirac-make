@@ -55,7 +55,7 @@ rm -rf temp                                                || exit 1
 mkdir temp                                                 || exit 1
 (
 cd temp
-unzip ../dist/pyGSI-${Version}-py${python_version}-*-*.egg  || exit 1
+python $basedir/unzip.py ../dist/pyGSI-${Version}-py${python_version}-*-*.egg  || exit 1
 rm -rf EGG-INFO                                            || exit 1
 if [ $python == $DIRACpython ] ; then
   cp -r * ${DIRAClib}/python${python_version}/site-packages/ || exit 1
