@@ -36,6 +36,14 @@ else
 	echo "-release mode-"
 	./config -shared threads                          || exit 1
 fi
+#Hack for newer versions of gcc
+gccVersion=`gcc -dumpversion`
+if [ "$gccVersion" \> "4.3.0" ]; then
+ #do
+ cat Makefile | sed 's/-m486/-mtune=i486/g' > Makefile.changed
+ mv Makefile.changed Makefile
+fi
+#MAKE!
 make -j4                                              || exit 1
 )
 
