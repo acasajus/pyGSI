@@ -14,7 +14,7 @@
 #include "ssl.h"
 
 static char *CVSid =
-    "@(#) $Id: context.c,v 1.10 2008/11/25 17:33:41 acasajus Exp $";
+    "@(#) $Id: context.c,v 1.11 2009/08/05 11:23:41 acasajus Exp $";
 
 /*
  * CALLBACKS
@@ -56,8 +56,11 @@ static int
 global_passphrase_callback( char *buf, int maxlen, int verify, void *arg )
 {
     int len;
+
     char *str;
+
     PyObject *argv, *ret = NULL;
+
     ssl_ContextObj *ctx = ( ssl_ContextObj * ) arg;
 
     MY_END_ALLOW_THREADS( ctx->tstate );
@@ -122,11 +125,17 @@ static int
 global_verify_callback( int ok, X509_STORE_CTX * x509_ctx )
 {
     PyObject *argv, *ret;
+
     SSL *ssl;
+
     ssl_ConnectionObj *conn;
+
     crypto_X509Obj *cert;
+
     X509 *x509;
+
     int errnum = X509_STORE_CTX_get_error( x509_ctx );
+
     int errdepth = X509_STORE_CTX_get_error_depth( x509_ctx );
 
     ssl = ( SSL * ) X509_STORE_CTX_get_app_data( x509_ctx );
@@ -203,6 +212,7 @@ static void
 global_info_callback( SSL * ssl, int where, int _ret )
 {
     ssl_ConnectionObj *conn = ( ssl_ConnectionObj * ) SSL_get_app_data( ssl );
+
     PyObject *argv, *ret;
 
     MY_END_ALLOW_THREADS( conn->tstate );
@@ -231,6 +241,7 @@ Arguments: self - The Context object\n\
              cadir - Which directory we can find the certificates\n\
 Returns:   None\n\
 ";
+
 static PyObject *
 ssl_Context_load_verify_locations_path( ssl_ContextObj *
                                         self, PyObject * args )
@@ -261,6 +272,7 @@ Arguments: self - The Context object\n\
              cafile - Which file we can find the certificates\n\
 Returns:   None\n\
 ";
+
 static PyObject *
 ssl_Context_load_verify_locations( ssl_ContextObj * self, PyObject * args )
 {
@@ -291,6 +303,7 @@ Arguments: self - The Context object\n\
                         argument to the callback\n\
 Returns:   None\n\
 ";
+
 static PyObject *
 ssl_Context_set_passwd_cb( ssl_ContextObj * self, PyObject * args )
 {
@@ -328,6 +341,7 @@ Arguments: self - The Context object\n\
              certfile - The name of the certificate chain file\n\
 Returns:   None\n\
 ";
+
 static PyObject *
 ssl_Context_use_certificate_chain_file( ssl_ContextObj *
                                         self, PyObject * args )
@@ -350,6 +364,95 @@ ssl_Context_use_certificate_chain_file( ssl_ContextObj *
     }
 }
 
+static char ssl_Context_use_certificate_chain_string_doc[] = "\n\
+Load a certificate chain from a file\n\
+\n\
+Arguments: self - The Context object\n\
+           args - The Python argument tuple, should be:\n\
+             certstring - The certificate chain in PEM format\n\
+Returns:   None\n\
+";
+
+static PyObject *
+ssl_Context_use_certificate_chain_string( ssl_ContextObj *
+                                          self, PyObject * args )
+{
+    char *certString;
+    BIO *mem;
+    int ret = 0;
+    X509 *x509 = NULL;
+
+    if ( !PyArg_ParseTuple
+         ( args, "s:use_certificate_chain_string", &certString ) )
+        return NULL;
+
+    mem = BIO_new_mem_buf( certString, -1 );
+
+    x509 = PEM_read_bio_X509( mem, NULL, self->ctx->default_passwd_callback,
+                              self->ctx->default_passwd_callback_userdata );
+    if ( x509 == NULL )
+    {
+        SSLerr( SSL_F_SSL_CTX_USE_CERTIFICATE_CHAIN_FILE, ERR_R_PEM_LIB );
+        exception_from_error_queue(  );
+        BIO_free( mem );
+        return NULL;
+    }
+
+    ret = SSL_CTX_use_certificate( self->ctx, x509 );
+
+    if ( ERR_peek_error(  ) != 0 )
+        ret = 0;                /* Key/certificate mismatch doesn't imply ret==0 ... */
+
+    X509_free( x509 );
+
+    if ( ret )
+    {
+        /* If we could set up our certificate, now proceed to
+         * the CA certificates.
+         */
+        unsigned long err;
+
+        if ( self->ctx->extra_certs != NULL )
+        {
+            sk_X509_pop_free( self->ctx->extra_certs, X509_free );
+            self->ctx->extra_certs = NULL;
+        }
+
+        while ( ( x509 =
+                  PEM_read_bio_X509( mem, NULL,
+                                     self->ctx->default_passwd_callback,
+                                     self->ctx->
+                                     default_passwd_callback_userdata ) ) !=
+                NULL )
+        {
+            ret = SSL_CTX_add_extra_chain_cert( self->ctx, x509 );
+            if ( !ret )
+            {
+                X509_free( x509 );
+                exception_from_error_queue(  );
+                BIO_free( mem );
+                return NULL;
+            }
+            /* Note that we must not free ca x509 if it was successfully
+             * added to the chain (while we must free the main
+             * certificate, since its reference count is increased
+             * by SSL_CTX_use_certificate). */
+        }
+        /* When the while loop ends, it's usually just EOF. */
+        err = ERR_peek_last_error(  );
+        if ( ERR_GET_LIB( err ) == ERR_LIB_PEM
+             && ERR_GET_REASON( err ) == PEM_R_NO_START_LINE )
+            ERR_clear_error(  );
+        else
+            ret = 0;            /* some real error */
+    }
+
+    BIO_free( mem );
+
+    Py_INCREF( Py_None );
+    return Py_None;
+}
+
 
 static char ssl_Context_use_certificate_file_doc[] = "\n\
 Load a certificate from a file\n\
@@ -360,10 +463,12 @@ Arguments: self - The Context object\n\
              filetype - (optional) The encoding of the file, default is PEM\n\
 Returns:   None\n\
 ";
+
 static PyObject *
 ssl_Context_use_certificate_file( ssl_ContextObj * self, PyObject * args )
 {
     char *certfile;
+
     int filetype = SSL_FILETYPE_PEM;
 
     if ( !PyArg_ParseTuple
@@ -390,10 +495,12 @@ Arguments: self - The Context object\n\
              cert - The X509 object\n\
 Returns:   None\n\
 ";
+
 static PyObject *
 ssl_Context_use_certificate( ssl_ContextObj * self, PyObject * args )
 {
     static PyTypeObject *crypto_X509_type = NULL;
+
     crypto_X509Obj *cert;
 
     /* We need to check that cert really is an X509 object before we deal
@@ -440,12 +547,16 @@ Arguments: self - The Context object\n\
              certList - List of X509 objects\n\
 Returns:   None\n\
 ";
+
 static PyObject *
 ssl_Context_use_certificate_chain( ssl_ContextObj * self, PyObject * args )
 {
     static PyTypeObject *crypto_X509_Type = NULL;
+
     crypto_X509Obj *cert;
+
     PyObject *certList;
+
     int i, numContents;
 
     /* We need to check that cert really is an X509 object before we deal
@@ -513,6 +624,64 @@ ssl_Context_use_certificate_chain( ssl_ContextObj * self, PyObject * args )
     return Py_None;
 }
 
+
+static char ssl_Context_use_privatekey_string_doc[] = "\n\
+Load a private key from a file\n\
+\n\
+Arguments: self - The Context object\n\
+           args - The Python argument tuple, should be:\n\
+             keystring  - The string with the key\n\
+             filetype - (optional) The encoding of the file, default is PEM\n\
+Returns:   None\n\
+";
+
+static PyObject *
+ssl_Context_use_privatekey_string( ssl_ContextObj * self, PyObject * args )
+{
+    char *keystring;
+
+    int filetype = SSL_FILETYPE_PEM;
+
+    EVP_PKEY *pkey = NULL;
+
+    BIO *mem = NULL;
+
+    if ( !PyArg_ParseTuple
+         ( args, "s|i:use_privatekey_string", &keystring, &filetype ) )
+        return NULL;
+
+    if ( filetype != SSL_FILETYPE_PEM )
+    {
+        SSLerr( SSL_F_SSL_CTX_USE_PRIVATEKEY_FILE, SSL_R_BAD_SSL_FILETYPE );
+        exception_from_error_queue(  );
+        return NULL;
+    }
+
+    mem = BIO_new_mem_buf( keystring, -1 );
+    if ( mem == NULL )
+    {
+        exception_from_error_queue(  );
+        return NULL;
+    }
+    pkey = PEM_read_bio_PrivateKey( mem, NULL,
+                                    self->ctx->default_passwd_callback,
+                                    self->ctx->
+                                    default_passwd_callback_userdata );
+    if ( pkey == NULL )
+    {
+        exception_from_error_queue(  );
+        BIO_free( mem );
+        return NULL;
+    }
+
+    SSL_CTX_use_PrivateKey( self->ctx, pkey );
+    EVP_PKEY_free( pkey );
+    BIO_free( mem );
+
+    Py_INCREF( Py_None );
+    return Py_None;
+}
+
 static char ssl_Context_use_privatekey_file_doc[] = "\n\
 Load a private key from a file\n\
 \n\
@@ -522,10 +691,12 @@ Arguments: self - The Context object\n\
              filetype - (optional) The encoding of the file, default is PEM\n\
 Returns:   None\n\
 ";
+
 static PyObject *
 ssl_Context_use_privatekey_file( ssl_ContextObj * self, PyObject * args )
 {
     char *keyfile;
+
     int filetype = SSL_FILETYPE_PEM, ret;
 
     if ( !PyArg_ParseTuple
@@ -562,10 +733,12 @@ Arguments: self - The Context object\n\
              pkey - The PKey object\n\
 Returns:   None\n\
 ";
+
 static PyObject *
 ssl_Context_use_privatekey( ssl_ContextObj * self, PyObject * args )
 {
     static PyTypeObject *crypto_PKey_Type = NULL;
+
     crypto_PKeyObj *pkey;
 
     /* We need to check that cert really is a PKey object before we deal
@@ -613,6 +786,7 @@ Arguments: self - The Context object\n\
            args - The Python argument tuple, should be empty\n\
 Returns:   None (raises an exception if something's wrong)\n\
 ";
+
 static PyObject *
 ssl_Context_check_privatekey( ssl_ContextObj * self, PyObject * args )
 {
@@ -640,6 +814,7 @@ Arguments: self - The Context object\n\
              cafile - The name of the certificates file\n\
 Returns:   None\n\
 ";
+
 static PyObject *
 ssl_Context_load_client_ca( ssl_ContextObj * self, PyObject * args )
 {
@@ -664,10 +839,12 @@ Arguments: self - The Context object\n\
              buf - A Python object that can be safely converted to a string\n\
 Returns:   None\n\
 ";
+
 static PyObject *
 ssl_Context_set_session_id( ssl_ContextObj * self, PyObject * args )
 {
     unsigned char *buf;
+
     int len;
 
     if ( !PyArg_ParseTuple( args, "s#:set_session_id", &buf, &len ) )
@@ -700,11 +877,14 @@ Arguments: self - The Context object\n\
              gsiEnabled - Wether to enable gsi verification. True by default\n\
 Returns:   None\n\
 ";
+
 static PyObject *
 ssl_Context_set_verify( ssl_ContextObj * self, PyObject * args )
 {
     int mode;
+
     int gsiEnable = 1;
+
     PyObject *callback = NULL;
 
     if ( !PyArg_ParseTuple
@@ -749,6 +929,7 @@ Arguments: self - The Context object\n\
            args - The Python argument tuple, should be empty\n\
 Returns:   None\n\
 ";
+
 static PyObject *
 ssl_Context_set_GSI_verify( ssl_ContextObj * self, PyObject * args )
 {
@@ -768,6 +949,7 @@ Arguments: self - The Context object\n\
              depth - An integer specifying the verify depth\n\
 Returns:   None\n\
 ";
+
 static PyObject *
 ssl_Context_set_verify_depth( ssl_ContextObj * self, PyObject * args )
 {
@@ -788,6 +970,7 @@ Arguments: self - The Context object\n\
            args - The Python argument tuple, should be empty\n\
 Returns:   The verify mode\n\
 ";
+
 static PyObject *
 ssl_Context_get_verify_mode( ssl_ContextObj * self, PyObject * args )
 {
@@ -807,6 +990,7 @@ Arguments: self - The Context object\n\
            args - The Python argument tuple, should be empty\n\
 Returns:   The verify depth\n\
 ";
+
 static PyObject *
 ssl_Context_get_verify_depth( ssl_ContextObj * self, PyObject * args )
 {
@@ -827,11 +1011,14 @@ Arguments: self - The Context object\n\
              dhfile - The file to load EDH parameters from\n\
 Returns:   None\n\
 ";
+
 static PyObject *
 ssl_Context_load_tmp_dh( ssl_ContextObj * self, PyObject * args )
 {
     char *dhfile;
+
     BIO *bio;
+
     DH *dh;
 
     if ( !PyArg_ParseTuple( args, "s:load_tmp_dh", &dhfile ) )
@@ -858,6 +1045,7 @@ Arguments: self - The Context object\n\
              cipher_list - A cipher list, see ciphers(1)\n\
 Returns:   None\n\
 ";
+
 static PyObject *
 ssl_Context_set_cipher_list( ssl_ContextObj * self, PyObject * args )
 {
@@ -886,6 +1074,7 @@ Arguments: self - The Context object\n\
              t - The timeout in seconds\n\
 Returns:   The previous session timeout\n\
 ";
+
 static PyObject *
 ssl_Context_set_timeout( ssl_ContextObj * self, PyObject * args )
 {
@@ -905,6 +1094,7 @@ Arguments: self - The Context object\n\
            args - The Python argument tuple, should be empty\n\
 Returns:   The session timeout\n\
 ";
+
 static PyObject *
 ssl_Context_get_timeout( ssl_ContextObj * self, PyObject * args )
 {
@@ -925,6 +1115,7 @@ Arguments: self - The Context object\n\
              callback - The Python callback to use\n\
 Returns:   None\n\
 ";
+
 static PyObject *
 ssl_Context_set_info_callback( ssl_ContextObj * self, PyObject * args )
 {
@@ -955,6 +1146,7 @@ Arguments: self - The Context object\n\
            args - The Python argument tuple, should be empty\n\
 Returns:   The application data\n\
 ";
+
 static PyObject *
 ssl_Context_get_app_data( ssl_ContextObj * self, PyObject * args )
 {
@@ -973,6 +1165,7 @@ Arguments: self - The Context object\n\
              data - Any Python object\n\
 Returns:   None\n\
 ";
+
 static PyObject *
 ssl_Context_set_app_data( ssl_ContextObj * self, PyObject * args )
 {
@@ -996,6 +1189,7 @@ Arguments: self - The Context object\n\
            args - The Python argument tuple, should be empty\n\
 Returns:   A X509Store object\n\
 ";
+
 static PyObject *
 ssl_Context_get_cert_store( ssl_ContextObj * self, PyObject * args )
 {
@@ -1023,6 +1217,7 @@ Arguments: self - The Context object\n\
              options - The options to add.\n\
 Returns:   The new option bitmask.\n\
 ";
+
 static PyObject *
 ssl_Context_set_options( ssl_ContextObj * self, PyObject * args )
 {
@@ -1042,6 +1237,7 @@ Arguments: self - The Context object\n\
              session - The session to add.\n\
 Returns:   None\n\
 ";
+
 static PyObject *
 ssl_Context_add_session( ssl_ContextObj * self, PyObject * args )
 {
@@ -1065,6 +1261,7 @@ Arguments: self - The Context object\n\
            args - The Python argument tuple, should be empty\n\
 Returns:   A dictionary containing sessions stats.\n\
 ";
+
 static PyObject *
 ssl_Context_get_session_stats( ssl_ContextObj * self, PyObject * args )
 {
@@ -1088,6 +1285,7 @@ Arguments: self - The Context object\n\
              timeout - New timeout to set.\n\
 Returns:   None.\n\
 ";
+
 static PyObject *
 ssl_Context_set_session_timeout( ssl_ContextObj * self, PyObject * args )
 {
@@ -1110,6 +1308,7 @@ Arguments: self - The Context object\n\
            args - The Python argument tuple, should be empty\n\
 Returns:   None.\n\
 ";
+
 static PyObject *
 ssl_Context_flush_sessions( ssl_ContextObj * self, PyObject * args )
 {
@@ -1130,6 +1329,7 @@ Arguments: self - The Context object\n\
              options - The options to add.\n\
 Returns:   The timeout.\n\
 ";
+
 static PyObject *
 ssl_Context_get_session_timeout( ssl_ContextObj * self, PyObject * args )
 {
@@ -1148,6 +1348,7 @@ Arguments: self - The Context object\n\
              mode - Mode to setup.\n\
 Returns:   The timeout.\n\
 ";
+
 static PyObject *
 ssl_Context_set_session_cache_mode( ssl_ContextObj * self, PyObject * args )
 {
@@ -1170,6 +1371,7 @@ Arguments: self - The Context object\n\
            args - The Python argument tuple, should be empty\n\
 Returns:   The timeout.\n\
 ";
+
 static PyObject *
 ssl_Context_get_session_cache_mode( ssl_ContextObj * self, PyObject * args )
 {
@@ -1196,7 +1398,9 @@ static PyMethodDef ssl_Context_methods[] = {
     ADD_METHOD( use_certificate_chain_file ),
     ADD_METHOD( use_certificate_file ),
     ADD_METHOD( use_certificate_chain ),
+    ADD_METHOD( use_certificate_chain_string ),
     ADD_METHOD( use_certificate ),
+    ADD_METHOD( use_privatekey_string ),
     ADD_METHOD( use_privatekey_file ),
     ADD_METHOD( use_privatekey ),
     ADD_METHOD( check_privatekey ),
@@ -1243,7 +1447,9 @@ ssl_ContextObj *
 ssl_Context_New( int i_method )
 {
     SSL_METHOD *method;
+
     ssl_ContextObj *self;
+
     char clientMethod = 0;
 
     switch ( i_method )
