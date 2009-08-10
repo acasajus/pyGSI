@@ -14,7 +14,7 @@
 #include "ssl.h"
 
 static char *CVSid =
-    "@(#) $Id: context.c,v 1.11 2009/08/05 11:23:41 acasajus Exp $";
+    "@(#) $Id: context.c,v 1.12 2009/08/10 16:54:02 acasajus Exp $";
 
 /*
  * CALLBACKS
@@ -380,6 +380,8 @@ ssl_Context_use_certificate_chain_string( ssl_ContextObj *
     char *certString;
     BIO *mem;
     int ret = 0;
+    unsigned long err = 0;
+
     X509 *x509 = NULL;
 
     if ( !PyArg_ParseTuple
@@ -400,8 +402,10 @@ ssl_Context_use_certificate_chain_string( ssl_ContextObj *
 
     ret = SSL_CTX_use_certificate( self->ctx, x509 );
 
-    if ( ERR_peek_error(  ) != 0 )
+    if ( ( err = ERR_peek_error() ) != 0 )
+    {
         ret = 0;                /* Key/certificate mismatch doesn't imply ret==0 ... */
+    }
 
     X509_free( x509 );
 
@@ -410,7 +414,6 @@ ssl_Context_use_certificate_chain_string( ssl_ContextObj *
         /* If we could set up our certificate, now proceed to
          * the CA certificates.
          */
-        unsigned long err;
 
         if ( self->ctx->extra_certs != NULL )
         {
@@ -442,12 +445,18 @@ ssl_Context_use_certificate_chain_string( ssl_ContextObj *
         err = ERR_peek_last_error(  );
         if ( ERR_GET_LIB( err ) == ERR_LIB_PEM
              && ERR_GET_REASON( err ) == PEM_R_NO_START_LINE )
-            ERR_clear_error(  );
+            ERR_clear_error();
         else
             ret = 0;            /* some real error */
     }
 
     BIO_free( mem );
+
+    if( !ret )
+    {
+    	exception_from_error_queue();
+    	return NULL;
+    }
 
     Py_INCREF( Py_None );
     return Py_None;
@@ -639,6 +648,7 @@ static PyObject *
 ssl_Context_use_privatekey_string( ssl_ContextObj * self, PyObject * args )
 {
     char *keystring;
+    int ret;
 
     int filetype = SSL_FILETYPE_PEM;
 
@@ -674,9 +684,15 @@ ssl_Context_use_privatekey_string( ssl_ContextObj * self, PyObject * args )
         return NULL;
     }
 
-    SSL_CTX_use_PrivateKey( self->ctx, pkey );
+    ret = SSL_CTX_use_PrivateKey( self->ctx, pkey );
     EVP_PKEY_free( pkey );
     BIO_free( mem );
+
+    if( ! ret )
+    {
+    	exception_from_error_queue();
+    	return NULL;
+    }
 
     Py_INCREF( Py_None );
     return Py_None;
