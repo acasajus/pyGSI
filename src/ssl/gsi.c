@@ -200,6 +200,8 @@ gsiVerifyCallback( int ok, X509_STORE_CTX * ctx )
 
     }
 
+    logMsg( 0, "Final OK: %d X509Error: %d (%s)", ok, errnum, X509_verify_cert_error_string( errnum ) );
+
     if ( !ok )
         conn->handshakeErrorId = errnum;
 
@@ -244,6 +246,7 @@ gsiVerifyProxyChain( STACK_OF( X509 ) * certstack )
     int depth = sk_X509_num( certstack );       //Number of certs in stack
     int prevWasCA = 1;          //Initial cert is a CA
     int prevWasLimitedProxy = 0;        //Initial cert is not a limited proxy
+    int isLimited;
     int i;
     int claimsCABehaviour;
     int lenSubject, lenIssuer;
@@ -280,9 +283,11 @@ gsiVerifyProxyChain( STACK_OF( X509 ) * certstack )
         //Is a normal CA cert
         if ( !claimsCABehaviour )
         {
+        	logMsg( 1, " Claims CA behaviour" );
             //If previous wasn't a CA then error!
             if ( !prevWasCA )
             {
+            	logMsg( 1, " ERR: Prev wasn't CA" );
                 foundError |= X509_V_ERR_APPLICATION_VERIFICATION;
             }
             //Seems ok
@@ -291,29 +296,26 @@ gsiVerifyProxyChain( STACK_OF( X509 ) * certstack )
         //Can be either a user cert or a proxy
         else
         {
+        	logMsg( 1, " No CA Behaviour" );
             //Has to be a user cert issued by a real CA
             if ( prevWasCA )
             {
+            	logMsg( 1, " Prev was CA" );
                 prevWasCA = 0;
             }
             //Proxy!!!
             else
             {
-                //We don't accept proxies of limited ones
-                if ( prevWasLimitedProxy )
-                {
-                    foundError |= X509_V_ERR_APPLICATION_VERIFICATION;
-                }
                 /* User not allowed to sign shortened DN */
-                else if ( lenIssuer > lenSubject )
+                if ( lenIssuer > lenSubject )
                 {
-                    logMsg( 2, "It is not allowed to sign a shorthened DN." );
+                    logMsg( 2, " ERR: It is not allowed to sign a shorthened DN." );
                     foundError |= X509_V_ERR_INVALID_CA;
                 }
                 /* Proxy subject must begin with issuer. */
                 else if ( strncmp( certDN, issuerDN, lenIssuer ) != 0 )
                 {
-                    logMsg( 2, "Proxy subject must begin with the issuer." );
+                    logMsg( 2, " ERR:Proxy subject must begin with the issuer." );
                     foundError |= X509_V_ERR_INVALID_CA;
                 }
                 else
@@ -329,12 +331,22 @@ gsiVerifyProxyChain( STACK_OF( X509 ) * certstack )
                                 "Could not find a /CN= structure in the DN, thus it is not a proxy." );
                         foundError |= X509_V_ERR_INVALID_CA;
                     }
-
-                    if ( strncmp( proxyDNchunk, "/CN=limited proxy", 17 ) ==
-                         0 )
-                    {
-                        prevWasLimitedProxy = 1;
+                    //We don't accept proxies of limited ones
+                    if ( prevWasLimitedProxy && strncmp( proxyDNchunk, "/CN=proxy", 9 ) ==
+                                             0 )
+                                        {
+                    	logMsg( 2, " ERR: Prev was limited" );
+                        foundError |= X509_V_ERR_APPLICATION_VERIFICATION;
                     }
+                    //If it's limited
+                    isLimited = strncmp( proxyDNchunk, "/CN=limited proxy", 17 ) == 0;
+                    if( prevWasLimitedProxy && ! isLimited )
+                    {
+                    	logMsg( 2, "ERR: Prev was limited and this step is not (%s)", proxyDNchunk );
+                    	foundError |= X509_V_ERR_APPLICATION_VERIFICATION;
+                    }
+                    if ( isLimited )
+                    	prevWasLimitedProxy = 1;
                 }
             }
         }
