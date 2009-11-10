@@ -85,5 +85,5 @@ function installGSI
 	)
 }
 
-#installOpenSSL
+installOpenSSL
 installGSI
