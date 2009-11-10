@@ -63,11 +63,11 @@ if os.name == 'nt' or sys.platform == 'win32':
     Libraries = ['libeay32', 'ssleay32', 'Ws2_32']
 else:
     Libraries = []
-    IncludeDirs = [ '../../external/openssl-%s/openssl-%s/include' % (openSSLVersion, openSSLVersion) ]
+    IncludeDirs = [ os.path.realpath( 'openssl/openssl-%s/include' % ( openSSLVersion ) ) ]
 
-#ExtraObjects = [ '/usr/lib/libpthread.a', '/usr/lib/libssl.a','/usr/lib/libcrypto.a' ]
-ExtraObjects = [ '../../external/openssl-%s/openssl-%s/libssl.a' % (openSSLVersion, openSSLVersion),
-                 '../../external/openssl-%s/openssl-%s/libcrypto.a' % (openSSLVersion, openSSLVersion) ]
+
+ExtraObjects = [ os.path.realpath( 'openssl/openssl-%s/libssl.a' % ( openSSLVersion ) ),
+                 os.path.realpath( 'openssl/openssl-%s/libcrypto.a' % ( openSSLVersion ) ) ]
                  #, '/usr/lib%s/python%s/config/libpython%s.a' % (sModifier, sys.version[:3], sys.version[:3] ) ]
 
 DefineList = [ ( 'OPENSSL_NO_KRB5', "" ) ]
