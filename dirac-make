@@ -18,51 +18,16 @@ fi
 mkdir -p ${prefixDir}                          || exit 1
 #
 Version=0.4
-sslVersion=0.9.7m
-
-sslCompile=1
-sslDebug=0
-
-openssldir=$basedir/openssl
-opensslversion=$basedir/openssl/openssl-${sslVersion}
-
-function installOpenSSL
-{
-	if ! [ -f ${opensslversion}.tar.gz ] ; then
-	  echo This package needs "$openssltarball"
-	  exit 1
-	fi
-	
-	 if [ "$sslCompile" == "1" ]; then
-	 	(
-			echo "====Compiling openssl version $sslVersion===="
-			cd $openssldir
-			tar -xzf ${opensslversion}.tar.gz                   || exit 1
-			cd ${opensslversion}                             || exit 1
-			if [ "$sslDebug" == "1" ]; then
-				echo "-debug mode-"
-				./config -d -shared threads                       || exit 1
-			else
-				echo "-release mode-"
-				./config -shared threads                          || exit 1
-			fi
-			#Hack for newer versions of gcc
-			gccVersion=`gcc -dumpversion`
-			if [ "$gccVersion" \> "4.3.0" ]; then
-			 #do
-			 cat Makefile | sed 's/-m486/-mtune=i486/g' > Makefile.changed
-			 mv Makefile.changed Makefile
-			fi
-			#MAKE!
-			make -j4                                              || exit 1
-		)
-	fi
-}
 
 function installGSI
 {
 	(
 		cd $basedir
+		
+		rm -f site.cfg
+		echo "library_dirs=${prefixDir}/lib" > site.cfg
+		echo "include_dirs=${prefixDir}/include" >> site.cfg
+
 		INSTALLbin=`canonicalize $prefixDir/bin`
 		INSTALLlib=`canonicalize $prefixDir/lib`
 		export PATH=$INSTALLbin:$PATH
@@ -85,5 +50,4 @@ function installGSI
 	)
 }
 
-installOpenSSL
 installGSI
