@@ -55,34 +55,20 @@ ssl_src = ['src/ssl/gsi.c', 'src/ssl/connection.c', 'src/ssl/context.c', 'src/ss
 ssl_dep = ['src/ssl/gsi.h', 'src/ssl/connection.h', 'src/ssl/context.h', 'src/ssl/ssl.h',
            'src/util.h', 'src/ssl/session.h', 'src/ssl/thread_safe.h']
 
-IncludeDirs = []
-LibraryDirs = []
+IncludeDirs = None
+LibraryDirs = None
 
 # Add more platforms here when needed
 if os.name == 'nt' or sys.platform == 'win32':
     Libraries = ['libeay32', 'ssleay32', 'Ws2_32']
 else:
     Libraries = []
-    
-fd = file( os.path.join( os.path.dirname( __file__ ), "site.cfg" ), "r" )
-for line in fd.readlines():
-  fields = [ field.strip() for field in line.split( "=" ) if field.strip() ]
-  if len( fields ) < 2:
-    continue
-  opName = fields[0]
-  values = [ field.strip() for field in "=".join( fields[1:] ).split(",") if field.strip() ]
-  if opName == 'library_dirs':
-    LibraryDirs.extend( values )
-  elif opName == 'include_dirs':
-    IncludeDirs.extend( values )
+    IncludeDirs = [ os.path.realpath( 'openssl/openssl-%s/include' % ( openSSLVersion ) ) ]
 
-ExtraObjects = []
-for obj in ( 'libssl.a', 'libcrypto.a' ):
-  for libDir in LibraryDirs:
-    objPath = os.path.join( libDir, obj )
-    if os.path.isfile( objPath ):
-      ExtraObjects.append( objPath )
-      continue
+
+ExtraObjects = [ os.path.realpath( 'openssl/openssl-%s/libssl.a' % ( openSSLVersion ) ),
+                 os.path.realpath( 'openssl/openssl-%s/libcrypto.a' % ( openSSLVersion ) ) ]
+                 #, '/usr/lib%s/python%s/config/libpython%s.a' % (sModifier, sys.version[:3], sys.version[:3] ) ]
 
 DefineList = [ ( 'OPENSSL_NO_KRB5', "" ) ]
 
