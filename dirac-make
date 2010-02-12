@@ -1,22 +1,12 @@
 #!/bin/bash
 
-function canonicalize
-{
-	cd -P -- "$(dirname -- "$1")" &&
-	printf '%s\n' "$(pwd -P)/$(basename -- "$1")"
-}
+basedir=`dirname $0`
+. $basedir/../common/funcs.sh
+prefixDir=`calculatePrefix $@`
+basedir=`canonicalize $basedir`
+echo "Prefix dir is ${prefixDir}"
 
-basedir=`canonicalize $0`
-basedir=`dirname $basedir`
 
-if [ "$#" -lt "1" ]; then
- arch=`${basedir}/../dirac-platform.py`                 || exit 1
- prefixDir=${basedir}/../$arch
-else
- prefixDir=$1
-fi
-mkdir -p ${prefixDir}                          || exit 1
-#
 Version=0.4
 sslVersion=0.9.7m
 
@@ -37,8 +27,9 @@ function installOpenSSL
 	 	(
 			echo "====Compiling openssl version $sslVersion===="
 			cd $openssldir
-			tar -xzf ${opensslversion}.tar.gz                   || exit 1
-			cd ${opensslversion}                             || exit 1
+                        rm -rf openssl-${sslVersion}
+			unTar openssl-${sslVersion}.tar.gz                   || exit 1
+			cd openssl-${sslVersion}                            || exit 1
 			if [ "$sslDebug" == "1" ]; then
 				echo "-debug mode-"
 				./config -d -shared threads                       || exit 1
@@ -85,5 +76,5 @@ function installGSI
 	)
 }
 
-installOpenSSL
-installGSI
+installOpenSSL || exit 1
+installGSI || exit 1
