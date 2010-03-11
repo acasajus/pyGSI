@@ -14,12 +14,12 @@ chModule = imp.load_module( "CompileHelper", fd, chFilePath, ( ".py", "r", imp.P
 fd.close()
 chClass = getattr( chModule, "CompileHelper" )
 
-compileOpenSSL = True
+compileOpenSSL = False
 
 if compileOpenSSL:
   osslch = chClass( os.path.join( here, "openssl" ) )
 
-  versions = { 'openssl' : "0.9.7m" }
+  versions = { 'openssl' : "0.9.8m" }
   osslch.setPackageVersions( versions )
 
   osslch.unTarPackage( "openssl" )
@@ -41,11 +41,11 @@ if compileOpenSSL:
 
 ch = chClass( here )
 
-for step in ( "build", "bdist_egg" ):
-  if not ch.pythonExec( "setup.py", extraArgs = step ):
-    ch.error( "Could not deploy GSI" )
-    sys.exit( 1 )
+#for step in ( "build", "bdist_egg" ):
+#  if not ch.pythonExec( "setup.py", extraArgs = step ):
+#    ch.ERROR( "Could not deploy GSI" )
+#    sys.exit( 1 )
 
 if not ch.easyInstall( here ):
-  ch.error( "Could not deploy GSI" )
+  ch.ERROR( "Could not deploy GSI" )
   sys.exit( 1 )
