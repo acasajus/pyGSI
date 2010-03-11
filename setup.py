@@ -1,101 +1,53 @@
-# vim:fileencoding=UTF-8
-#
-# setup.py
-#
-# Copyright (C) AB Strakt 2001, All rights reserved
-#
-# @(#) $Id: setup.py,v 1.4 2008/03/07 16:00:50 acasajus Exp $
-#
+# @(#) $Id$
 """
-Installation script for the OpenSSL module
+Installation script for the GSI module
 """
-import ez_setup
-ez_setup.use_setuptools()
 from setuptools import setup, Extension
-#from distutils.core import setup, Extension
+import ConfigParser
+
 import os, sys
 
 from version import __version__
 
-openSSLVersion = "0.9.7m"
+here = os.path.realpath( os.path.dirname( __file__ ) )
+srcDir = os.path.join( here, "src" )
 
-# A hack to determine if Extension objects support the depends keyword arg.
-try:
-    init_func = Extension.__init__.func_code
-    has_dep = 'depends' in init_func.co_varnames
-except:
-    has_dep = 0
-if not has_dep:
-    # If it doesn't, create a local replacement that removes depends
-    # from the kwargs before calling the regular constructor.
-    _Extension = Extension
-    class Extension(_Extension):
-        def __init__(self, name, sources, **kwargs):
-            if kwargs.has_key('depends'):
-                del kwargs['depends']
-            apply(_Extension.__init__, (self, name, sources), kwargs)
+config = ConfigParser.SafeConfigParser()
+config.read( os.path.join( here, "setup.cfg" ) )
 
+def findFiles( baseDir, validFileExts ):
+    files = []
+    for t in os.walk( baseDir ):
+      for fileInDir in t[2]:
+        for fext in validFileExts:
+          fPos = len( fileInDir ) - len( fext )
+          if fileInDir.find( fext, fPos ) == fPos:
+            files.append( os.path.join( baseDir, fileInDir ) )
+    return files
 
-crypto_src = ['src/crypto/crypto.c', 'src/crypto/x509.c',
-              'src/crypto/x509name.c', 'src/crypto/pkey.c',
-              'src/crypto/x509store.c', 'src/crypto/x509req.c',
-              'src/crypto/x509ext.c', 'src/crypto/pkcs7.c',
-              'src/crypto/pkcs12.c', 'src/crypto/netscape_spki.c',
-              'src/util.c']
-crypto_dep = ['src/crypto/crypto.h', 'src/crypto/x509.h',
-              'src/crypto/x509name.h', 'src/crypto/pkey.h',
-              'src/crypto/x509store.h', 'src/crypto/x509req.h',
-              'src/crypto/x509ext.h', 'src/crypto/pkcs7.h',
-              'src/crypto/pkcs12.h', 'src/crypto/netscape_spki.h',
-              'src/util.h']
-rand_src = ['src/rand/rand.c', 'src/util.c']
-rand_dep = ['src/util.h']
-ssl_src = ['src/ssl/gsi.c', 'src/ssl/connection.c', 'src/ssl/context.c', 'src/ssl/ssl.c',
-           'src/util.c', 'src/ssl/session.c', 'src/ssl/thread_safe.c']
-ssl_dep = ['src/ssl/gsi.h', 'src/ssl/connection.h', 'src/ssl/context.h', 'src/ssl/ssl.h',
-           'src/util.h', 'src/ssl/session.h', 'src/ssl/thread_safe.h']
+def createExtension( extName ):
+  extDir = os.path.join( srcDir, extName )
+  cFiles = [ os.path.join( srcDir, "util.c" ) ] + findFiles( extDir, ".c" )
+  hFiles = [ os.path.join( srcDir, "util.h" ) ] + findFiles( extDir, ".h" )
+  extraArgs = {}
+  if 'Extensions' in config.sections():
+    for k in config.options( 'Extensions' ):
+      extraArgs[ k ] = [ v.strip() for v in config.get( 'Extensions', k ).split( " " ) if v.strip() ]
+  return Extension( "GSI.%s" % extName,
+                    cFiles,
+                    depends = hFiles,
+                    **extraArgs
+                    )
 
-IncludeDirs = None
-LibraryDirs = None
-
-# Add more platforms here when needed
-if os.name == 'nt' or sys.platform == 'win32':
-    Libraries = ['libeay32', 'ssleay32', 'Ws2_32']
-else:
-    Libraries = []
-    IncludeDirs = [ os.path.realpath( 'openssl/openssl-%s/include' % ( openSSLVersion ) ) ]
-
-
-ExtraObjects = [ os.path.realpath( 'openssl/openssl-%s/libssl.a' % ( openSSLVersion ) ),
-                 os.path.realpath( 'openssl/openssl-%s/libcrypto.a' % ( openSSLVersion ) ) ]
-                 #, '/usr/lib%s/python%s/config/libpython%s.a' % (sModifier, sys.version[:3], sys.version[:3] ) ]
-
-DefineList = [ ( 'OPENSSL_NO_KRB5', "" ) ]
-
-for confList in ( Libraries, IncludeDirs, ExtraObjects ):
-    for index in range( len( confList ) ):
-        confList[ index ] = os.path.realpath( confList[ index ] )
-
-def mkExtension(name):
-    import string
-    modname = 'GSI.%s' % name
-    src = globals()['%s_src' % string.lower(name)]
-    dep = globals()['%s_dep' % string.lower(name)]
-    return Extension(modname, src, libraries=Libraries, depends=dep, include_dirs=IncludeDirs, library_dirs=LibraryDirs, extra_objects=ExtraObjects, define_macros = DefineList)
-
-setup(name='pyGSI', version=__version__,
-      package_dir = { 'GSI': '.' },
-      ext_modules = [mkExtension('crypto'), mkExtension('rand'), mkExtension('SSL')],
-      py_modules  = ['GSI.__init__', 'GSI.tsafe', 'GSI.version'],
-      description = 'Python wrapper module around the OpenSSL library (including hack to accept GSI SSL proxies)',
-      author = 'Adria Casajus', author_email = 'adria@ecm.ub.es',
-      url = 'http://lhcbweb.pic.es',
-      license = 'LGPL',
-      long_description = """\
-High-level wrapper around a subset of the OpenSSL library, includes
- * SSL.Connection objects, wrapping the methods of Python's portable
-   sockets
- * Callbacks written in Python
- * Extensive error-handling mechanism, mirroring OpenSSL's error codes
-...  and much more ;)"""
-     )
+setup( 
+  name = "GSI",
+  version = __version__,
+  author = "Adrian Casajus",
+  author_email = "adria@ecm.ub.es",
+  description = "Python wrapper module around the OpenSSL library (including hack to accept GSI SSL proxies)",
+  license = "GPLv3",
+  zip_safe = False,
+  install_requires = "distribute>0.6",
+  py_modules = ['GSI.__init__', 'GSI.tsafe', 'GSI.version'],
+  ext_modules = [ createExtension( extName ) for extName in ( "crypto", "rand", "ssl" ) ]
+ )
