@@ -41,10 +41,25 @@ if compileOpenSSL:
 
 ch = chClass( here )
 
+prefix = ch.getPrefix()
+fd = open( os.path.join( here, "setup.cfg" ), "w" )
+fd.write( 
+""" 
+[build_ext]
+include_dirs = %s
+library_dirs = %s
+define = OPENSSL_NO_KRB5
+verbose = 1         
+""" % ( os.path.join( prefix, "include" ), os.path.join( prefix, "lib" ) )
+ )
+fd.close()
+
+
 #for step in ( "build", "bdist_egg" ):
 #  if not ch.pythonExec( "setup.py", extraArgs = step ):
 #    ch.ERROR( "Could not deploy GSI" )
 #    sys.exit( 1 )
+
 
 if not ch.easyInstall( here ):
   ch.ERROR( "Could not deploy GSI" )
