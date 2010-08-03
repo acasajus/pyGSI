@@ -30,34 +30,6 @@
 extern PyObject *error_queue_to_list( void );
 extern void flush_error_queue( void );
 
-/*
- * These are needed because there is no "official" way to specify
- * WHERE to save the thread state.
- */
-
-#ifdef WITH_THREAD
-#  define MY_BEGIN_ALLOW_THREADS(st) \
-    st = PyEval_SaveThread();
-#  define MY_BEGIN_ALLOW_THREADS_RETURN(st, ret) \
-    st = PyEval_SaveThread();                    \
-	return ret
-#  define MY_END_ALLOW_THREADS(st) \
-    if(st)                         \
-	{                               \
-		PyEval_RestoreThread(st); 	  \
-		st = NULL;                   \
-	} else assert("Thread State not set");
-#  define MY_END_ALLOW_THREADS_RETURN(st,ret) \
-    MY_END_ALLOW_THREADS( st );               \
-	return ret
-#else
-#  define MY_BEGIN_ALLOW_THREADS(st)
-#  define MY_BEGIN_ALLOW_THREADS_RETURN(st,ret) \
-		return ret
-#  define MY_END_ALLOW_THREADS(st) { st = NULL; }
-#  define MY_END_ALLOW_THREADS_RETURN(st,ret) { st = NULL; } \
-		return ret
-#endif
 
 #if !defined(PY_MAJOR_VERSION) || PY_VERSION_HEX < 0x02000000
 static int

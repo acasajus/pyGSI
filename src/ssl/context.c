@@ -62,8 +62,6 @@ static int global_passphrase_callback( char *buf, int maxlen, int verify,
 
 	ssl_ContextObj *ctx = (ssl_ContextObj *) arg;
 
-	MY_END_ALLOW_THREADS(ctx->tstate);
-
 	/* The Python callback is called with a (maxlen,verify,userdata) tuple
 	 */
 	argv = Py_BuildValue("(iiO)", maxlen, verify, ctx->passphrase_userdata);
@@ -81,21 +79,18 @@ static int global_passphrase_callback( char *buf, int maxlen, int verify,
 
 	if ( ret == NULL )
 	{
-		MY_BEGIN_ALLOW_THREADS(ctx->tstate);
 		return 0;
 	}
 
 	if ( !PyObject_IsTrue(ret) )
 	{
 		Py_DECREF(ret);
-		MY_BEGIN_ALLOW_THREADS(ctx->tstate);
 		return 0;
 	}
 
 	if ( !PyString_Check(ret) )
 	{
 		Py_DECREF(ret);
-		MY_BEGIN_ALLOW_THREADS(ctx->tstate);
 		return 0;
 	}
 
@@ -107,7 +102,6 @@ static int global_passphrase_callback( char *buf, int maxlen, int verify,
 	strncpy(buf, str, len);
 	Py_XDECREF(ret);
 
-	MY_BEGIN_ALLOW_THREADS(ctx->tstate);
 	return len;
 }
 
@@ -143,7 +137,6 @@ static int global_verify_callback( int ok, X509_STORE_CTX * x509_ctx )
 	{
 		x509 = X509_STORE_CTX_get_current_cert(x509_ctx);
 
-		MY_END_ALLOW_THREADS(conn->tstate);
 		cert = crypto_X509_New(x509, 0);
 		argv = Py_BuildValue("(OOiii)", (PyObject *) conn, (PyObject *) cert,
 				errnum, errdepth, ok);
@@ -168,7 +161,6 @@ static int global_verify_callback( int ok, X509_STORE_CTX * x509_ctx )
 
 			Py_DECREF(ret);
 		}
-		MY_BEGIN_ALLOW_THREADS(conn->tstate);
 	}
 
 	//Set the remove verification flag in the end
@@ -212,7 +204,6 @@ static void global_info_callback( SSL * ssl, int where, int _ret )
 
 	PyObject *argv, *ret;
 
-	MY_END_ALLOW_THREADS(conn->tstate);
 
 	argv = Py_BuildValue("(Oii)", (PyObject *) conn, where, _ret);
 	/* We need to get back our thread state before calling the
@@ -224,7 +215,6 @@ static void global_info_callback( SSL * ssl, int where, int _ret )
 		Py_DECREF(ret);
 	Py_DECREF(argv);
 
-	MY_BEGIN_ALLOW_THREADS(conn->tstate);
 	return;
 }
 
@@ -723,9 +713,9 @@ ssl_Context_use_privatekey_file( ssl_ContextObj * self, PyObject * args )
 	if ( !PyArg_ParseTuple(args, "s|i:use_privatekey_file", &keyfile, &filetype) )
 		return NULL;
 
-	MY_BEGIN_ALLOW_THREADS(self->tstate);
+	Py_BEGIN_ALLOW_THREADS;
 	ret = SSL_CTX_use_PrivateKey_file(self->ctx, keyfile, filetype);
-	MY_END_ALLOW_THREADS(self->tstate);
+	Py_END_ALLOW_THREADS;
 
 	if ( PyErr_Occurred() )
 	{

@@ -321,24 +321,18 @@ ssl_Connection_send( ssl_ConnectionObj * self, PyObject * args )
     if ( !PyArg_ParseTuple( args, "s#|i:send", &buf, &len, &flags ) )
         return NULL;
 
-    MY_BEGIN_ALLOW_THREADS( self->tstate )
-        ret = SSL_write( self->ssl, buf, len );
-    MY_END_ALLOW_THREADS( self->tstate ) if ( PyErr_Occurred(  ) )
-    {
-        flush_error_queue(  );
-        return NULL;
-    }
+    Py_BEGIN_ALLOW_THREADS;
+    ret = SSL_write( self->ssl, buf, len );
+    Py_END_ALLOW_THREADS;
 
     err = SSL_get_error( self->ssl, ret );
-    if ( err == SSL_ERROR_NONE )
+    if ( err != SSL_ERROR_NONE )
     {
-        return PyInt_FromLong( ( long ) ret );
+    	handle_ssl_errors( self->ssl, err, ret );
+    	return NULL;
     }
-    else
-    {
-        handle_ssl_errors( self->ssl, err, ret );
-        return NULL;
-    }
+
+    return PyInt_FromLong( ( long ) ret );
 }
 
 static char ssl_Connection_sendall_doc[] = "\n\
@@ -358,39 +352,28 @@ ssl_Connection_sendall( ssl_ConnectionObj * self, PyObject * args )
 {
     char *buf;
     int len, ret, err, flags;
-    PyObject *pyret = Py_None;
 
     if ( !PyArg_ParseTuple( args, "s#|i:sendall", &buf, &len, &flags ) )
         return NULL;
 
     do
     {
-        MY_BEGIN_ALLOW_THREADS( self->tstate )
-            ret = SSL_write( self->ssl, buf, len );
-        MY_END_ALLOW_THREADS( self->tstate ) if ( PyErr_Occurred(  ) )
-        {
-            flush_error_queue(  );
-            pyret = NULL;
-            break;
-        }
+        Py_BEGIN_ALLOW_THREADS;
+        ret = SSL_write( self->ssl, buf, len );
+        Py_END_ALLOW_THREADS;
+
         err = SSL_get_error( self->ssl, ret );
-        if ( err == SSL_ERROR_NONE )
+        if ( err != SSL_ERROR_NONE )
         {
-            buf += ret;
-            len -= ret;
+        	handle_ssl_errors( self->ssl, err, ret );
+        	return NULL;
         }
-        else if ( err == SSL_ERROR_SSL || err == SSL_ERROR_SYSCALL ||
-                  err == SSL_ERROR_ZERO_RETURN )
-        {
-            handle_ssl_errors( self->ssl, err, ret );
-            pyret = NULL;
-            break;
-        }
+		buf += ret;
+		len -= ret;
     }
     while ( len > 0 );
 
-    Py_XINCREF( pyret );
-    return pyret;
+    Py_RETURN_NONE;
 }
 
 static char ssl_Connection_recv_doc[] = "\n\
@@ -415,34 +398,67 @@ ssl_Connection_recv( ssl_ConnectionObj * self, PyObject * args )
     if ( !PyArg_ParseTuple( args, "i|i:recv", &bufsiz, &flags ) )
         return NULL;
 
+	if( bufsiz <= 0 )
+	{
+		//Raise exception
+		return NULL;
+	}
+
+    cbuf = OPENSSL_malloc( sizeof( char ) * bufsiz );
+    if( !cbuf )
+    	return NULL;
+
+    Py_BEGIN_ALLOW_THREADS;
+    ret = SSL_read( self->ssl, cbuf, bufsiz );
+    Py_END_ALLOW_THREADS;
+
+    err = SSL_get_error( self->ssl, ret );
+    if ( err != SSL_ERROR_NONE )
+    {
+    	handle_ssl_errors( self->ssl, err, ret );
+    	OPENSSL_free( cbuf );
+    	return NULL;
+    }
+
+    buf = PyString_FromStringAndSize( cbuf, ret );
+
+    OPENSSL_free( cbuf );
+
+    if( !buf )
+    	return NULL;
+
+    return buf;
+}
+
+    /*
+
     buf = PyString_FromStringAndSize( NULL, bufsiz );
     if ( buf == NULL )
         return NULL;
 
     cbuf = PyString_AsString( buf );
-    MY_BEGIN_ALLOW_THREADS( self->tstate )
-        ret = SSL_read( self->ssl, cbuf, bufsiz );
-    MY_END_ALLOW_THREADS( self->tstate ) if ( PyErr_Occurred(  ) )
-    {
-        Py_DECREF( buf );
-        flush_error_queue(  );
-        return NULL;
-    }
+
+    Py_BEGIN_ALLOW_THREADS;
+    ret = SSL_read( self->ssl, cbuf, bufsiz );
+    Py_END_ALLOW_THREADS;
 
     err = SSL_get_error( self->ssl, ret );
-    if ( err == SSL_ERROR_NONE )
+    if ( err != SSL_ERROR_NONE )
     {
-        if ( ret != bufsiz && _PyString_Resize( &buf, ret ) < 0 )
-            return NULL;
-        return buf;
+    	Py_DECREF( buf );
+    	handle_ssl_errors( self->ssl, err, ret );
+    	return NULL;
     }
-    else
+
+
+    if ( ret != bufsiz && _PyString_Resize( &buf, ret ) < 0 )
     {
-        handle_ssl_errors( self->ssl, err, ret );
-        Py_DECREF( buf );
+		Py_DECREF( buf );
         return NULL;
     }
+    return buf;
 }
+*/
 
 static char ssl_Connection_renegotiate_doc[] = "\n\
 Renegotiate the session\n\
@@ -459,9 +475,9 @@ ssl_Connection_renegotiate( ssl_ConnectionObj * self, PyObject * args )
     if ( !PyArg_ParseTuple( args, ":renegotiate" ) )
         return NULL;
 
-    MY_BEGIN_ALLOW_THREADS( self->tstate );
+    Py_BEGIN_ALLOW_THREADS;
     ret = SSL_renegotiate( self->ssl );
-    MY_END_ALLOW_THREADS( self->tstate );
+    Py_END_ALLOW_THREADS;
 
     if ( PyErr_Occurred(  ) )
     {
@@ -547,9 +563,9 @@ ssl_Connection_do_handshake( ssl_ConnectionObj * self, PyObject * args )
     if ( !PyArg_ParseTuple( args, ":do_handshake" ) )
         return NULL;
 
-    MY_BEGIN_ALLOW_THREADS( self->tstate );
+    Py_BEGIN_ALLOW_THREADS;
     ret = SSL_do_handshake( self->ssl );
-    MY_END_ALLOW_THREADS( self->tstate );
+    Py_END_ALLOW_THREADS;
 
     if ( PyErr_Occurred(  ) )
     {
@@ -768,8 +784,11 @@ ssl_Connection_shutdown( ssl_ConnectionObj * self, PyObject * args )
     if ( !PyArg_ParseTuple( args, ":shutdown" ) )
         return NULL;
 
-    MY_BEGIN_ALLOW_THREADS( self->tstate ) ret = SSL_shutdown( self->ssl );
-    MY_END_ALLOW_THREADS( self->tstate ) if ( PyErr_Occurred(  ) )
+    Py_BEGIN_ALLOW_THREADS;
+    ret = SSL_shutdown( self->ssl );
+    Py_END_ALLOW_THREADS;
+
+    if ( PyErr_Occurred(  ) )
     {
         flush_error_queue(  );
         return NULL;
@@ -1200,9 +1219,12 @@ ssl_Connection_peek( ssl_ConnectionObj * self, PyObject * args )
         return NULL;
 
     cbuf = PyString_AsString( buf );
-    MY_BEGIN_ALLOW_THREADS( self->tstate )
-        ret = SSL_peek( self->ssl, cbuf, bufsiz );
-    MY_END_ALLOW_THREADS( self->tstate ) if ( PyErr_Occurred(  ) )
+
+    Py_BEGIN_ALLOW_THREADS;
+    ret = SSL_peek( self->ssl, cbuf, bufsiz );
+    Py_END_ALLOW_THREADS;
+
+    if ( PyErr_Occurred(  ) )
     {
         Py_DECREF( buf );
         flush_error_queue(  );
@@ -1213,7 +1235,7 @@ ssl_Connection_peek( ssl_ConnectionObj * self, PyObject * args )
     if ( err == SSL_ERROR_NONE )
     {
         if ( ret != bufsiz && _PyString_Resize( &buf, ret ) < 0 )
-            return NULL;
+        return NULL;
         return buf;
     }
     else
