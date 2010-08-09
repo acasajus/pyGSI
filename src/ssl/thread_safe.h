@@ -11,6 +11,21 @@ int initialize_locks( void );
 void clean_locks( void );
 void locking_thread_callback( int mode, int type, const char *file,
                               int line );
-unsigned long thread_id( void );
+
+#if OPENSSL_VERSION_NUMBER < 0x1
+	unsigned long thread_id( void );
+#else
+	struct CRYPTO_dynlock_value
+	{
+		sem_t mutex;
+	};
+
+	void update_THREADID( CRYPTO_THREADID* thid );
+
+	struct CRYPTO_dynlock_value *dynlock_create(const char *file, int line);
+	void dynlock_lock( int mode, struct CRYPTO_dynlock_value *dLock, const char *file, int line );
+	void dynlock_destroy(struct CRYPTO_dynlock_value *dLock, const char *file, int line);
+
+#endif
 
 #endif

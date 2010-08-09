@@ -3,9 +3,57 @@
 #include <pythread.h>
 #define SSL_MODULE
 #include "ssl.h"
+#include "thread_safe.h"
+#include <openssl/opensslv.h>
 
 static sem_t *lock_cs = NULL;
 static long *lock_count = NULL;
+
+#if OPENSSL_VERSION_NUMBER < 0x1
+	unsigned long
+	thread_id( void )
+	{
+		unsigned long thId = 0;
+
+		thId = PyThread_get_thread_ident(  );
+		return thId;
+	}
+#else
+	void
+	update_THREADID( CRYPTO_THREADID* thid )
+	{
+		CRYPTO_THREADID_set_numeric( thid, PyThread_get_thread_ident() );
+	}
+
+	struct CRYPTO_dynlock_value *
+	dynlock_create(const char *file, int line)
+	{
+		struct CRYPTO_dynlock_value *dLock = OPENSSL_malloc( sizeof( struct CRYPTO_dynlock_value ) );
+		if ( ! sem_init( &( dLock->mutex ), 0, 1 ) )
+		{
+				return NULL;
+		}
+		return dLock;
+	}
+
+	void
+	dynlock_lock( int mode, struct CRYPTO_dynlock_value *dLock, const char *file, int line )
+	{
+		if( mode && dLock )
+			sem_wait( &( dLock->mutex ) );
+		else
+			sem_post( &( dLock->mutex ) );
+	}
+
+	void
+	dynlock_destroy(struct CRYPTO_dynlock_value *dLock, const char *file, int line)
+	{
+		sem_destroy( &( dLock->mutex ) );
+		OPENSSL_free( dLock );
+	}
+
+#endif
+
 
 int
 initialize_locks(  )
@@ -25,7 +73,14 @@ initialize_locks(  )
     CRYPTO_set_locking_callback( ( void ( * )
                                    ( int, int, const char *,
                                      int ) ) locking_thread_callback );
+#if OPENSSL_VERSION_NUMBER < 0x1
     CRYPTO_set_id_callback( thread_id );
+#else
+   	CRYPTO_THREADID_set_callback( update_THREADID );
+   	CRYPTO_set_dynlock_create_callback( dynlock_create );
+   	CRYPTO_set_dynlock_lock_callback( dynlock_lock );
+   	CRYPTO_set_dynlock_destroy_callback( dynlock_destroy );
+#endif
 
     return ok;
 }
@@ -36,18 +91,15 @@ clean_locks( void )
     int i;
 
     CRYPTO_set_locking_callback( NULL );
-//  fprintf(stderr,"cleanup\n");
+
     for ( i = 0; i < CRYPTO_num_locks(  ) && lock_cs != NULL; i++ )
     {
         sem_destroy( &( lock_cs[i] ) );
-//      fprintf(stderr,"%8ld:%s\n",lock_count[i], CRYPTO_get_lock_name(i));
     }
     OPENSSL_free( lock_cs );
     OPENSSL_free( lock_count );
     lock_cs = NULL;
     lock_count = NULL;
-
-//  fprintf(stderr,"done cleanup\n");
 }
 
 void
@@ -60,12 +112,6 @@ locking_thread_callback( int mode, int type, const char *file, int line )
              ( type & CRYPTO_READ ) ? "r" : "w", file, line );
 #endif
 
-/*
-	if (CRYPTO_LOCK_SSL_CERT == type)
-		fprintf(stderr,"(t,m,f,l) %ld %d %s %d\n",
-		CRYPTO_thread_id(),
-		mode,file,line);
-*/
     if ( mode & CRYPTO_LOCK )
     {
         sem_wait( &( lock_cs[type] ) );
@@ -77,15 +123,5 @@ locking_thread_callback( int mode, int type, const char *file, int line )
     }
 }
 
-unsigned long
-thread_id( void )
-{
-    unsigned long thId = 0;
 
-//  Py_BEGIN_ALLOW_THREADS
-    thId = PyThread_get_thread_ident(  );
-    //thId = (unsigned long) pthread_self(void);
-//  Py_END_ALLOW_THREADS
-//  printf("ThId %d\n",thId);
-    return thId;
-}
+
