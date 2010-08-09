@@ -297,7 +297,7 @@ crypto_X509Req_get_extensions( crypto_X509ReqObj * self, PyObject * args )
             }
             pyext->x509_extension = ext;
             pyext->dealloc = 0;
-            if ( PyList_SetItem( extList, i, pyext ) == -1 )
+            if ( PyList_SetItem( extList, i, (PyObject *)pyext ) == -1 )
             {
                 Py_DECREF( extList );
                 return NULL;

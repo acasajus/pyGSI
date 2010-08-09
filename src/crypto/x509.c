@@ -78,7 +78,7 @@ crypto_X509_get_serial_number( crypto_X509Obj * self, PyObject * args )
    ASN1_INTEGER *asn1_i;
    int length;
    PyObject *pySerial;
-   char *cbuf;
+   unsigned char *cbuf;
 
    if ( !PyArg_ParseTuple( args, ":get_serial_number" ) )
       return NULL;
@@ -89,7 +89,7 @@ crypto_X509_get_serial_number( crypto_X509Obj * self, PyObject * args )
    if( !length )
       return PyString_FromString( "" );
    pySerial = PyString_FromStringAndSize( NULL, length );
-   cbuf = PyString_AsString( pySerial );
+   cbuf = (unsigned char*)PyString_AsString( pySerial );
    length = i2c_ASN1_INTEGER( asn1_i, &cbuf);
 
    return pySerial;
@@ -107,7 +107,7 @@ Returns:   None\n\
 static PyObject *
 crypto_X509_set_serial_number( crypto_X509Obj * self, PyObject * args )
 {
-   char *serial;
+   const  unsigned char *serial;
    long serialLength;
    ASN1_INTEGER *asn1_i;
 
@@ -442,7 +442,7 @@ crypto_X509_has_expired( crypto_X509Obj * self, PyObject * args )
 unsigned short
 convertASN1_TIMETotm( const ASN1_TIME * asn1Time, struct tm *time_tm )
 {
-    unsigned char *asn1String;
+    char *asn1String;
     int len;
     char zone;
 
@@ -486,7 +486,7 @@ convertASN1_TIMETotm( const ASN1_TIME * asn1Time, struct tm *time_tm )
         }
     }
 #ifdef _BSD_SOURCE
-    time_tm->tm_zone = zone;
+    time_tm->tm_zone = &zone;
 #endif
 
     return 1;
@@ -593,7 +593,7 @@ crypto_X509_digest( crypto_X509Obj * self, PyObject * args )
     unsigned char fp[EVP_MAX_MD_SIZE];
     char *tmp;
     char *digest_name;
-    int len, i;
+    unsigned int len, i;
     PyObject *ret;
     const EVP_MD *digest;
 
