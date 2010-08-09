@@ -42,6 +42,13 @@ if compileOpenSSL:
 ch = chClass( here )
 
 prefix = ch.getPrefix()
+
+libPaths = []
+for lp in ( "lib", "lib64" ):
+  lp = os.path.join( prefix, lp )
+  if os.path.isdir( lp ):
+    libPaths.append( lp )
+
 fd = open( os.path.join( here, "setup.cfg" ), "w" )
 fd.write( 
 """ 
@@ -50,7 +57,7 @@ include_dirs = %s
 library_dirs = %s
 define = OPENSSL_NO_KRB5
 verbose = 1         
-""" % ( os.path.join( prefix, "include" ), os.path.join( prefix, "lib" ) )
+""" % ( os.path.join( prefix, "include" ), ":".join( libPaths ) )
  )
 fd.close()
 
