@@ -730,6 +730,24 @@ crypto_create_oid( PyObject * spam, PyObject * args )
     return PyInt_FromLong( nid );
 }
 
+static char crypto_X509Store_doc[] = "\n\
+Create a new X509 store \n\
+\n\
+Arguments: spam - Always NULL\n\
+           args - The Python argument tuple, should be empty\n\
+Returns:   X509 store\n\
+";
+
+static PyObject *
+crypto_X509Store( PyObject * spam, PyObject * args )
+{
+
+    if ( !PyArg_ParseTuple( args, ":X509Store" ) )
+            return NULL;
+
+    return ( PyObject * ) crypto_X509Store_New( X509_STORE_new(  ), 1 );
+}
+
 static char crypto_X509_doc[] = "\n\
 The factory function inserted in the module dictionary to create X509\n\
 objects\n\
@@ -894,6 +912,7 @@ static PyMethodDef crypto_methods[] = {
      ( PyCFunction ) crypto_add_x509_extension_alias, METH_VARARGS,
      crypto_add_x509_extension_alias_doc},
     /* Factory functions */
+    {"X509Store", ( PyCFunction ) crypto_X509Store, METH_VARARGS, crypto_X509Store_doc},
     {"X509", ( PyCFunction ) crypto_X509, METH_VARARGS, crypto_X509_doc},
     {"X509Name", ( PyCFunction ) crypto_X509Name, METH_VARARGS,
      crypto_X509Name_doc},

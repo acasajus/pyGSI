@@ -198,7 +198,7 @@ static int gsi_wrapper_global_verify_callback( int ok,
  *            _ret  - The return code of the SSL function that called us
  * Returns:   None
  */
-static void global_info_callback( SSL * ssl, int where, int _ret )
+static void global_info_callback( const SSL * ssl, int where, int _ret )
 {
 	ssl_ConnectionObj *conn = (ssl_ConnectionObj *) SSL_get_app_data(ssl);
 
@@ -1269,6 +1269,49 @@ ssl_Context_set_app_data( ssl_ContextObj * self, PyObject * args )
 }
 
 static char
+		ssl_Context_set_cert_store_doc[] =
+				"\n\
+		Set the certificate store for the context\n\
+		\n\
+		Arguments: self - The Context object\n\
+		args - The Python argument tuple, should be an X509 cert store\n\
+		Returns:   None\n\
+		";
+
+static PyObject *
+ssl_Context_set_cert_store( ssl_ContextObj * self, PyObject * args )
+{
+	static PyTypeObject *crypto_X509StoreObj_Type = NULL;
+	crypto_X509StoreObj *pyStore;
+
+	if ( !PyArg_ParseTuple(args, "O:set_cert_store", &pyStore) )
+		return NULL;
+
+	if ( !crypto_X509StoreObj_Type )
+	{
+		if ( strcmp(pyStore->ob_type->tp_name, "X509Store") != 0
+				|| pyStore->ob_type->tp_basicsize != sizeof(crypto_X509StoreObj) )
+		{
+			PyErr_SetString(PyExc_TypeError, "Expected an X509Store object");
+			return NULL;
+		}
+
+		crypto_X509StoreObj_Type = pyStore->ob_type;
+	}
+	else if ( pyStore->ob_type != crypto_X509StoreObj_Type )
+	{
+		PyErr_SetString(PyExc_TypeError, "Expected a X509Store object");
+		return NULL;
+	}
+
+	SSL_CTX_set_cert_store(self->ctx, pyStore->x509_store);
+	pyStore->dealloc = 0;
+
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+static char
 		ssl_Context_get_cert_store_doc[] =
 				"\n\
 		Get the certificate store for the context\n\
@@ -1520,6 +1563,7 @@ ADD_METHOD( get_timeout ),
 ADD_METHOD( set_info_callback ),
 ADD_METHOD( get_app_data ),
 ADD_METHOD( set_app_data ),
+ADD_METHOD( set_cert_store ),
 ADD_METHOD( get_cert_store ),
 ADD_METHOD( set_options ),
 ADD_METHOD( add_session ),
@@ -1546,7 +1590,7 @@ ADD_METHOD( get_session_cache_mode ),
 ssl_ContextObj *
 ssl_Context_New( int i_method )
 {
-	SSL_METHOD *method;
+	const SSL_METHOD *method;
 
 	ssl_ContextObj *self;
 
