@@ -12,7 +12,7 @@ void clean_locks( void );
 void locking_thread_callback( int mode, int type, const char *file,
                               int line );
 
-#if OPENSSL_VERSION_NUMBER < 0x1
+#if OPENSSL_VERSION_NUMBER < 0x10000000L
 	unsigned long thread_id( void );
 #else
 	struct CRYPTO_dynlock_value

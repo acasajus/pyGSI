@@ -9,7 +9,7 @@
 static sem_t *lock_cs = NULL;
 static long *lock_count = NULL;
 
-#if OPENSSL_VERSION_NUMBER < 0x1
+#if OPENSSL_VERSION_NUMBER < 0x10000000L
 	unsigned long
 	thread_id( void )
 	{
@@ -73,7 +73,7 @@ initialize_locks(  )
     CRYPTO_set_locking_callback( ( void ( * )
                                    ( int, int, const char *,
                                      int ) ) locking_thread_callback );
-#if OPENSSL_VERSION_NUMBER < 0x1
+#if OPENSSL_VERSION_NUMBER < 0x10000000L
     CRYPTO_set_id_callback( thread_id );
 #else
    	CRYPTO_THREADID_set_callback( update_THREADID );
