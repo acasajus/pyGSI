@@ -253,6 +253,10 @@ do {                                                                          \
                              SSL_OP_TLS_BLOCK_PADDING_BUG );
 //    PyModule_AddIntConstant(module, "OP_DONT_INSERT_EMPTY_FRAGMENTS", SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS);
     PyModule_AddIntConstant( module, "OP_ALL", SSL_OP_ALL );
+    PyModule_AddIntConstant( module, "OP_NO_QUERY_MTU",
+                                 SSL_OP_NO_QUERY_MTU );
+    PyModule_AddIntConstant( module, "OP_COOKIE_EXCHANGE",
+                                 SSL_OP_COOKIE_EXCHANGE );
 //    PyModule_AddIntConstant(module, "OP_CIPHER_SERVER_PREFERENCE", SSL_OP_CIPHER_SERVER_PREFERENCE);
     PyModule_AddIntConstant( module, "OP_TLS_ROLLBACK_BUG",
                              SSL_OP_TLS_ROLLBACK_BUG );
