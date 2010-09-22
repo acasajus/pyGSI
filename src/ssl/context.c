@@ -1341,6 +1341,31 @@ ssl_Context_get_cert_store( ssl_ContextObj * self, PyObject * args )
 }
 
 static char
+		ssl_Context_set_read_ahead_doc[] =
+				"\n\
+		Set read ahead\n\
+		\n\
+		Arguments: self - The Context object\n\
+		args - The Python argument tuple, should be:\n\
+		options - 1/0\n\
+		Returns:   The new option bitmask.\n\
+		";
+
+static PyObject *
+ssl_Context_set_read_ahead( ssl_ContextObj * self, PyObject * args )
+{
+	int ra;
+
+	if ( !PyArg_ParseTuple(args, "l:set_read_ahead", &ra) )
+		return NULL;
+
+	SSL_CTX_set_read_ahead( self->ctx, ra );
+
+	Py_INCREF( Py_None );
+	return Py_None;
+}
+
+static char
 		ssl_Context_set_options_doc[] =
 				"\n\
 		Add options. Options set before are not cleared!\n\
@@ -1566,6 +1591,7 @@ ADD_METHOD( set_app_data ),
 ADD_METHOD( set_cert_store ),
 ADD_METHOD( get_cert_store ),
 ADD_METHOD( set_options ),
+ADD_METHOD( set_read_ahead ),
 ADD_METHOD( add_session ),
 ADD_METHOD( get_session_stats ),
 ADD_METHOD( set_session_timeout ),
