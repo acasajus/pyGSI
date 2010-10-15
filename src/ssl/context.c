@@ -245,8 +245,7 @@ ssl_Context_load_verify_locations_path( ssl_ContextObj * self, PyObject * args )
 	}
 	else
 	{
-		Py_INCREF(Py_None);
-		return Py_None;
+		Py_RETURN_NONE;
 	}
 }
 
@@ -277,8 +276,7 @@ ssl_Context_load_verify_locations( ssl_ContextObj * self, PyObject * args )
 	}
 	else
 	{
-		Py_INCREF(Py_None);
-		return Py_None;
+		Py_RETURN_NONE;
 	}
 }
 
@@ -319,8 +317,7 @@ ssl_Context_set_passwd_cb( ssl_ContextObj * self, PyObject * args )
 	self->passphrase_userdata = userdata;
 	SSL_CTX_set_default_passwd_cb_userdata(self->ctx, (void *) self);
 
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 static char
@@ -349,8 +346,7 @@ ssl_Context_use_certificate_chain_file( ssl_ContextObj * self, PyObject * args )
 	}
 	else
 	{
-		Py_INCREF(Py_None);
-		return Py_None;
+		Py_RETURN_NONE;
 	}
 }
 
@@ -446,8 +442,7 @@ ssl_Context_use_certificate_chain_string( ssl_ContextObj * self,
 		return NULL;
 	}
 
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 static char
@@ -480,8 +475,7 @@ ssl_Context_use_certificate_file( ssl_ContextObj * self, PyObject * args )
 	}
 	else
 	{
-		Py_INCREF(Py_None);
-		return Py_None;
+		Py_RETURN_NONE;
 	}
 }
 
@@ -534,8 +528,7 @@ ssl_Context_use_certificate( ssl_ContextObj * self, PyObject * args )
 	}
 	else
 	{
-		Py_INCREF(Py_None);
-		return Py_None;
+		Py_RETURN_NONE;
 	}
 }
 
@@ -622,8 +615,7 @@ ssl_Context_use_certificate_chain( ssl_ContextObj * self, PyObject * args )
 		}
 	}
 
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 static char
@@ -687,8 +679,7 @@ ssl_Context_use_privatekey_string( ssl_ContextObj * self, PyObject * args )
 		return NULL;
 	}
 
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 static char
@@ -730,8 +721,7 @@ ssl_Context_use_privatekey_file( ssl_ContextObj * self, PyObject * args )
 	}
 	else
 	{
-		Py_INCREF(Py_None);
-		return Py_None;
+		Py_RETURN_NONE;
 	}
 }
 
@@ -786,8 +776,7 @@ ssl_Context_use_privatekey( ssl_ContextObj * self, PyObject * args )
 	}
 	else
 	{
-		Py_INCREF(Py_None);
-		return Py_None;
+		Py_RETURN_NONE;
 	}
 }
 
@@ -814,8 +803,7 @@ ssl_Context_check_privatekey( ssl_ContextObj * self, PyObject * args )
 	}
 	else
 	{
-		Py_INCREF(Py_None);
-		return Py_None;
+		Py_RETURN_NONE;
 	}
 }
 
@@ -847,13 +835,12 @@ ssl_Context_load_client_ca( ssl_ContextObj * self, PyObject * args )
 	{
 		certPath = PyString_AsString(argObj);
 		SSL_CTX_set_client_CA_list(self->ctx, SSL_load_client_CA_file(certPath));
-		Py_DECREF(argObj);
-		Py_INCREF(Py_None);
-		return Py_None;
+		// ADRIFIX: Removed here -> Py_DECREF(argObj);
+		Py_RETURN_NONE;
 	}
 
 	certSequence = PySequence_Fast(argObj, "Expected a sequence object");
-	Py_DECREF(argObj);
+	// ADRIFIX: Removed here -> Py_DECREF(argObj);
 	if ( !certSequence )
 		return NULL;
 
@@ -887,8 +874,7 @@ ssl_Context_load_client_ca( ssl_ContextObj * self, PyObject * args )
 		SSL_CTX_set_client_CA_list(self->ctx, certNameStack);
 	}
 
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 
 }
 
@@ -923,8 +909,7 @@ ssl_Context_set_session_id( ssl_ContextObj * self, PyObject * args )
 	{
 		// SSL_CTX_set_session_cache_mode( self->ctx,
 		// SSL_SESS_CACHE_SERVER );
-		Py_INCREF(Py_None);
-		return Py_None;
+		Py_RETURN_NONE;
 	}
 }
 
@@ -982,8 +967,7 @@ ssl_Context_set_verify( ssl_ContextObj * self, PyObject * args )
 	else
 		SSL_CTX_set_verify(self->ctx, mode, global_verify_callback);
 
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 static char
@@ -1003,8 +987,7 @@ ssl_Context_set_GSI_verify( ssl_ContextObj * self, PyObject * args )
 		return NULL;
 
 	//SSL_CTX_set_cert_verify_callback( self->ctx, ssl_callback_GSI_verify, 0 );
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 static char
@@ -1027,8 +1010,7 @@ ssl_Context_set_verify_depth( ssl_ContextObj * self, PyObject * args )
 		return NULL;
 
 	SSL_CTX_set_verify_depth(self->ctx, depth);
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 static char
@@ -1107,8 +1089,7 @@ ssl_Context_load_tmp_dh( ssl_ContextObj * self, PyObject * args )
 	DH_free(dh);
 	BIO_free(bio);
 
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 static char
@@ -1137,8 +1118,7 @@ ssl_Context_set_cipher_list( ssl_ContextObj * self, PyObject * args )
 	}
 	else
 	{
-		Py_INCREF(Py_None);
-		return Py_None;
+		Py_RETURN_NONE;
 	}
 }
 
@@ -1217,8 +1197,7 @@ ssl_Context_set_info_callback( ssl_ContextObj * self, PyObject * args )
 	self->info_callback = callback;
 	SSL_CTX_set_info_callback(self->ctx, global_info_callback);
 
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 static char
@@ -1264,8 +1243,7 @@ ssl_Context_set_app_data( ssl_ContextObj * self, PyObject * args )
 	Py_INCREF(data);
 	self->app_data = data;
 
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 static char
@@ -1307,8 +1285,7 @@ ssl_Context_set_cert_store( ssl_ContextObj * self, PyObject * args )
 	SSL_CTX_set_cert_store(self->ctx, pyStore->x509_store);
 	pyStore->dealloc = 0;
 
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 static char
@@ -1331,8 +1308,7 @@ ssl_Context_get_cert_store( ssl_ContextObj * self, PyObject * args )
 
 	if ( (store = SSL_CTX_get_cert_store(self->ctx)) == NULL )
 	{
-		Py_INCREF(Py_None);
-		return Py_None;
+		Py_RETURN_NONE;
 	}
 	else
 	{
@@ -1361,8 +1337,7 @@ ssl_Context_set_read_ahead( ssl_ContextObj * self, PyObject * args )
 
 	SSL_CTX_set_read_ahead( self->ctx, ra );
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 static char
@@ -1409,8 +1384,7 @@ ssl_Context_add_session( ssl_ContextObj * self, PyObject * args )
 	if ( session->session )
 		SSL_CTX_add_session(self->ctx, session->session);
 
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 static char
@@ -1457,8 +1431,7 @@ ssl_Context_set_session_timeout( ssl_ContextObj * self, PyObject * args )
 
 	SSL_CTX_set_timeout(self->ctx, timeout);
 
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 
 }
 
@@ -1480,8 +1453,7 @@ ssl_Context_flush_sessions( ssl_ContextObj * self, PyObject * args )
 
 	SSL_CTX_flush_sessions(self->ctx, time(0));
 
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 static char
@@ -1526,9 +1498,7 @@ ssl_Context_set_session_cache_mode( ssl_ContextObj * self, PyObject * args )
 
 	SSL_CTX_set_session_cache_mode(self->ctx, mode);
 
-	Py_INCREF(Py_None);
-	return Py_None;
-
+	Py_RETURN_NONE;
 }
 
 static char

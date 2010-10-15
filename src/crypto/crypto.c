@@ -695,8 +695,7 @@ crypto_add_x509_extension_alias( PyObject * spam, PyObject * args )
 
     X509V3_EXT_add_alias( nid, old_nid );
 
-    Py_INCREF( Py_None );
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 

@@ -38,8 +38,7 @@ crypto_X509Store_add_cert( crypto_X509StoreObj * self, PyObject * args )
     }
     cert->dealloc = 0;
 
-    Py_INCREF( Py_None );
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 static char crypto_X509Store_set_flags_doc[] = "\n\
@@ -60,8 +59,7 @@ crypto_X509Store_set_flags( crypto_X509StoreObj * self, PyObject * args )
 
     X509_STORE_set_flags( self->x509_store, mode );
 
-    Py_INCREF( Py_None );
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 /*

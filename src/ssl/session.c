@@ -34,8 +34,7 @@ ssl_Session_free( ssl_SessionObj * self, PyObject * args )
         self->session = NULL;
     }
 
-    Py_INCREF( Py_None );
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 static char ssl_Session_valid_doc[] = "\n\
@@ -115,8 +114,7 @@ ssl_Session_set_time( ssl_SessionObj * self, PyObject * args )
 
     SSL_SESSION_set_time( self->session, time );
 
-    Py_INCREF( Py_None );
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 static char ssl_Session_set_timeout_doc[] = "\n\
@@ -137,8 +135,7 @@ ssl_Session_set_timeout( ssl_SessionObj * self, PyObject * args )
 
     SSL_SESSION_set_timeout( self->session, time );
 
-    Py_INCREF( Py_None );
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 #define ADD_METHOD(name)        \

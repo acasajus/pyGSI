@@ -87,8 +87,7 @@ crypto_NetscapeSPKI_sign( crypto_NetscapeSPKIObj * self, PyObject * args )
         return NULL;
     }
 
-    Py_INCREF( Py_None );
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 static char crypto_NetscapeSPKI_verify_doc[] = "\n\
@@ -193,8 +192,7 @@ crypto_NetscapeSPKI_set_pubkey( crypto_NetscapeSPKIObj * self,
         return NULL;
     }
 
-    Py_INCREF( Py_None );
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 /*

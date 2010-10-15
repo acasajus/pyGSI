@@ -241,8 +241,7 @@ crypto_X509Name_insert_entry( crypto_X509NameObj * self, PyObject * args )
     }
 
     set_name_by_nid( self->x509_name, nid, type, value, pos, 0 );
-    Py_INCREF( Py_None );
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 static char crypto_X509Name_clone_doc[] = "\n\
@@ -461,8 +460,7 @@ crypto_X509Name_getattr( crypto_X509NameObj * self, char *name )
         return NULL;
     else if ( len == 0 )
     {
-        Py_INCREF( Py_None );
-        return Py_None;
+    	Py_RETURN_NONE;
     }
     else
     {
@@ -577,7 +575,7 @@ static int
 crypto_X509Name_traverse( crypto_X509NameObj * self, visitproc visit,
                           void *arg )
 {
-    if( self->parent_cert ) Py_VISIT( self->parent_cert );
+    Py_VISIT( self->parent_cert );
     return 0;
 }
 
@@ -590,7 +588,7 @@ crypto_X509Name_traverse( crypto_X509NameObj * self, visitproc visit,
 static int
 crypto_X509Name_clear( crypto_X509NameObj * self )
 {
-	if( self->parent_cert ) Py_CLEAR( self->parent_cert );
+	Py_CLEAR( self->parent_cert );
     return 0;
 }
 

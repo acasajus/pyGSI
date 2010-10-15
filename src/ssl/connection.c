@@ -576,8 +576,7 @@ ssl_Connection_do_handshake( ssl_ConnectionObj * self, PyObject * args )
     err = SSL_get_error( self->ssl, ret );
     if ( err == SSL_ERROR_NONE )
     {
-        Py_INCREF( Py_None );
-        return Py_None;
+    	Py_RETURN_NONE;
     }
     else
     {
@@ -640,8 +639,7 @@ ssl_Connection_set_accept_state( ssl_ConnectionObj * self, PyObject * args )
 
     SSL_set_accept_state( self->ssl );
 
-    Py_INCREF( Py_None );
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 static char ssl_Connection_set_connect_state_doc[] = "\n\
@@ -660,8 +658,7 @@ ssl_Connection_set_connect_state( ssl_ConnectionObj * self, PyObject * args )
 
     SSL_set_connect_state( self->ssl );
 
-    Py_INCREF( Py_None );
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 static char ssl_Connection_connect_doc[] = "\n\
@@ -895,8 +892,7 @@ ssl_Connection_set_app_data( ssl_ConnectionObj * self, PyObject * args )
     Py_INCREF( data );
     self->app_data = data;
 
-    Py_INCREF( Py_None );
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 static char ssl_Connection_state_string_doc[] = "\n\
@@ -959,8 +955,7 @@ ssl_Connection_get_peer_certificate( ssl_ConnectionObj *
     }
     else
     {
-        Py_INCREF( Py_None );
-        return Py_None;
+    	Py_RETURN_NONE;
     }
 }
 
@@ -1011,8 +1006,7 @@ ssl_Connection_get_peer_certificate_chain( ssl_ConnectionObj *
     }
     else
     {
-        Py_INCREF( Py_None );
-        return Py_None;
+    	Py_RETURN_NONE;
     }
 }
 
@@ -1188,8 +1182,7 @@ ssl_Connection_set_shutdown( ssl_ConnectionObj * self, PyObject * args )
 
     SSL_set_shutdown( self->ssl, shutdownMode );
 
-    Py_INCREF( Py_None );
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 static char ssl_Connection_peek_doc[] = "\n\

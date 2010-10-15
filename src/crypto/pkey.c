@@ -57,8 +57,7 @@ crypto_PKey_generate_key( crypto_PKeyObj * self, PyObject * args )
         if ( !EVP_PKEY_assign_RSA( self->pkey, rsa ) )
             FAIL(  );
         self->dealloc = 1;
-        Py_INCREF( Py_None );
-        return Py_None;
+        Py_RETURN_NONE;
 
     case crypto_TYPE_DSA:
         if ( ( dsa =
@@ -70,13 +69,11 @@ crypto_PKey_generate_key( crypto_PKeyObj * self, PyObject * args )
         if ( !EVP_PKEY_assign_DSA( self->pkey, dsa ) )
             FAIL(  );
         self->dealloc = 1;
-        Py_INCREF( Py_None );
-        return Py_None;
+        Py_RETURN_NONE;
     }
 
     PyErr_SetString( crypto_Error, "No such key type" );
-    Py_INCREF( Py_None );
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 static char crypto_PKey_bits_doc[] = "\n\

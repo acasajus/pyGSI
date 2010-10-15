@@ -65,8 +65,7 @@ crypto_X509Req_set_subject( crypto_X509ReqObj * self, PyObject * args )
         return NULL;
     }
 
-    Py_INCREF( Py_None );
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 static char crypto_X509Req_get_pubkey_doc[] = "\n\
@@ -119,8 +118,7 @@ crypto_X509Req_set_pubkey( crypto_X509ReqObj * self, PyObject * args )
         return NULL;
     }
 
-    Py_INCREF( Py_None );
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 static char crypto_X509Req_sign_doc[] = "\n\
@@ -156,8 +154,7 @@ crypto_X509Req_sign( crypto_X509ReqObj * self, PyObject * args )
         return NULL;
     }
 
-    Py_INCREF( Py_None );
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 static char crypto_X509Req_verify_doc[] = "\n\
@@ -250,8 +247,7 @@ crypto_X509Req_add_extensions( crypto_X509ReqObj * self, PyObject * args )
 
     sk_X509_EXTENSION_free( exts );
 
-    Py_INCREF( Py_None );
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 static char crypto_X509Req_get_extensions_doc[] = "\n\

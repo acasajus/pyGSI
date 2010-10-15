@@ -51,8 +51,7 @@ rand_add( PyObject * spam, PyObject * args )
 
     RAND_add( buf, size, entropy );
 
-    Py_INCREF( Py_None );
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 static char rand_seed_doc[] = "\n\
@@ -75,8 +74,7 @@ rand_seed( PyObject * spam, PyObject * args )
 
     RAND_seed( buf, size );
 
-    Py_INCREF( Py_None );
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 static char rand_status_doc[] = "\n\
@@ -113,8 +111,7 @@ rand_screen( PyObject * spam, PyObject * args )
         return NULL;
 
     RAND_screen(  );
-    Py_INCREF( Py_None );
-    return Py_None;
+    Py_RETURN_NONE;
 }
 #endif
 
@@ -159,8 +156,7 @@ rand_cleanup( PyObject * spam, PyObject * args )
 
     RAND_cleanup(  );
 
-    Py_INCREF( Py_None );
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 static char rand_load_file_doc[] = "\n\

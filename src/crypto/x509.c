@@ -60,8 +60,7 @@ crypto_X509_set_version( crypto_X509Obj * self, PyObject * args )
 
     X509_set_version( self->x509, version );
 
-    Py_INCREF( Py_None );
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 static char crypto_X509_get_serial_number_doc[] = "\n\
@@ -117,8 +116,7 @@ crypto_X509_set_serial_number( crypto_X509Obj * self, PyObject * args )
    asn1_i = X509_get_serialNumber( self->x509 );
    c2i_ASN1_INTEGER( &asn1_i, &serial, serialLength );
 
-   Py_INCREF( Py_None );
-   return Py_None;
+   Py_RETURN_NONE;
 }
 
 static char crypto_X509_get_issuer_doc[] = "\n\
@@ -196,8 +194,7 @@ crypto_X509_set_issuer( crypto_X509Obj * self, PyObject * args )
         return NULL;
     }
 
-    Py_INCREF( Py_None );
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 static char crypto_X509_get_subject_doc[] = "\n\
@@ -251,8 +248,7 @@ crypto_X509_set_subject( crypto_X509Obj * self, PyObject * args )
         return NULL;
     }
 
-    Py_INCREF( Py_None );
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 static char crypto_X509_get_pubkey_doc[] = "\n\
@@ -305,8 +301,7 @@ crypto_X509_set_pubkey( crypto_X509Obj * self, PyObject * args )
         return NULL;
     }
 
-    Py_INCREF( Py_None );
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 static char crypto_X509_gmtime_adj_notBefore_doc[] = "\n\
@@ -328,8 +323,7 @@ crypto_X509_gmtime_adj_notBefore( crypto_X509Obj * self, PyObject * args )
 
     X509_gmtime_adj( X509_get_notBefore( self->x509 ), i );
 
-    Py_INCREF( Py_None );
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 static char crypto_X509_gmtime_adj_notAfter_doc[] = "\n\
@@ -351,8 +345,7 @@ crypto_X509_gmtime_adj_notAfter( crypto_X509Obj * self, PyObject * args )
 
     X509_gmtime_adj( X509_get_notAfter( self->x509 ), i );
 
-    Py_INCREF( Py_None );
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 static char crypto_X509_sign_doc[] = "\n\
@@ -388,8 +381,7 @@ crypto_X509_sign( crypto_X509Obj * self, PyObject * args )
         return NULL;
     }
 
-    Py_INCREF( Py_None );
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 static char crypto_X509_verify_pkey_is_issuer_doc[] = "\n\
@@ -434,9 +426,9 @@ crypto_X509_has_expired( crypto_X509Obj * self, PyObject * args )
     tnow = time( NULL );
     if ( ASN1_UTCTIME_cmp_time_t( X509_get_notAfter( self->x509 ), tnow ) <
          0 )
-        return PyInt_FromLong( 1L );
+    	Py_RETURN_TRUE;
     else
-        return PyInt_FromLong( 0L );
+    	Py_RETURN_FALSE;
 }
 
 unsigned short
@@ -500,8 +492,7 @@ convertASN1_TIMEToDateTime( const ASN1_TIME * asn1Time )
 
     if ( !convertASN1_TIMETotm( asn1Time, &time_tm ) )
     {
-        Py_INCREF( Py_None );
-        return Py_None;
+    	Py_RETURN_NONE;
     }
 
     PyDateTime_IMPORT;
@@ -514,8 +505,7 @@ convertASN1_TIMEToDateTime( const ASN1_TIME * asn1Time )
     /* dont understand */
     if ( !datetime )
     {
-        Py_INCREF( Py_None );
-        return Py_None;
+    	Py_RETURN_NONE;
     }
     return datetime;
 }
@@ -699,13 +689,17 @@ crypto_X509_add_extensions( crypto_X509Obj * self, PyObject * args )
 
     nr_of_extensions = PySequence_Fast_GET_SIZE( seq );
 
+    /*
+     * ADRIFIX: Removed Py_DECREF( extList ) because it's a param
+     * 			seq comes from PySequence_Fast and it's a New ref
+     */
+
     for ( i = 0; i < nr_of_extensions; i++ )
     {
         ext =
             ( crypto_X509ExtensionObj * ) PySequence_Fast_GET_ITEM( seq, i );
         if ( !crypto_X509Extension_Check( ext ) )
         {
-            Py_DECREF( extList );
             Py_DECREF( seq );
             PyErr_SetString( PyExc_ValueError,
                              "One of the elements is not an X509Extension" );
@@ -713,17 +707,14 @@ crypto_X509_add_extensions( crypto_X509Obj * self, PyObject * args )
         }
         if ( !X509_add_ext( self->x509, ext->x509_extension, -1 ) )
         {
-            Py_DECREF( extList );
             Py_DECREF( seq );
             exception_from_error_queue(  );
             return NULL;
         }
     }
 
-    Py_DECREF( extList );
     Py_DECREF( seq );
-    Py_INCREF( Py_None );
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 /*
