@@ -197,12 +197,11 @@ crypto_PKCS12_traverse( crypto_PKCS12Obj * self, visitproc visit, void *arg )
 {
     int ret = 0;
 
-    if ( ret == 0 && self->cert != NULL )
-        ret = visit( self->cert, arg );
-    if ( ret == 0 && self->key != NULL )
-        ret = visit( self->key, arg );
-    if ( ret == 0 && self->cacerts != NULL )
-        ret = visit( self->cacerts, arg );
+
+    if( self->cert ) Py_VISIT( self->cert );
+    if( self->key ) Py_VISIT( self->key );
+    if( self->cacerts ) Py_VISIT( self->cacerts );
+
     return ret;
 }
 
@@ -215,12 +214,10 @@ crypto_PKCS12_traverse( crypto_PKCS12Obj * self, visitproc visit, void *arg )
 static int
 crypto_PKCS12_clear( crypto_PKCS12Obj * self )
 {
-    Py_XDECREF( self->cert );
-    self->cert = NULL;
-    Py_XDECREF( self->key );
-    self->key = NULL;
-    Py_XDECREF( self->cacerts );
-    self->cacerts = NULL;
+	if( self->cert ) Py_CLEAR( self->cert );
+	if( self->key ) Py_CLEAR( self->key );
+	if( self->cacerts ) Py_CLEAR( self->cacerts );
+
     return 0;
 }
 
@@ -234,7 +231,9 @@ static void
 crypto_PKCS12_dealloc( crypto_PKCS12Obj * self )
 {
     PyObject_GC_UnTrack( self );
-    crypto_PKCS12_clear( self );
+    Py_XDECREF( self->cert );
+    Py_XDECREF( self->key );
+    Py_XDECREF( self->cacerts );
     PyObject_GC_Del( self );
 }
 

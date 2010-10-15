@@ -1762,6 +1762,13 @@ static void ssl_Context_dealloc( ssl_ContextObj * self )
 	PyObject_GC_UnTrack((PyObject *) self);
 	ssl_Context_clear(self);
 	SSL_CTX_free(self->ctx);
+
+	Py_XDECREF(self->passphrase_callback);
+	Py_XDECREF(self->passphrase_userdata);
+	Py_XDECREF(self->verify_callback);
+	Py_XDECREF(self->info_callback);
+	Py_XDECREF(self->app_data);
+
 	PyObject_GC_Del(self);
 }
 

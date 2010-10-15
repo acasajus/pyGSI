@@ -796,7 +796,7 @@ static void
 crypto_X509_dealloc( crypto_X509Obj * self )
 {
     /* Sometimes we don't have to dealloc the "real" X509 pointer ourselves */
-    if ( self->dealloc )
+    if ( self->dealloc && self->x509 )
     {
         X509_free( self->x509 );
         self->x509 = NULL;

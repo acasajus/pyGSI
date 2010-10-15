@@ -56,6 +56,7 @@ crypto_PKey_generate_key( crypto_PKeyObj * self, PyObject * args )
             FAIL(  );
         if ( !EVP_PKEY_assign_RSA( self->pkey, rsa ) )
             FAIL(  );
+        self->dealloc = 1;
         Py_INCREF( Py_None );
         return Py_None;
 
@@ -68,6 +69,7 @@ crypto_PKey_generate_key( crypto_PKeyObj * self, PyObject * args )
             FAIL(  );
         if ( !EVP_PKEY_assign_DSA( self->pkey, dsa ) )
             FAIL(  );
+        self->dealloc = 1;
         Py_INCREF( Py_None );
         return Py_None;
     }

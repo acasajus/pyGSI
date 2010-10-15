@@ -577,7 +577,7 @@ static int
 crypto_X509Name_traverse( crypto_X509NameObj * self, visitproc visit,
                           void *arg )
 {
-    Py_VISIT( self->parent_cert );
+    if( self->parent_cert ) Py_VISIT( self->parent_cert );
     return 0;
 }
 
@@ -590,7 +590,7 @@ crypto_X509Name_traverse( crypto_X509NameObj * self, visitproc visit,
 static int
 crypto_X509Name_clear( crypto_X509NameObj * self )
 {
-    Py_CLEAR( self->parent_cert );
+	if( self->parent_cert ) Py_CLEAR( self->parent_cert );
     return 0;
 }
 
@@ -609,6 +609,7 @@ crypto_X509Name_dealloc( crypto_X509NameObj * self )
     /* Sometimes we don't have to dealloc this */
     if ( self->dealloc )
         X509_NAME_free( self->x509_name );
+   	Py_XDECREF( self->parent_cert );
 
     PyObject_GC_Del( self );
 }

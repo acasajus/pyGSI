@@ -1425,6 +1425,11 @@ ssl_Connection_dealloc( ssl_ConnectionObj * self )
     ssl_Connection_clear( self );
     if ( self->ssl != NULL )
         SSL_free( self->ssl );
+
+    Py_XDECREF( self->context );
+    Py_XDECREF( self->socket );
+    Py_XDECREF( self->app_data );
+
     PyObject_GC_Del( self );
 }
 

@@ -239,6 +239,7 @@ ssl_Session_dealloc( ssl_SessionObj * self )
         SSL_SESSION_free( self->session );
         self->session = NULL;
     }
+    Py_XDECREF( self->app_data );
     PyObject_GC_Del( self );
 }
 
