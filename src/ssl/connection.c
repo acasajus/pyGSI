@@ -1332,8 +1332,10 @@ ssl_Connection_New( ssl_ContextObj * ctx, PyObject * sock )
     fd = PyObject_AsFileDescriptor( self->socket );
     if ( fd < 0 )
     {
-        ssl_Connection_clear( self );
-        PyObject_GC_Delete( self );
+        Py_CLEAR( self->context );
+        Py_CLEAR( self->socket );
+        Py_CLEAR( self->app_data );
+        PyObject_GC_Del( self );
         return NULL;
     }
 
