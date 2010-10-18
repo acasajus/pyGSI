@@ -589,6 +589,7 @@ static int
 crypto_X509Name_clear( crypto_X509NameObj * self )
 {
 	Py_CLEAR( self->parent_cert );
+
     return 0;
 }
 
@@ -603,11 +604,11 @@ crypto_X509Name_dealloc( crypto_X509NameObj * self )
 {
     PyObject_GC_UnTrack( self );
 
-    crypto_X509Name_clear( self );
     /* Sometimes we don't have to dealloc this */
     if ( self->dealloc )
         X509_NAME_free( self->x509_name );
-   	Py_XDECREF( self->parent_cert );
+
+    crypto_X509Name_clear( self );
 
     PyObject_GC_Del( self );
 }

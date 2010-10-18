@@ -230,13 +230,14 @@ static void
 ssl_Session_dealloc( ssl_SessionObj * self )
 {
     PyObject_GC_UnTrack( self );
-    ssl_Session_clear( self );
+
     if ( self->session )
     {
         SSL_SESSION_free( self->session );
         self->session = NULL;
     }
-    Py_XDECREF( self->app_data );
+    ssl_Session_clear( self );
+
     PyObject_GC_Del( self );
 }
 

@@ -127,8 +127,8 @@ crypto_PKCS12_New( PKCS12 * p12, char *passphrase )
         return NULL;
     }
 
-    if ( !
-         ( self = PyObject_GC_New( crypto_PKCS12Obj, &crypto_PKCS12_Type ) ) )
+    self = PyObject_GC_New( crypto_PKCS12Obj, &crypto_PKCS12_Type ) ;
+    if ( ! self )
         return NULL;
 
     self->cert = NULL;
@@ -169,7 +169,12 @@ crypto_PKCS12_New( PKCS12 * p12, char *passphrase )
 
     return self;
   error:
-    crypto_PKCS12_dealloc( self );
+
+	Py_XDECREF( self->cert );
+    Py_XDECREF( self->key );
+    Py_XDECREF( self->cacerts );
+    PyObject_GC_Del( self );
+
     return NULL;
 }
 
@@ -199,14 +204,11 @@ crypto_PKCS12_getattr( crypto_PKCS12Obj * self, char *name )
 static int
 crypto_PKCS12_traverse( crypto_PKCS12Obj * self, visitproc visit, void *arg )
 {
-    int ret = 0;
+	Py_VISIT( self->cert );
+	Py_VISIT( self->key );
+	Py_VISIT( self->cacerts );
 
-
-    if( self->cert ) Py_VISIT( self->cert );
-    if( self->key ) Py_VISIT( self->key );
-    if( self->cacerts ) Py_VISIT( self->cacerts );
-
-    return ret;
+    return 0;
 }
 
 /*
@@ -218,10 +220,9 @@ crypto_PKCS12_traverse( crypto_PKCS12Obj * self, visitproc visit, void *arg )
 static int
 crypto_PKCS12_clear( crypto_PKCS12Obj * self )
 {
-	if( self->cert ) Py_CLEAR( self->cert );
-	if( self->key ) Py_CLEAR( self->key );
-	if( self->cacerts ) Py_CLEAR( self->cacerts );
-
+	Py_CLEAR( self->cert );
+	Py_CLEAR( self->key );
+	Py_CLEAR( self->cacerts );
     return 0;
 }
 
@@ -235,9 +236,7 @@ static void
 crypto_PKCS12_dealloc( crypto_PKCS12Obj * self )
 {
     PyObject_GC_UnTrack( self );
-    Py_XDECREF( self->cert );
-    Py_XDECREF( self->key );
-    Py_XDECREF( self->cacerts );
+    crypto_PKCS12_clear( self );
     PyObject_GC_Del( self );
 }
 
