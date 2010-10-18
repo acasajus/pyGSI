@@ -133,8 +133,7 @@ crypto_PKCS12_New( PKCS12 * p12, char *passphrase )
 
     self->cert = NULL;
     self->key = NULL;
-    Py_INCREF( Py_None );
-    self->cacerts = Py_None;
+    self->cacerts = NULL;
 
     if ( ( self->cert = ( PyObject * ) crypto_X509_New( cert, 1 ) ) == NULL )
         goto error;
@@ -158,6 +157,11 @@ crypto_PKCS12_New( PKCS12 * p12, char *passphrase )
                 goto error;
             PyTuple_SET_ITEM( self->cacerts, i, cacertobj );
         }
+    }
+    else
+    {
+        Py_INCREF( Py_None );
+        self->cacerts = Py_None;
     }
 
     sk_X509_free( cacerts );    /* don't free the certs, just the stack */

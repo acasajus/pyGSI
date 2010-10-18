@@ -243,10 +243,8 @@ ssl_Context_load_verify_locations_path( ssl_ContextObj * self, PyObject * args )
 		exception_from_error_queue();
 		return NULL;
 	}
-	else
-	{
-		Py_RETURN_NONE;
-	}
+
+	Py_RETURN_NONE;
 }
 
 static char
@@ -274,10 +272,8 @@ ssl_Context_load_verify_locations( ssl_ContextObj * self, PyObject * args )
 		exception_from_error_queue();
 		return NULL;
 	}
-	else
-	{
-		Py_RETURN_NONE;
-	}
+
+	Py_RETURN_NONE;
 }
 
 static char
@@ -296,7 +292,7 @@ static char
 static PyObject *
 ssl_Context_set_passwd_cb( ssl_ContextObj * self, PyObject * args )
 {
-	PyObject *callback = NULL, *userdata = Py_None;
+	PyObject *callback = NULL, *userdata = NULL;
 
 	if ( !PyArg_ParseTuple(args, "O|O:set_passwd_cb", &callback, &userdata) )
 		return NULL;
@@ -306,6 +302,9 @@ ssl_Context_set_passwd_cb( ssl_ContextObj * self, PyObject * args )
 		PyErr_SetString(PyExc_TypeError, "expected PyCallable");
 		return NULL;
 	}
+
+	if ( !userdata )
+		userdata = Py_None;
 
 	Py_DECREF(self->passphrase_callback);
 	Py_INCREF(callback);
@@ -943,19 +942,11 @@ ssl_Context_set_verify( ssl_ContextObj * self, PyObject * args )
 		return NULL;
 
 	if ( !PyCallable_Check(callback) )
-	{
-		//PyErr_SetString( PyExc_TypeError, "expected PyCallable" );
-		//return NULL;
-		Py_DECREF(self->verify_callback);
-		Py_INCREF(Py_None);
-		self->verify_callback = Py_None;
-	}
-	else
-	{
-		Py_DECREF(self->verify_callback);
-		Py_INCREF(callback);
-		self->verify_callback = callback;
-	}
+		callback = Py_None;
+
+	Py_DECREF(self->verify_callback);
+	Py_INCREF(callback);
+	self->verify_callback = callback;
 
 	if ( gsiEnable )
 	{
