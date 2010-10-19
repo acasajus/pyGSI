@@ -140,8 +140,8 @@ crypto_X509_get_issuer( crypto_X509Obj * self, PyObject * args )
     pyname = crypto_X509Name_New( name, 0 );
     if ( pyname != NULL )
     {
-        pyname->parent_cert = ( PyObject * ) self;
         Py_INCREF( self );
+    	pyname->parent_cert = ( PyObject * ) self;
     }
     return ( PyObject * ) pyname;
 }
@@ -218,8 +218,8 @@ crypto_X509_get_subject( crypto_X509Obj * self, PyObject * args )
     pyname = crypto_X509Name_New( name, 0 );
     if ( pyname != NULL )
     {
-        pyname->parent_cert = ( PyObject * ) self;
         Py_INCREF( self );
+        pyname->parent_cert = ( PyObject * ) self;
     }
     return ( PyObject * ) pyname;
 }

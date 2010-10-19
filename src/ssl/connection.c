@@ -797,15 +797,9 @@ ssl_Connection_shutdown( ssl_ConnectionObj * self, PyObject * args )
         return NULL;
     }
     else if ( ret > 0 )
-    {
-        Py_INCREF( Py_True );
-        return Py_True;
-    }
+        Py_RETURN_TRUE;
     else
-    {
-        Py_INCREF( Py_False );
-        return Py_False;
-    }
+        Py_RETURN_FALSE;
 }
 
 static char ssl_Connection_get_cipher_list_doc[] = "\n\
@@ -883,14 +877,15 @@ Returns:   None\n\
 static PyObject *
 ssl_Connection_set_app_data( ssl_ConnectionObj * self, PyObject * args )
 {
-    PyObject *data;
+    PyObject *data,*old;
 
     if ( !PyArg_ParseTuple( args, "O:set_app_data", &data ) )
         return NULL;
 
-    Py_DECREF( self->app_data );
+    old = self->app_data;
     Py_INCREF( data );
     self->app_data = data;
+    Py_DECREF( old );
 
     Py_RETURN_NONE;
 }

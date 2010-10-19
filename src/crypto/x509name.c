@@ -166,10 +166,10 @@ crypto_X509Name_get_entry( crypto_X509NameObj * self, PyObject * args )
     l = ASN1_STRING_length( fval );
 
     tuple = PyTuple_New( 3 );
-    PyTuple_SetItem( tuple, 0, PyString_FromString( OBJ_nid2sn( nid ) ) );
-    PyTuple_SetItem( tuple, 1,
-                     PyString_FromStringAndSize( ( char * ) str, l ) );
-    PyTuple_SetItem( tuple, 2, PyInt_FromLong( ent->value->type ) );
+    PyTuple_SET_ITEM( tuple, 0, PyString_FromString( OBJ_nid2sn( nid ) ) );
+    PyTuple_SET_ITEM( tuple, 1,
+                      PyString_FromStringAndSize( ( char * ) str, l ) );
+    PyTuple_SET_ITEM( tuple, 2, PyInt_FromLong( ent->value->type ) );
 
     return tuple;
 }
@@ -364,11 +364,11 @@ crypto_X509Name_get_components( crypto_X509NameObj * self, PyObject * args )
         /* printf("fname is %s len=%d str=%s\n", OBJ_nid2sn(nid), l, str); */
 
         tuple = PyTuple_New( 2 );
-        PyTuple_SetItem( tuple, 0, PyString_FromString( OBJ_nid2sn( nid ) ) );
-        PyTuple_SetItem( tuple, 1,
-                         PyString_FromStringAndSize( ( char * ) str, l ) );
+        PyTuple_SET_ITEM( tuple, 0, PyString_FromString( OBJ_nid2sn( nid ) ) );
+        PyTuple_SET_ITEM( tuple, 1,
+                          PyString_FromStringAndSize( ( char * ) str, l ) );
 
-        PyList_SetItem( list, i, tuple );
+        PyList_SET_ITEM( list, i, tuple );
     }
 
     return list;

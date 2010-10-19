@@ -292,7 +292,7 @@ static char
 static PyObject *
 ssl_Context_set_passwd_cb( ssl_ContextObj * self, PyObject * args )
 {
-	PyObject *callback = NULL, *userdata = NULL;
+	PyObject *callback = NULL, *userdata = NULL, *old;
 
 	if ( !PyArg_ParseTuple(args, "O|O:set_passwd_cb", &callback, &userdata) )
 		return NULL;
@@ -306,14 +306,16 @@ ssl_Context_set_passwd_cb( ssl_ContextObj * self, PyObject * args )
 	if ( !userdata )
 		userdata = Py_None;
 
-	Py_DECREF(self->passphrase_callback);
-	Py_INCREF(callback);
+	old = self->passphrase_callback;
+	Py_INCREF( callback );
 	self->passphrase_callback = callback;
+	Py_DECREF( old );
 	SSL_CTX_set_default_passwd_cb(self->ctx, global_passphrase_callback);
 
-	Py_DECREF(self->passphrase_userdata);
-	Py_INCREF(userdata);
+	old = self->passphrase_userdata;
+	Py_INCREF( userdata );
 	self->passphrase_userdata = userdata;
+	Py_DECREF( old );
 	SSL_CTX_set_default_passwd_cb_userdata(self->ctx, (void *) self);
 
 	Py_RETURN_NONE;
@@ -935,7 +937,7 @@ ssl_Context_set_verify( ssl_ContextObj * self, PyObject * args )
 
 	int gsiEnable = 1;
 
-	PyObject *callback = NULL;
+	PyObject *callback = NULL, *old;
 
 	if ( !PyArg_ParseTuple(args, "iO|i:set_verify", &mode, &callback,
 			&gsiEnable) )
@@ -944,9 +946,10 @@ ssl_Context_set_verify( ssl_ContextObj * self, PyObject * args )
 	if ( !PyCallable_Check(callback) )
 		callback = Py_None;
 
-	Py_DECREF(self->verify_callback);
+	old = self->verify_callback;
 	Py_INCREF(callback);
 	self->verify_callback = callback;
+	Py_DECREF(old);
 
 	if ( gsiEnable )
 	{
@@ -1172,7 +1175,7 @@ static char
 static PyObject *
 ssl_Context_set_info_callback( ssl_ContextObj * self, PyObject * args )
 {
-	PyObject *callback;
+	PyObject *callback,*old;
 
 	if ( !PyArg_ParseTuple(args, "O:set_info_callback", &callback) )
 		return NULL;
@@ -1183,9 +1186,10 @@ ssl_Context_set_info_callback( ssl_ContextObj * self, PyObject * args )
 		return NULL;
 	}
 
-	Py_DECREF(self->info_callback);
+	old = self->info_callback;
 	Py_INCREF(callback);
 	self->info_callback = callback;
+	Py_DECREF( old );
 	SSL_CTX_set_info_callback(self->ctx, global_info_callback);
 
 	Py_RETURN_NONE;
@@ -1225,14 +1229,15 @@ static char
 static PyObject *
 ssl_Context_set_app_data( ssl_ContextObj * self, PyObject * args )
 {
-	PyObject *data;
+	PyObject *data,*old;
 
 	if ( !PyArg_ParseTuple(args, "O:set_app_data", &data) )
 		return NULL;
 
-	Py_DECREF(self->app_data);
-	Py_INCREF(data);
+	old=self->app_data;
+	Py_INCREF( data );
 	self->app_data = data;
+	Py_DECREF( old );
 
 	Py_RETURN_NONE;
 }
