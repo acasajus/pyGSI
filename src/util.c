@@ -16,7 +16,7 @@ static char *CVSid =
     "@(#) $Id: util.c,v 1.3 2008/07/08 10:54:55 acasajus Exp $";
 
 
-static void
+void
 realLogMsg( const char *fileName, int line, int level, char *fmt, ... )
 {
 	char *mesg;
