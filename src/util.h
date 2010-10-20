@@ -33,6 +33,28 @@ extern void flush_error_queue( void );
 #define OBJ_BEGIN_THREADS( obj ) if( !obj -> tstate ) obj->tstate = PyEval_SaveThread()
 #define OBJ_END_THREADS( obj ) if ( obj-> tstate ) { PyEval_RestoreThread( obj-> tstate ); obj->tstate = NULL;  }
 
+#ifdef GSI_HANDSHAKE_DEBUG
+#define MIN_LOG_LEVEL 0
+
+static void
+logMsg( int level, char *fmt, ... )
+{
+    char *mesg;
+    va_list ap;
+
+    va_start( ap, fmt );
+    vasprintf( &mesg, fmt, ap );
+    va_end( ap );
+
+    if ( level >= MIN_LOG_LEVEL )
+        printf( "[%d] %s\n", level, mesg );
+
+    free( mesg );
+}
+#else
+#define logMsg(...)
+#endif
+
 
 #if !defined(PY_MAJOR_VERSION) || PY_VERSION_HEX < 0x02000000
 static int

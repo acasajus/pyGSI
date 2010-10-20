@@ -1,27 +1,5 @@
 #include "ssl.h"
 
-#ifdef GSI_HANDSHAKE_DEBUG
-#define MIN_LOG_LEVEL 0
-
-static void
-logMsg( int level, char *fmt, ... )
-{
-    char *mesg;
-    va_list ap;
-
-    va_start( ap, fmt );
-    vasprintf( &mesg, fmt, ap );
-    va_end( ap );
-
-    if ( level >= MIN_LOG_LEVEL )
-        printf( "[%d] %s\n", level, mesg );
-
-    free( mesg );
-}
-#else
-#define logMsg(...)
-#endif
-
 /* Later OpenSSL versions add a second pointer ... */
 int
 gsiVerifyCertWrapper( X509_STORE_CTX * ctx, void *p )
