@@ -70,7 +70,7 @@ error_queue_to_list( void )
 void
 flush_error_queue( void )
 {
-	while( ERR_get_error() ) {};
+	while( ERR_get_error() != 0 ) {};
 	/*
 	PyObject *errlist;
 	errlist = error_queue_to_list();
