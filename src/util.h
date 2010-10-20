@@ -40,22 +40,7 @@ extern void flush_error_queue( void );
 #define logMsg(...) realLogMsg(__FILE__, __LINE__, __VA_ARGS__) 
 
 static void
-realLogMsg( const char *fileName, int line, int level, char *fmt, ... )
-{
-	char *mesg;
-	va_list ap;
-    
-	if ( level < GSI_DBG_LOGLVL )
-		return;
-
-	va_start( ap, fmt );
-	if( vasprintf( &mesg, fmt, ap ) == -1 ) return;
-	va_end( ap );
-
-        printf( "[%s -> %d][%d] %s\n", fileName, line, level, mesg );
-
-	free( mesg );
-}
+realLogMsg( const char *fileName, int line, int level, char *fmt, ... );
 
 #if !defined(PY_MAJOR_VERSION) || PY_VERSION_HEX < 0x02000000
 static int
