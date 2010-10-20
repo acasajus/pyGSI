@@ -130,6 +130,10 @@ static int global_verify_callback( int ok, X509_STORE_CTX * x509_ctx )
 
 	int errdepth = X509_STORE_CTX_get_error_depth(x509_ctx);
 
+#ifdef GSI_HANDSHAKE_DEBUG
+	logMsg( "GVC %d errnum %d errdepth", errnum, errdepth )
+#endif
+
 	ssl = (SSL *) X509_STORE_CTX_get_app_data(x509_ctx);
 	conn = (ssl_ConnectionObj *) SSL_get_app_data(ssl);
 	OBJ_END_THREADS( conn );
