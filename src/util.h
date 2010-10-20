@@ -33,24 +33,14 @@ extern void flush_error_queue( void );
 #define OBJ_BEGIN_THREADS( obj ) if( !obj -> tstate ) obj->tstate = PyEval_SaveThread()
 #define OBJ_END_THREADS( obj ) if ( obj-> tstate ) { PyEval_RestoreThread( obj-> tstate ); obj->tstate = NULL;  }
 
+#ifndef GSI_DBG_LOGLVL
+#define GSI_DBG_LOGLVL 0
+#endif
 
-#define MIN_LOG_LEVEL 0
-
-static void
-logMsg( int level, char *fmt, ... )
-{
-    char *mesg;
-    va_list ap;
-
-    va_start( ap, fmt );
-    if( vasprintf( &mesg, fmt, ap ) == -1 ) return;
-    va_end( ap );
-
-    if ( level >= MIN_LOG_LEVEL )
-        printf( "[%s -> %d][%d] %s\n", __FILE__, __LINE__, level, mesg );
-
-    free( mesg );
-}
+#define GSI_DBG_WHERESTR  "[file %s, line %d]: "
+#define GSI_DBG_WHEREARG  __FILE__, __LINE__
+#define GSI_DBG_DEBUGPRINT2(...)       fprintf(stderr, __VA_ARGS__)
+#define logMsg(lvl, _fmt, ...)  if( lvl >= GSI_DBG_LOGLVL ) GSI_DBG_DEBUGPRINT2(GSI_DBG_WHERESTR _fmt, GSI_DBG_WHEREARG, __VA_ARGS__)
 
 #if !defined(PY_MAJOR_VERSION) || PY_VERSION_HEX < 0x02000000
 static int
