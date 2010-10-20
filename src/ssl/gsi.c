@@ -88,6 +88,7 @@ gsiCheckIssuedWrapper( X509_STORE_CTX * ctx, X509 * x, X509 * issuer )
 int
 gsiVerifyCallback( int ok, X509_STORE_CTX * ctx )
 {
+
     int errnum = X509_STORE_CTX_get_error( ctx );
     int errdepth = X509_STORE_CTX_get_error_depth( ctx );
     int rawOK = ok;             //Is openssl telling us the cert is ok?
@@ -99,6 +100,7 @@ gsiVerifyCallback( int ok, X509_STORE_CTX * ctx )
 
 #ifdef DEBUG
     char *dummy;
+    logMsg( 0, "GSI HANDSHAKE" );
 #endif
 
     cert = X509_STORE_CTX_get_current_cert( ctx );
