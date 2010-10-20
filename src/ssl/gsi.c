@@ -1,6 +1,6 @@
 #include "ssl.h"
 
-#ifdef DEBUG
+#ifdef GSI_HANDSHAKE_DEBUG
 #define MIN_LOG_LEVEL 0
 
 static void
@@ -98,14 +98,14 @@ gsiVerifyCallback( int ok, X509_STORE_CTX * ctx )
     STACK_OF( X509 ) * certstack;
     X509 *cert;
 
-#ifdef DEBUG
+#ifdef GSI_HANDSHAKE_DEBUG
     char *dummy;
     logMsg( 0, "GSI HANDSHAKE" );
 #endif
 
     cert = X509_STORE_CTX_get_current_cert( ctx );
 
-#ifdef DEBUG
+#ifdef GSI_HANDSHAKE_DEBUG
     logMsg( 0, "===============" );
     dummy = X509_NAME_oneline( X509_get_subject_name( cert ), NULL, 0 );
     logMsg( 0, "Subject [%s]", dummy );

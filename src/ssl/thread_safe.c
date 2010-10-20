@@ -105,7 +105,7 @@ clean_locks( void )
 void
 locking_thread_callback( int mode, int type, const char *file, int line )
 {
-#ifdef DEBUG
+#ifdef GSI_LOCK_DEBUG
     fprintf( stderr, "thread=%4ul mode=%s lock=%s %s:%d\n",
              CRYPTO_thread_id(  ),
              ( mode & CRYPTO_LOCK ) ? "l" : "u",
