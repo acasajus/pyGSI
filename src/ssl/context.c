@@ -132,6 +132,7 @@ static int global_verify_callback( int ok, X509_STORE_CTX * x509_ctx )
 
 	ssl = (SSL *) X509_STORE_CTX_get_app_data(x509_ctx);
 	conn = (ssl_ConnectionObj *) SSL_get_app_data(ssl);
+	OBJ_END_THREADS( conn );
 	Py_INCREF( conn );
 
 	if ( conn->context->verify_callback != Py_None )
@@ -171,6 +172,7 @@ static int global_verify_callback( int ok, X509_STORE_CTX * x509_ctx )
 	}
 
 	Py_DECREF( conn );
+	OBJ_BEGIN_THREADS( conn );
 
 	return ok;
 }

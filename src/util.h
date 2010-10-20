@@ -30,6 +30,9 @@
 extern PyObject *error_queue_to_list( void );
 extern void flush_error_queue( void );
 
+#define OBJ_BEGIN_THREADS( obj ) if( !obj -> tstate ) obj->tstate = PyEval_SaveThread()
+#define OBJ_END_THREADS( obj ) if ( obj-> tstate ) { PyEval_RestoreThread( obj-> tstate ); obj->tstate = NULL;  }
+
 
 #if !defined(PY_MAJOR_VERSION) || PY_VERSION_HEX < 0x02000000
 static int

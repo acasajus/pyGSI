@@ -321,9 +321,9 @@ ssl_Connection_send( ssl_ConnectionObj * self, PyObject * args )
     if ( !PyArg_ParseTuple( args, "s#|i:send", &buf, &len, &flags ) )
         return NULL;
 
-    Py_BEGIN_ALLOW_THREADS;
+    OBJ_BEGIN_THREADS( self );
     ret = SSL_write( self->ssl, buf, len );
-    Py_END_ALLOW_THREADS;
+    OBJ_END_THREADS( self );
 
     err = SSL_get_error( self->ssl, ret );
     if ( err != SSL_ERROR_NONE )
@@ -358,9 +358,9 @@ ssl_Connection_sendall( ssl_ConnectionObj * self, PyObject * args )
 
     do
     {
-        Py_BEGIN_ALLOW_THREADS;
+        OBJ_BEGIN_THREADS( self );
         ret = SSL_write( self->ssl, buf, len );
-        Py_END_ALLOW_THREADS;
+        OBJ_END_THREADS( self );
 
         err = SSL_get_error( self->ssl, ret );
         if ( err != SSL_ERROR_NONE )
@@ -408,9 +408,9 @@ ssl_Connection_recv( ssl_ConnectionObj * self, PyObject * args )
     if( !cbuf )
     	return NULL;
 
-    Py_BEGIN_ALLOW_THREADS;
+    OBJ_BEGIN_THREADS( self );
     ret = SSL_read( self->ssl, cbuf, bufsiz );
-    Py_END_ALLOW_THREADS;
+    OBJ_END_THREADS( self );
 
     err = SSL_get_error( self->ssl, ret );
     if ( err != SSL_ERROR_NONE )
@@ -438,9 +438,9 @@ ssl_Connection_recv( ssl_ConnectionObj * self, PyObject * args )
 
     cbuf = PyString_AsString( buf );
 
-    Py_BEGIN_ALLOW_THREADS;
+    OBJ_BEGIN_THREADS( self );
     ret = SSL_read( self->ssl, cbuf, bufsiz );
-    Py_END_ALLOW_THREADS;
+    OBJ_END_THREADS( self );
 
     err = SSL_get_error( self->ssl, ret );
     if ( err != SSL_ERROR_NONE )
@@ -475,9 +475,9 @@ ssl_Connection_renegotiate( ssl_ConnectionObj * self, PyObject * args )
     if ( !PyArg_ParseTuple( args, ":renegotiate" ) )
         return NULL;
 
-    Py_BEGIN_ALLOW_THREADS;
+    OBJ_BEGIN_THREADS( self );
     ret = SSL_renegotiate( self->ssl );
-    Py_END_ALLOW_THREADS;
+    OBJ_END_THREADS( self );
 
     if ( PyErr_Occurred(  ) )
     {
@@ -563,9 +563,9 @@ ssl_Connection_do_handshake( ssl_ConnectionObj * self, PyObject * args )
     if ( !PyArg_ParseTuple( args, ":do_handshake" ) )
         return NULL;
 
-    Py_BEGIN_ALLOW_THREADS;
+    OBJ_BEGIN_THREADS( self );
     ret = SSL_do_handshake( self->ssl );
-    Py_END_ALLOW_THREADS;
+    OBJ_END_THREADS( self );
 
     if ( PyErr_Occurred(  ) )
     {
@@ -781,9 +781,9 @@ ssl_Connection_shutdown( ssl_ConnectionObj * self, PyObject * args )
     if ( !PyArg_ParseTuple( args, ":shutdown" ) )
         return NULL;
 
-    Py_BEGIN_ALLOW_THREADS;
+    OBJ_BEGIN_THREADS( self );
     ret = SSL_shutdown( self->ssl );
-    Py_END_ALLOW_THREADS;
+    OBJ_END_THREADS( self );
 
     if ( PyErr_Occurred(  ) )
     {
@@ -1208,9 +1208,9 @@ ssl_Connection_peek( ssl_ConnectionObj * self, PyObject * args )
 
     cbuf = PyString_AsString( buf );
 
-    Py_BEGIN_ALLOW_THREADS;
+    OBJ_BEGIN_THREADS( self );
     ret = SSL_peek( self->ssl, cbuf, bufsiz );
-    Py_END_ALLOW_THREADS;
+    OBJ_END_THREADS( self );
 
     if ( PyErr_Occurred(  ) )
     {
