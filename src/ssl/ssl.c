@@ -171,12 +171,15 @@ do {                                                                          \
         goto error;                                                           \
 } while (0)
 
+/*
     ssl_Error = PyErr_NewException( "GSI.SSL.Error", NULL, NULL );
     if ( ssl_Error == NULL )
         goto error;
     if ( PyModule_AddObject( module, "Error", ssl_Error ) != 0 )
         goto error;
+*/
 
+    ADD_EXCEPTION( Error, NULL );
     ADD_EXCEPTION( ZeroReturnError, ssl_Error );
     ADD_EXCEPTION( WantReadError, ssl_Error );
     ADD_EXCEPTION( WantWriteError, ssl_Error );

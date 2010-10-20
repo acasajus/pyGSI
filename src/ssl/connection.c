@@ -567,9 +567,9 @@ ssl_Connection_do_handshake( ssl_ConnectionObj * self, PyObject * args )
     ret = SSL_do_handshake( self->ssl );
     OBJ_END_THREADS( self );
 
-    if ( PyErr_Occurred(  ) )
+    if ( PyErr_Occurred() )
     {
-        flush_error_queue(  );
+        flush_error_queue();
         return NULL;
     }
 
@@ -581,7 +581,7 @@ ssl_Connection_do_handshake( ssl_ConnectionObj * self, PyObject * args )
     else
     {
         helper_treatHandshakeError( self, err, ret );
-        flush_error_queue(  );
+        flush_error_queue();
         return NULL;
     }
 }

@@ -52,5 +52,5 @@ error_queue_to_list( void )
 void
 flush_error_queue( void )
 {
-    Py_DECREF( error_queue_to_list(  ) );
+    Py_DECREF( error_queue_to_list() );
 }
