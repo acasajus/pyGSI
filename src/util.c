@@ -70,5 +70,10 @@ error_queue_to_list( void )
 void
 flush_error_queue( void )
 {
-    Py_DECREF( error_queue_to_list() );
+	while( ERR_get_error() ) {};
+	/*
+	PyObject *errlist;
+	errlist = error_queue_to_list();
+    Py_DECREF( errlist );
+    */
 }
