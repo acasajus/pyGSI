@@ -46,7 +46,7 @@ def createExtension( extName ):
 
 setup( 
   name = "GSI",
-  version = "0.4.1",
+  version = "0.5.0",
   author = "Adrian Casajus",
   author_email = "adria@ecm.ub.es",
   description = "Python wrapper module around the OpenSSL library (including hack to accept GSI SSL proxies)",
