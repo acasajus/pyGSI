@@ -36,7 +36,7 @@ extern void realLogMsg( const char *fileName, int line, int level, char *fmt, ..
 #define OBJ_END_THREADS( obj ) if ( obj-> tstate ) { PyEval_RestoreThread( obj-> tstate ); obj->tstate = NULL;  }
 
 #ifndef GSI_DBG_LOGLVL
-#define GSI_DBG_LOGLVL 0
+#define GSI_DBG_LOGLVL 10
 #endif
 
 #define logMsg(...) realLogMsg(__FILE__, __LINE__, __VA_ARGS__) 
