@@ -36,7 +36,7 @@ crypto_X509Store_add_cert( crypto_X509StoreObj * self, PyObject * args )
         exception_from_error_queue(  );
         return NULL;
     }
-    cert->dealloc = 0;
+    //cert->dealloc = 0;
 
     Py_RETURN_NONE;
 }
