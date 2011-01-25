@@ -1,16 +1,4 @@
 
-/*
- * util.h
- *
- * Copyright (C) AB Strakt 2001, All rights reserved
- *
- * Export utility functions and macros.
- * See the file RATIONALE for a short explanation of why this module was written.
- *
- * Reviewed 2001-07-23
- *
- * @(#) $Id: util.h,v 1.5 2008/07/08 10:54:55 acasajus Exp $
- */
 #ifndef PyGSI_UTIL_H_
 #define PyGSI_UTIL_H_
 
@@ -41,6 +29,11 @@ extern void realLogMsg( const char *fileName, int line, int level, char *fmt, ..
 
 #define logMsg(...) realLogMsg(__FILE__, __LINE__, __VA_ARGS__) 
 
+extern void initialize_python_datetime( void );
+unsigned short
+convertASN1_TIMETotm( ASN1_TIME * asn1Time, struct tm *time_tm );
+PyObject *
+convertASN1_TIMEToDateTime( ASN1_TIME * asn1Time );
 
 #if !defined(PY_MAJOR_VERSION) || PY_VERSION_HEX < 0x02000000
 static int

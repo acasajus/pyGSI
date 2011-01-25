@@ -1,20 +1,8 @@
-
-/*
- * netscape_spki.c
- *
- * Copyright (C) Tollef Fog Heen 2003
- *
- * Netscape SPKI handling, thin wrapper
- */
 #include <Python.h>
 #define crypto_MODULE
 #include "crypto.h"
 
-static char *CVSid =
-    "@(#) $Id: netscape_spki.c,v 1.2 2008/07/08 10:54:54 acasajus Exp $";
-
-
-/*
+s/*
  * Constructor for Nestcape_SPKI, never called by Python code directly
  *
  * Arguments: name    - A "real" NetscapeSPKI object

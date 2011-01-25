@@ -17,6 +17,7 @@
 #include <Python.h>
 #include "x509.h"
 #include "x509name.h"
+#include "x509CRL.h"
 #include "netscape_spki.h"
 #include "x509store.h"
 #include "x509req.h"
@@ -69,7 +70,11 @@ extern PyObject *crypto_Error;
 #define crypto_NetscapeSPKI_New_RETURN      crypto_NetscapeSPKIObj *
 #define crypto_NetscapeSPKI_New_PROTO       (NETSCAPE_SPKI *, int)
 
-#define crypto_API_pointers             8
+#define crypto_X509CRL_New_NUM         8
+#define crypto_X509CRL_New_RETURN      crypto_X509CRLObj *
+#define crypto_X509CRL_New_PROTO       (X509_CRL *, int)
+
+#define crypto_API_pointers             9
 
 #ifdef crypto_MODULE
 
@@ -85,6 +90,7 @@ extern crypto_X509Extension_New_RETURN crypto_X509Extension_New
 extern crypto_PKCS7_New_RETURN crypto_PKCS7_New crypto_PKCS7_New_PROTO;
 extern crypto_NetscapeSPKI_New_RETURN crypto_NetscapeSPKI_New
     crypto_NetscapeSPKI_New_PROTO;
+extern crypto_X509CRL_New_RETURN crypto_X509CRL_New crypto_X509CRL_New_PROTO;
 
 #else /* crypto_MODULE */
 
@@ -106,6 +112,9 @@ extern void **crypto_API;
  (*(crypto_PKCS7_New_RETURN (*)crypto_PKCS7_New_PROTO) crypto_API[crypto_PKCS7_New_NUM])
 #define crypto_NetscapeSPKI_New     \
  (*(crypto_NetscapeSPKI_New_RETURN (*)crypto_NetscapeSPKI_New_PROTO) crypto_API[crypto_NetscapeSPKI_New_NUM])
+#define crypto_X509CRL_New     \
+ (*(crypto_X509CRL_New_RETURN (*)crypto_X509CRL_New_PROTO) crypto_API[crypto_X509CRL_New_NUM])
+
 
 #define import_crypto() \
 { \

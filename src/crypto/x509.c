@@ -1,23 +1,6 @@
-
-/*
- * x509.c
- *
- * Copyright (C) AB Strakt 2001, All rights reserved
- *
- * Certificate (X.509) handling code, mostly thin wrappers around OpenSSL.
- * See the file RATIONALE for a short explanation of why this module was written.
- *
- * Reviewed 2001-07-23
- */
 #include <Python.h>
-#include <datetime.h>
 #define crypto_MODULE
 #include "crypto.h"
-
-
-
-static char *CVSid =
-    "@(#) $Id: x509.c,v 1.9 2008/10/20 17:58:51 acasajus Exp $";
 
 /*
  * X.509 is a standard for digital certificates.  See e.g. the OpenSSL homepage
@@ -429,85 +412,6 @@ crypto_X509_has_expired( crypto_X509Obj * self, PyObject * args )
     	Py_RETURN_TRUE;
     else
     	Py_RETURN_FALSE;
-}
-
-unsigned short
-convertASN1_TIMETotm( const ASN1_TIME * asn1Time, struct tm *time_tm )
-{
-    char *asn1String;
-    int len;
-    char zone;
-
-    asn1String = ASN1_STRING_data( asn1Time );
-    len = strlen( ( char * ) asn1String );
-    /* dont understand */
-    if ( ( len != 13 ) && ( len != 15 ) )
-    {
-        return 0;
-    }
-
-    if ( len == 13 )
-    {
-        len = sscanf( ( char * ) asn1String, "%02d%02d%02d%02d%02d%02d%c",
-                      &( time_tm->tm_year ),
-                      &( time_tm->tm_mon ),
-                      &( time_tm->tm_mday ),
-                      &( time_tm->tm_hour ),
-                      &( time_tm->tm_min ), &( time_tm->tm_sec ), &zone );
-        //HACK: We don't expect this code to run past 2100s or receive certs pre-2000
-        time_tm->tm_year += 2000;
-        /* dont understand */
-        if ( ( len != 7 ) || ( zone != 'Z' ) )
-        {
-            return 0;
-        }
-    }
-
-    if ( len == 15 )
-    {
-        len = sscanf( ( char * ) asn1String, "20%02d%02d%02d%02d%02d%02d%c",
-                      &( time_tm->tm_year ),
-                      &( time_tm->tm_mon ),
-                      &( time_tm->tm_mday ),
-                      &( time_tm->tm_hour ),
-                      &( time_tm->tm_min ), &( time_tm->tm_sec ), &zone );
-        /* dont understand */
-        if ( ( len != 7 ) || ( zone != 'Z' ) )
-        {
-            return 0;
-        }
-    }
-#ifdef _BSD_SOURCE
-    time_tm->tm_zone = &zone;
-#endif
-
-    return 1;
-}
-
-static PyObject *
-convertASN1_TIMEToDateTime( const ASN1_TIME * asn1Time )
-{
-    PyObject *datetime;
-    struct tm time_tm;
-
-    if ( !convertASN1_TIMETotm( asn1Time, &time_tm ) )
-    {
-    	Py_RETURN_NONE;
-    }
-
-    PyDateTime_IMPORT;
-    datetime = PyDateTime_FromDateAndTime( time_tm.tm_year,
-                                           time_tm.tm_mon,
-                                           time_tm.tm_mday,
-                                           time_tm.tm_hour,
-                                           time_tm.tm_min,
-                                           time_tm.tm_sec, 0 );
-    /* dont understand */
-    if ( !datetime )
-    {
-    	Py_RETURN_NONE;
-    }
-    return datetime;
 }
 
 static char crypto_X509_get_not_after_doc[] = "\n\

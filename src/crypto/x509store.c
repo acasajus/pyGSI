@@ -1,18 +1,6 @@
-
-/*
- * x509store.c
- *
- * Copyright (C) AB Strakt 2001, All rights reserved
- *
- * X.509 Store handling, mostly thin wrapping.
- * See the file RATIONALE for a short explanation of why this module was written.
- */
 #include <Python.h>
 #define crypto_MODULE
 #include "crypto.h"
-
-static char *CVSid =
-    "@(#) $Id: x509store.c,v 1.2 2008/07/08 10:54:54 acasajus Exp $";
 
 static char crypto_X509Store_add_cert_doc[] = "\n\
 Add a certificate\n\
@@ -32,6 +20,33 @@ crypto_X509Store_add_cert( crypto_X509StoreObj * self, PyObject * args )
         return NULL;
 
     if ( !X509_STORE_add_cert( self->x509_store, cert->x509 ) )
+    {
+        exception_from_error_queue(  );
+        return NULL;
+    }
+    //cert->dealloc = 0;
+
+    Py_RETURN_NONE;
+}
+
+static char crypto_X509Store_add_crl_doc[] = "\n\
+Add a crl\n\
+\n\
+Arguments: self - The X509Store object\n\
+           args - The Python argument tuple, should be:\n\
+             crl - The crl to add\n\
+Returns:   None\n\
+";
+
+static PyObject *
+crypto_X509Store_add_crl( crypto_X509StoreObj * self, PyObject * args )
+{
+    crypto_X509CRLObj *crl;
+
+    if ( !PyArg_ParseTuple( args, "O!:add_crl", &crypto_X509CRL_Type, &crl ) )
+        return NULL;
+
+    if ( !X509_STORE_add_crl( self->x509_store, crl->crl ) )
     {
         exception_from_error_queue(  );
         return NULL;
@@ -71,6 +86,7 @@ crypto_X509Store_set_flags( crypto_X509StoreObj * self, PyObject * args )
     { #name, (PyCFunction)crypto_X509Store_##name, METH_VARARGS, crypto_X509Store_##name##_doc }
 static PyMethodDef crypto_X509Store_methods[] = {
     ADD_METHOD( add_cert ),
+    ADD_METHOD( add_crl ),
     ADD_METHOD( set_flags ),
     {NULL, NULL}
 };

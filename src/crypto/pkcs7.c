@@ -1,19 +1,6 @@
-
-/*
- * pkcs7.c
- *
- * Copyright (C) AB Strakt 2002, All rights reserved
- *
- * PKCS7 handling code, mostly thin wrappers around OpenSSL.
- * See the file RATIONALE for a short explanation of why this module was written.
- *
- */
 #include <Python.h>
 #define crypto_MODULE
 #include "crypto.h"
-
-static char *CVSid =
-    "@(#) $Id: pkcs7.c,v 1.2 2008/07/08 10:54:54 acasajus Exp $";
 
 static char crypto_PKCS7_type_is_signed_doc[] = "\n\
 Check if this NID_pkcs7_signed object\n\

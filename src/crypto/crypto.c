@@ -1,14 +1,3 @@
-
-/*
- * crypto.c
- *
- * Copyright (C) AB Strakt 2001, All rights reserved
- *
- * Main file of crypto sub module.
- * See the file RATIONALE for a short explanation of why this module was written.
- *
- * Reviewed 2001-07-23
- */
 #include <Python.h>
 #include <openssl/x509_vfy.h>
 #define crypto_MODULE
@@ -18,9 +7,6 @@ static char crypto_doc[] = "\n\
 Main file of crypto sub module.\n\
 See the file RATIONALE for a short explanation of why this module was written.\n\
 ";
-
-static char *CVSid =
-    "@(#) $Id: crypto.c,v 1.8 2008/07/08 10:54:54 acasajus Exp $";
 
 void **ssl_API;
 
@@ -289,6 +275,57 @@ crypto_dump_publickey( PyObject * spam, PyObject * args )
 
     return buffer;
 }
+
+static char crypto_load_crl_doc[] = "\n\
+Load a crl from a buffer\n\
+\n\
+Arguments: spam - Always NULL\n\
+           args - The Python argument tuple, should be:\n\
+             type   - The file type (one of FILETYPE_PEM, FILETYPE_ASN1)\n\
+             buffer - The buffer the crl is stored in\n\
+Returns:   The X509CRL object\n\
+";
+
+static PyObject *
+crypto_load_crl( PyObject * spam, PyObject * args )
+{
+    int type, len;
+    char *buffer;
+    BIO *bio;
+    X509_CRL *crl;
+
+    if ( !PyArg_ParseTuple
+         ( args, "is#:load_crl", &type, &buffer, &len ) )
+        return NULL;
+
+    bio = BIO_new_mem_buf( buffer, len );
+    switch ( type )
+    {
+    case X509_FILETYPE_PEM:
+    	crl = PEM_read_bio_X509_CRL( bio, NULL, NULL, NULL );
+        break;
+
+    case X509_FILETYPE_ASN1:
+    	crl = d2i_X509_CRL_bio( bio, NULL );
+        break;
+
+    default:
+        PyErr_SetString( PyExc_ValueError,
+                         "type argument must be FILETYPE_PEM or FILETYPE_ASN1" );
+        BIO_free( bio );
+        return NULL;
+    }
+    BIO_free( bio );
+
+    if ( crl == NULL )
+    {
+        exception_from_error_queue(  );
+        return NULL;
+    }
+
+    return ( PyObject * ) crypto_X509CRL_New( crl, 1 );
+}
+
 
 
 static char crypto_load_certificate_doc[] = "\n\
@@ -878,6 +915,29 @@ crypto_NetscapeSPKI( PyObject * spam, PyObject * args )
     return ( PyObject * ) crypto_NetscapeSPKI_New( spki, 1 );
 }
 
+static char crypto_X509CRL_doc[] = "\n\
+The factory function inserted in the module dictionary as a copy\n\
+constructor for X509CRL objects.\n\
+\n\
+Arguments: spam - Always NULL\n\
+           args - The Python argument tuple, should be:\n\
+             crl - An X509CRL object to copy\n\
+Returns:   The X509CRL object\n\
+";
+
+static PyObject *
+crypto_X509CRL( PyObject * spam, PyObject * args )
+{
+    crypto_X509CRLObj *crl;
+
+    if ( !PyArg_ParseTuple
+         ( args, "O!:X509CRL", &crypto_X509CRL_Type, &crl ) )
+        return NULL;
+
+    return ( PyObject * )
+        crypto_X509CRL_New( X509_CRL_dup( crl->crl ), 1 );
+}
+
 /* Methods in the GSI.crypto module (i.e. none) */
 static PyMethodDef crypto_methods[] = {
     /* Module functions */
@@ -887,7 +947,10 @@ static PyMethodDef crypto_methods[] = {
      crypto_dump_privatekey_doc},
     {"dump_publickey", ( PyCFunction ) crypto_dump_publickey, METH_VARARGS,
      crypto_dump_publickey_doc},
-    {"load_certificate", ( PyCFunction ) crypto_load_certificate,
+     {"load_crl", ( PyCFunction ) crypto_load_crl,
+      METH_VARARGS,
+      crypto_load_crl_doc},
+     {"load_certificate", ( PyCFunction ) crypto_load_certificate,
      METH_VARARGS,
      crypto_load_certificate_doc},
     {"load_certificate_chain", ( PyCFunction ) crypto_load_certificate_chain,
@@ -922,6 +985,8 @@ static PyMethodDef crypto_methods[] = {
      crypto_X509Extension_doc},
     {"NetscapeSPKI", ( PyCFunction ) crypto_NetscapeSPKI, METH_VARARGS,
      crypto_NetscapeSPKI_doc},
+    {"X509CRL", ( PyCFunction ) crypto_X509CRL, METH_VARARGS,
+      crypto_X509CRL_doc},
     {NULL, NULL}
 };
 
@@ -940,6 +1005,7 @@ initcrypto( void )
 
     ERR_load_crypto_strings(  );
     OpenSSL_add_all_algorithms(  );
+    initialize_python_datetime();
 
     if ( ( module =
            Py_InitModule3( "crypto", crypto_methods, crypto_doc ) ) == NULL )
@@ -956,6 +1022,8 @@ initcrypto( void )
     crypto_API[crypto_PKCS7_New_NUM] = ( void * ) crypto_PKCS7_New;
     crypto_API[crypto_NetscapeSPKI_New_NUM] =
         ( void * ) crypto_NetscapeSPKI_New;
+    crypto_API[crypto_X509CRL_New_NUM] = ( void * ) crypto_X509CRL_New;
+
     c_api_object = PyCObject_FromVoidPtr( ( void * ) crypto_API, NULL );
     if ( c_api_object != NULL )
         PyModule_AddObject( module, "_C_API", c_api_object );
@@ -996,6 +1064,9 @@ initcrypto( void )
         goto error;
     if ( !init_crypto_netscape_spki( dict ) )
         goto error;
+    if ( !init_crypto_x509CRL( dict ) )
+        goto error;
+
 
   error:
     ;

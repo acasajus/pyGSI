@@ -1,19 +1,6 @@
-
-/*
- * x509req.c
- *
- * Copyright (C) AB Strakt 2001, All rights reserved
- *
- * X.509 Request handling, mostly thin wrapping.
- * See the file RATIONALE for a short explanation of why this module was written.
- */
 #include <Python.h>
 #define crypto_MODULE
 #include "crypto.h"
-
-static char *CVSid =
-    "@(#) $Id: x509req.c,v 1.4 2008/07/08 10:54:54 acasajus Exp $";
-
 
 static char crypto_X509Req_get_subject_doc[] = "\n\
 Create an X509Name object for the subject of the certificate request\n\

@@ -1,20 +1,7 @@
-
-/*
- * util.c
- *
- * Copyright (C) AB Strakt 2001, All rights reserved
- *
- * Utility functions.
- * See the file RATIONALE for a short explanation of why this module was written.
- *
- * Reviewed 2001-07-23
- */
 #include <Python.h>
+#include <datetime.h>
+#include <openssl/asn1.h>
 #include "util.h"
-
-static char *CVSid =
-    "@(#) $Id: util.c,v 1.3 2008/07/08 10:54:55 acasajus Exp $";
-
 
 void
 realLogMsg( const char *fileName, int line, int level, char *fmt, ... )
@@ -76,4 +63,88 @@ flush_error_queue( void )
 	errlist = error_queue_to_list();
     Py_DECREF( errlist );
     */
+}
+
+void
+initialize_python_datetime( void )
+{
+	PyDateTime_IMPORT;
+}
+
+unsigned short
+convertASN1_TIMETotm( ASN1_TIME * asn1Time, struct tm *time_tm )
+{
+    unsigned char *asn1String;
+    int len;
+    char zone;
+
+    asn1String = ASN1_STRING_data( asn1Time );
+    len = strlen( ( char * ) asn1String );
+    /* dont understand */
+    if ( ( len != 13 ) && ( len != 15 ) )
+    {
+        return 0;
+    }
+
+    if ( len == 13 )
+    {
+        len = sscanf( ( char * ) asn1String, "%02d%02d%02d%02d%02d%02d%c",
+                      &( time_tm->tm_year ),
+                      &( time_tm->tm_mon ),
+                      &( time_tm->tm_mday ),
+                      &( time_tm->tm_hour ),
+                      &( time_tm->tm_min ), &( time_tm->tm_sec ), &zone );
+        //HACK: We don't expect this code to run past 2100s or receive certs pre-2000
+        time_tm->tm_year += 2000;
+        /* dont understand */
+        if ( ( len != 7 ) || ( zone != 'Z' ) )
+        {
+            return 0;
+        }
+    }
+
+    if ( len == 15 )
+    {
+        len = sscanf( ( char * ) asn1String, "20%02d%02d%02d%02d%02d%02d%c",
+                      &( time_tm->tm_year ),
+                      &( time_tm->tm_mon ),
+                      &( time_tm->tm_mday ),
+                      &( time_tm->tm_hour ),
+                      &( time_tm->tm_min ), &( time_tm->tm_sec ), &zone );
+        /* dont understand */
+        if ( ( len != 7 ) || ( zone != 'Z' ) )
+        {
+            return 0;
+        }
+    }
+#ifdef _BSD_SOURCE
+    time_tm->tm_zone = &zone;
+#endif
+
+    return 1;
+}
+
+PyObject *
+convertASN1_TIMEToDateTime( ASN1_TIME * asn1Time )
+{
+    PyObject *datetime;
+    struct tm time_tm;
+
+    if ( !convertASN1_TIMETotm( asn1Time, &time_tm ) )
+    {
+    	Py_RETURN_NONE;
+    }
+
+    datetime = PyDateTime_FromDateAndTime( time_tm.tm_year,
+                                           time_tm.tm_mon,
+                                           time_tm.tm_mday,
+                                           time_tm.tm_hour,
+                                           time_tm.tm_min,
+                                           time_tm.tm_sec, 0 );
+    /* dont understand */
+    if ( !datetime )
+    {
+    	Py_RETURN_NONE;
+    }
+    return datetime;
 }

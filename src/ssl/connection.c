@@ -1,14 +1,4 @@
 
-/*
- * connection.c
- *
- * Copyright (C) AB Strakt 2001, All rights reserved
- *
- * SSL Connection objects and methods.
- * See the file RATIONALE for a short explanation of why this module was written.
- *
- * Reviewed 2001-07-23
- */
 #include <Python.h>
 #define SSL_MODULE
 #include <openssl/err.h>
@@ -24,8 +14,6 @@
 #  include <winsock.h>
 #endif
 
-static char *CVSid =
-    "@(#) $Id: connection.c,v 1.7 2008/07/08 10:54:55 acasajus Exp $";
 //static int handshaked = 0;
 
 /**

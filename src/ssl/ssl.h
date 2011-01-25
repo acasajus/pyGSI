@@ -1,16 +1,4 @@
 
-/*
- * ssl.h
- *
- * Copyright (C) AB Strakt 2001, All rights reserved
- *
- * Export functions and exceptions from the SSL sub module.
- * See the file RATIONALE for a short explanation of why this module was written.
- *
- * Reviewed 2001-07-23
- *
- * @(#) $Id: ssl.h,v 1.4 2008/07/08 10:54:55 acasajus Exp $
- */
 #ifndef PyGSI_SSL_H_
 #define PyGSI_SSL_H_
 

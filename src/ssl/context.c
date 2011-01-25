@@ -1,19 +1,6 @@
-/*
- * context.c
- *
- * Copyright (C) AB Strakt 2001, All rights reserved
- *
- * SSL Context objects and their methods.
- * See the file RATIONALE for a short explanation of why this module was written.
- *
- * Reviewed 2001-07-23
- */
 #include <Python.h>
 #define SSL_MODULE
 #include "ssl.h"
-
-static char *CVSid =
-		"@(#) $Id: context.c,v 1.12 2009/08/10 16:54:02 acasajus Exp $";
 
 /*
  * CALLBACKS

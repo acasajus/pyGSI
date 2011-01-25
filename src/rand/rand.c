@@ -1,14 +1,3 @@
-
-/*
- * rand.c
- *
- * Copyright (C) AB Strakt 2001, All rights reserved
- *
- * PRNG management routines, thin wrappers.
- * See the file RATIONALE for a short explanation of why this module was written.
- *
- * Reviewed 2001-07-23
- */
 #include <Python.h>
 
 /*
@@ -25,9 +14,6 @@ static char rand_doc[] = "\n\
 PRNG management routines, thin wrappers.\n\
 See the file RATIONALE for a short explanation of why this module was written.\n\
 ";
-
-static char *CVSid =
-    "@(#) $Id: rand.c,v 1.3 2008/07/08 10:54:56 acasajus Exp $";
 
 static char rand_add_doc[] = "\n\
 Add data with a given entropy to the PRNG\n\

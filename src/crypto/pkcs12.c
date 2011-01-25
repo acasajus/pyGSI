@@ -1,22 +1,6 @@
-
-/*
- * pkcs12.c
- *
- * Copyright (C) AB Strakt 2001, All rights reserved
- *
- * Certificate transport (PKCS12) handling code, 
- * mostly thin wrappers around OpenSSL.
- * See the file RATIONALE for a short explanation of why 
- * this module was written.
- *
- * Reviewed 2001-07-23
- */
 #include <Python.h>
 #define crypto_MODULE
 #include "crypto.h"
-
-static char *CVSid =
-    "@(#) $Id: pkcs12.c,v 1.2 2008/07/08 10:54:54 acasajus Exp $";
 
 /* 
  * PKCS12 is a standard exchange format for digital certificates.  
