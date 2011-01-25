@@ -2,7 +2,7 @@
 #define crypto_MODULE
 #include "crypto.h"
 
-s/*
+/*
  * Constructor for Nestcape_SPKI, never called by Python code directly
  *
  * Arguments: name    - A "real" NetscapeSPKI object
