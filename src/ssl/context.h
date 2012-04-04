@@ -32,9 +32,6 @@ typedef struct
     PyThreadState *tstate;
 } ssl_ContextObj;
 
-#define ssl_SSLv2_METHOD         (1)
-#define ssl_SSLv2_CLIENT_METHOD  (2)
-#define ssl_SSLv2_SERVER_METHOD  (3)
 #define ssl_SSLv3_METHOD         (4)
 #define ssl_SSLv3_CLIENT_METHOD  (5)
 #define ssl_SSLv3_SERVER_METHOD  (6)

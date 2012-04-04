@@ -1570,7 +1570,7 @@ ADD_METHOD( get_session_cache_mode ),
 /*
  * Constructor for Context objects
  *
- * Arguments: i_method - The SSL method to use, one of the SSLv2_METHOD,
+ * Arguments: i_method - The SSL method to use, one of the
  *                       SSLv3_METHOD, SSLv23_METHOD and TLSv1_METHOD
  *                       constants.
  * Returns:   The newly created Context object
@@ -1587,16 +1587,6 @@ ssl_Context_New( int i_method )
 	switch ( i_method )
 	{
 		/* Too bad TLSv1 servers can't accept SSLv3 clients */
-		case ssl_SSLv2_METHOD:
-			method = SSLv2_method();
-			break;
-		case ssl_SSLv2_CLIENT_METHOD:
-			method = SSLv2_client_method();
-			clientMethod = 1;
-			break;
-		case ssl_SSLv2_SERVER_METHOD:
-			method = SSLv2_server_method();
-			break;
 		case ssl_SSLv23_METHOD:
 			method = SSLv23_method();
 			break;

@@ -174,11 +174,6 @@ do {                                                                          \
 #undef ADD_EXCEPTION
 
     /* Method constants */
-    PyModule_AddIntConstant( module, "SSLv2_METHOD", ssl_SSLv2_METHOD );
-    PyModule_AddIntConstant( module, "SSLv2_CLIENT_METHOD",
-                             ssl_SSLv2_CLIENT_METHOD );
-    PyModule_AddIntConstant( module, "SSLv2_SERVER_METHOD",
-                             ssl_SSLv2_SERVER_METHOD );
     PyModule_AddIntConstant( module, "SSLv3_METHOD", ssl_SSLv3_METHOD );
     PyModule_AddIntConstant( module, "SSLv3_CLIENT_METHOD",
                              ssl_SSLv3_CLIENT_METHOD );
