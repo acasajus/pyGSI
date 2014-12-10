@@ -13,6 +13,8 @@ gsiVerifyCertWrapper( X509_STORE_CTX * ctx, void *p )
 {
     ctx->check_issued = gsiCheckIssuedWrapper;
 
+    /*Allow proxies*/
+    X509_STORE_CTX_set_flags(ctx, X509_V_FLAG_ALLOW_PROXY_CERTS);
     return X509_verify_cert( ctx );
 }
 

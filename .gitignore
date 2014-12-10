@@ -1,0 +1,5 @@
+*.so
+*.pyc
+GSI.egg-info
+build
+dist

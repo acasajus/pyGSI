@@ -190,7 +190,7 @@ crypto_X509Req_add_extensions( crypto_X509ReqObj * self, PyObject * args )
     crypto_X509ExtensionObj *ext;
 
     STACK_OF( X509_EXTENSION ) * exts;
-    int nr_of_extensions, i;
+    long nr_of_extensions, i;
 
     if ( !PyArg_ParseTuple( args, "O:add_extensions", &extensions ) )
         return NULL;

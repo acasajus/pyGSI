@@ -1,5 +1,5 @@
 #ifndef PyGSI_SSL_GSI_H
-#define PyGSI_SSL_GSI_H_
+#define PyGSI_SSL_GSI_H
 
 #include <openssl/ssl.h>
 

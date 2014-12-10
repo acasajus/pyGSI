@@ -25,6 +25,7 @@
 #include "x509ext.h"
 #include "pkcs7.h"
 #include "pkcs12.h"
+#include "asn1.h"
 #include "../util.h"
 
 extern PyObject *crypto_Error;

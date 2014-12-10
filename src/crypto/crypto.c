@@ -29,7 +29,7 @@ global_passphrase_callback( char *buf, int len, int rwflag, void *cb_arg )
         PyErr_SetString( PyExc_ValueError, "String expected" );
         return 0;
     }
-    nchars = PyString_Size( ret );
+    nchars = (int)PyString_Size( ret );
     if ( nchars > len )
         nchars = len;
     strncpy( buf, PyString_AsString( ret ), nchars );
@@ -131,7 +131,8 @@ Returns:   The buffer with the dumped key in\n\
 static PyObject *
 crypto_dump_privatekey( PyObject * spam, PyObject * args )
 {
-    int type, ret, buf_len;
+    int type, ret;
+    long buf_len;
     char *temp;
     PyObject *buffer;
     char *cipher_name = NULL;
@@ -229,7 +230,8 @@ Returns:   The buffer with the dumped key in\n\
 static PyObject *
 crypto_dump_publickey( PyObject * spam, PyObject * args )
 {
-    int type, ret, buf_len;
+    int type, ret;
+    long buf_len;
     char *temp;
     PyObject *buffer;
     BIO *bio;
@@ -473,7 +475,8 @@ Returns:   The buffer with the dumped certificate in\n\
 static PyObject *
 crypto_dump_certificate( PyObject * spam, PyObject * args )
 {
-    int type, ret, buf_len;
+    int type, ret;
+    long buf_len;
     char *temp;
     PyObject *buffer;
     BIO *bio;
@@ -579,7 +582,8 @@ Returns:   The buffer with the dumped certificate request in\n\
 static PyObject *
 crypto_dump_certificate_request( PyObject * spam, PyObject * args )
 {
-    int type, ret, buf_len;
+    int type, ret;
+    long buf_len;
     char *temp;
     PyObject *buffer;
     BIO *bio;
@@ -973,6 +977,8 @@ static PyMethodDef crypto_methods[] = {
     {"add_x509_extension_alias",
      ( PyCFunction ) crypto_add_x509_extension_alias, METH_VARARGS,
      crypto_add_x509_extension_alias_doc},
+    {"asn1_loads", crypto_ASN1_loads, METH_VARARGS, "" },
+    {"asn1_dumps", crypto_ASN1_dumps, METH_VARARGS, "" },
     /* Factory functions */
     {"X509Store", ( PyCFunction ) crypto_X509Store, METH_VARARGS, crypto_X509Store_doc},
     {"X509", ( PyCFunction ) crypto_X509, METH_VARARGS, crypto_X509_doc},
@@ -1066,7 +1072,8 @@ initcrypto( void )
         goto error;
     if ( !init_crypto_x509CRL( dict ) )
         goto error;
-
+    if ( !init_crypto_ASN1Obj( dict ) )
+        goto error;
 
   error:
     ;

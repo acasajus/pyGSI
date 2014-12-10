@@ -34,7 +34,7 @@ static PyObject *
 crypto_X509Extension_get_value( crypto_X509ExtensionObj * self,
                                 PyObject * args )
 {
-    int str_len;
+    long str_len;
     char *tmp_str;
     PyObject *str;
     BIO *bio = BIO_new( BIO_s_mem(  ) );
@@ -95,7 +95,7 @@ static PyObject *
 crypto_X509Extension_get_sn( crypto_X509ExtensionObj * self, PyObject * args )
 {
     ASN1_OBJECT *obj;
-    char *sn;
+    const char *sn;
 
     if ( !PyArg_ParseTuple( args, ":get_sn" ) )
         return NULL;
@@ -127,7 +127,7 @@ static PyObject *
 crypto_X509Extension_get_ln( crypto_X509ExtensionObj * self, PyObject * args )
 {
     ASN1_OBJECT *obj;
-    char *ln;
+    const char *ln;
 
     if ( !PyArg_ParseTuple( args, ":get_ln" ) )
         return NULL;
@@ -245,7 +245,7 @@ crypto_X509Extension_getattr( crypto_X509ExtensionObj * self, char *name )
 static PyObject *
 crypto_X509Extension_value_str( crypto_X509ExtensionObj * self )
 {
-    int str_len;
+    long str_len;
     char *tmp_str;
     PyObject *str;
     BIO *bio = BIO_new( BIO_s_mem(  ) );
