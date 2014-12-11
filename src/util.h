@@ -34,6 +34,7 @@ unsigned short convertASN1_TIMETotm( ASN1_TIME * asn1Time, struct tm *time_tm );
 PyObject * convertASN1_TIMEToDateTime( ASN1_TIME * asn1Time );
 unsigned short convertStringTotm( unsigned char * asn1String, struct tm *time_tm );
 PyObject * convertStringToDateTime( unsigned char * asn1String );
+PyObject* astringToDatetime(char*buf, long len) ;
 
 #if !defined(PY_MAJOR_VERSION) || PY_VERSION_HEX < 0x02000000
 static int

@@ -1051,6 +1051,34 @@ initcrypto( void )
     PyModule_AddIntConstant( module, "X509_CRL_CHECK_ALL",
                              X509_V_FLAG_CRL_CHECK_ALL );
 
+    PyModule_AddIntConstant( module, "V_ASN1_ANY", V_ASN1_ANY );
+    PyModule_AddIntConstant( module, "V_ASN1_BIT_STRING", V_ASN1_BIT_STRING );
+    PyModule_AddIntConstant( module, "V_ASN1_BMPSTRING", V_ASN1_BMPSTRING );
+    PyModule_AddIntConstant( module, "V_ASN1_BOOLEAN", V_ASN1_BOOLEAN );
+    PyModule_AddIntConstant( module, "V_ASN1_ENUMERATED", V_ASN1_ENUMERATED );
+    PyModule_AddIntConstant( module, "V_ASN1_GENERALIZEDTIME", V_ASN1_GENERALIZEDTIME );
+    PyModule_AddIntConstant( module, "V_ASN1_GENERALSTRING", V_ASN1_GENERALSTRING );
+    PyModule_AddIntConstant( module, "V_ASN1_GRAPHICSTRING", V_ASN1_GRAPHICSTRING );
+    PyModule_AddIntConstant( module, "V_ASN1_IA5STRING", V_ASN1_IA5STRING );
+    PyModule_AddIntConstant( module, "V_ASN1_INTEGER", V_ASN1_INTEGER );
+    PyModule_AddIntConstant( module, "V_ASN1_NEG_ENUMERATED", V_ASN1_NEG_ENUMERATED );
+    PyModule_AddIntConstant( module, "V_ASN1_NEG_INTEGER", V_ASN1_NEG_INTEGER );
+    PyModule_AddIntConstant( module, "V_ASN1_NULL", V_ASN1_NULL );
+    PyModule_AddIntConstant( module, "V_ASN1_NUMERICSTRING", V_ASN1_NUMERICSTRING );
+    PyModule_AddIntConstant( module, "V_ASN1_OBJECT", V_ASN1_OBJECT );
+    PyModule_AddIntConstant( module, "V_ASN1_OCTET_STRING", V_ASN1_OCTET_STRING );
+    PyModule_AddIntConstant( module, "V_ASN1_OTHER", V_ASN1_OTHER );
+    PyModule_AddIntConstant( module, "V_ASN1_PRINTABLESTRING", V_ASN1_PRINTABLESTRING );
+    PyModule_AddIntConstant( module, "V_ASN1_SEQUENCE", V_ASN1_SEQUENCE );
+    PyModule_AddIntConstant( module, "V_ASN1_SET", V_ASN1_SET );
+    PyModule_AddIntConstant( module, "V_ASN1_T61STRING", V_ASN1_T61STRING );
+    PyModule_AddIntConstant( module, "V_ASN1_UNIVERSALSTRING", V_ASN1_UNIVERSALSTRING );
+    PyModule_AddIntConstant( module, "V_ASN1_UTCTIME", V_ASN1_UTCTIME );
+    PyModule_AddIntConstant( module, "V_ASN1_UTF8STRING", V_ASN1_UTF8STRING );
+    PyModule_AddIntConstant( module, "V_ASN1_VIDEOTEXSTRING", V_ASN1_VIDEOTEXSTRING );
+    PyModule_AddIntConstant( module, "V_ASN1_VISIBLESTRING", V_ASN1_VISIBLESTRING );
+
+
     dict = PyModule_GetDict( module );
     if ( !init_crypto_x509( dict ) )
         goto error;

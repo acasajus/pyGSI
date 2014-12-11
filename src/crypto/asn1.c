@@ -1,7 +1,7 @@
 #include <Python.h>
 #include <datetime.h>
-#define crypto_MODULE
 #include "asn1.h"
+#include "crypto.h"
 
 static PyObject * crypto_ASN1Obj_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
@@ -23,19 +23,61 @@ static PyObject * crypto_ASN1Obj_new(PyTypeObject *type, PyObject *args, PyObjec
   return (PyObject *)self;
 }
 
+static int init_crypto_ASN1Obj_from_pyobject(crypto_ASN1Obj* self, PyObject *obj){
+  self->data = obj;
+  Py_INCREF( obj );
+  if( PyString_Check( obj ) ) {
+    self->tag = V_ASN1_IA5STRING;
+  } else if ( PyByteArray_Check( obj ) ) {
+    self->tag = V_ASN1_OCTET_STRING;
+  } else if ( PyUnicode_Check( obj ) ) {
+    self->tag = V_ASN1_UTF8STRING;
+  } else if ( PyBool_Check( obj ) ) {
+    self->tag = V_ASN1_BOOLEAN;
+  } else if ( PyDateTime_Check( obj ) ) {
+    self->tag = V_ASN1_UTCTIME;
+  } else if ( PyLong_Check( obj ) ) {
+    self->tag = V_ASN1_INTEGER;
+  } else if ( PyInt_Check( obj ) ) {
+    self->tag = V_ASN1_INTEGER;
+  } else if ( Py_None == obj ) {
+    self->tag = V_ASN1_NULL;
+  } else if ( PyTuple_Check( obj ) ) {
+    self->tag = V_ASN1_SET;
+    self->compound = 1;
+    self->num_children = PyTuple_Size(obj);
+    self->children = (crypto_ASN1Obj**)malloc(sizeof(crypto_ASN1Obj*)*(self->num_children));
+    for( long i = 0; i < self->num_children; i ++ ) {
+      crypto_ASN1Obj* c = (crypto_ASN1Obj*)crypto_ASN1Obj_new(NULL,NULL,NULL);
+      init_crypto_ASN1Obj_from_pyobject(c,PyTuple_GetItem(obj,i));
+      self->children[i] = c;
+    }
+  } else if ( PyList_Check( obj ) ) {
+    self->tag = V_ASN1_SEQUENCE;
+    self->compound = 1;
+    self->num_children = PyList_Size(obj);
+    self->children = (crypto_ASN1Obj**)malloc(sizeof(crypto_ASN1Obj*)*(self->num_children));
+    for( long i = 0; i < self->num_children; i ++ ) {
+      crypto_ASN1Obj* c = (crypto_ASN1Obj*)crypto_ASN1Obj_new(NULL,NULL,NULL);
+      init_crypto_ASN1Obj_from_pyobject(c,PyList_GetItem(obj,i));
+      self->children[i] = c;
+    }
+  } else return 1;
+
+  return 0;
+}
+
 static int crypto_ASN1Obj_init(crypto_ASN1Obj *self, PyObject *args, PyObject *kwds)
 {
   PyObject *obj=NULL;
   static char *kwlist[] = {"content"};
 
-  if (! PyArg_ParseTupleAndKeywords(args, kwds, "|O", kwlist, &obj))
+  if (! PyArg_ParseTupleAndKeywords(args, kwds, "O", kwlist, &obj))
     return -1;
 
-  if( !obj ) return 0;
+  if( !obj ) return NULL;
 
-  //TODO: Init based on obj
-
-  return 0;
+  return init_crypto_ASN1Obj_from_pyobject(self,obj);
 }
 
 static int crypto_ASN1Obj_traverse(crypto_ASN1Obj *self, visitproc visit, void *arg)
@@ -175,6 +217,8 @@ int init_crypto_ASN1Obj( PyObject * dict )
   //crypto_ASN1Obj_Type.ob_type = &PyType_Type;
   //Py_INCREF( &crypto_ASN1Obj_Type );
   PyDict_SetItemString( dict, "ASN1Obj", ( PyObject * ) & crypto_ASN1Obj_Type );
+
+  PyDateTime_IMPORT;
   return 1;
 }
 
@@ -211,14 +255,9 @@ static PyObject* stringToDatetime(char*buf, long len) {
 #ifdef _BSD_SOURCE
   time_tm.tm_zone = &zone;
 #endif
-  printf("DATE IS %d-%d-%d %d:%d:%d\n", time_tm.tm_year, time_tm.tm_mon, time_tm.tm_mday, time_tm.tm_hour, 
-                                         time_tm.tm_min, time_tm.tm_sec );
-
   datetime = PyDateTime_FromDateAndTime( time_tm.tm_year, time_tm.tm_mon, time_tm.tm_mday, time_tm.tm_hour, 
                                          time_tm.tm_min, time_tm.tm_sec, 0 );
 
-  printf("DATE IS %d-%d-%d %d:%d:%d\n", time_tm.tm_year, time_tm.tm_mon, time_tm.tm_mday, time_tm.tm_hour, 
-                                         time_tm.tm_min, time_tm.tm_sec );
   /* dont understand */
   if ( !datetime ) {
     Py_RETURN_NONE;
@@ -227,7 +266,8 @@ static PyObject* stringToDatetime(char*buf, long len) {
 
 }
 
-static crypto_ASN1Obj* loads_asn1(char* buf, long len, long *len_done, int nindent ){
+
+crypto_ASN1Obj* loads_asn1(char* buf, long len, long *len_done ){
   crypto_ASN1Obj *obj;
   long xlen, header_len;
   char *ctmp, *xbuf = buf;
@@ -237,20 +277,16 @@ static crypto_ASN1Obj* loads_asn1(char* buf, long len, long *len_done, int ninde
   ASN1_OCTET_STRING *os=NULL;
   ASN1_INTEGER *ai;
   ASN1_BIT_STRING *bs;
-  char indent[(nindent*4)+1];
-  for(int i = 0; i< (nindent*4)+1 ; i++ ){
-    indent[i] = ' ';
-  }
-  indent[(nindent*4)] = 0;
 
   ret=ASN1_get_object((const unsigned char**)&xbuf,&xlen,&xtag,&xclass,len);
   if (ret & 0x80){
-    //TODO: err
+    exception_from_error_queue();
     return NULL;
   }
   header_len = xbuf - buf;
   *len_done = header_len;
   if( (obj=(crypto_ASN1Obj*)crypto_ASN1Obj_new(NULL,NULL,NULL) ) == NULL ) {
+    exception_from_error_queue();
     return NULL;
   }
   obj->compound = ret & V_ASN1_CONSTRUCTED;
@@ -263,9 +299,10 @@ static crypto_ASN1Obj* loads_asn1(char* buf, long len, long *len_done, int ninde
     int alloc_space = 1;
     obj->children = (crypto_ASN1Obj**)malloc( sizeof( crypto_ASN1Obj** ) * alloc_space );
     while( child_buf < xbuf + xlen ) {
-      child = loads_asn1(child_buf,len-(*len_done), &child_len, nindent + 1 );
+      child = loads_asn1(child_buf,len-(*len_done), &child_len );
       if ( child == NULL ) {
         Py_XDECREF( obj );
+        exception_from_error_queue();
         return NULL;
       }
       (*len_done) += child_len;
@@ -286,14 +323,12 @@ static crypto_ASN1Obj* loads_asn1(char* buf, long len, long *len_done, int ninde
     }
     obj->data = PyTuple_New(obj->num_children);
     for(int i = 0; i< obj->num_children; i++ ) {
-      printf( "INC %d %p\n", i, obj->children[i]->data );
       Py_XINCREF(obj->children[i]->data);
       PyTuple_SetItem( obj->data, i, obj->children[i]->data );
     }
     return obj;
   }
   *len_done += xlen;
-  printf( "%d %s %s %ld\n", nindent, indent, ASN1_tag2str( obj->tag ), xlen );
   switch ( obj->tag ) {
     case V_ASN1_PRINTABLESTRING:
     case V_ASN1_T61STRING:
@@ -367,10 +402,7 @@ static crypto_ASN1Obj* loads_asn1(char* buf, long len, long *len_done, int ninde
       }
       break;
     default:
-      //DON?T KNOW WAHT TO DO
-      Py_XDECREF(obj);
-      printf( "KK %d %s\n", obj->tag, ASN1_tag2str(obj->tag));
-      return NULL;
+      obj->data = PyByteArray_FromStringAndSize((const char*)xbuf,xlen);
   }
   return obj;
 }
@@ -381,7 +413,7 @@ PyObject* crypto_ASN1_loads(PyObject* spam, PyObject* args) {
   if (!PyArg_ParseTuple( args, "s#|:asn1_loads", &buf, &len )){
     return NULL;
   }
-  return (PyObject*)loads_asn1(buf, len, &done, 0 );
+  return (PyObject*)loads_asn1(buf, len, &done );
 }
 
 PyObject* crypto_ASN1_dumps(PyObject* spam, PyObject* args) {

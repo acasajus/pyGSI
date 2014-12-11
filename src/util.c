@@ -169,3 +169,52 @@ PyObject* convertASN1_TIMEToDateTime( ASN1_TIME * asn1Time )
   }
   return datetime;
 }
+
+PyObject* astringToDatetime(char*buf, long len) {
+  PyObject *datetime;
+  struct tm time_tm;
+  char zone;
+
+  if ( ( len != 13 ) && ( len != 15 ) ) {
+      Py_RETURN_NONE;
+  }
+
+  if ( len == 13 ) {
+    len = sscanf( (const char*)buf, "%02d%02d%02d%02d%02d%02d%c", &( time_tm.tm_year ), &( time_tm.tm_mon ), 
+                       &( time_tm.tm_mday ), &( time_tm.tm_hour ), &( time_tm.tm_min ), &( time_tm.tm_sec ), &zone );
+    //HACK: We don't expect this code to run past 2100s or receive certs pre-2000
+    time_tm.tm_year += 2000;
+    /* dont understand */
+    if ( ( len != 7 ) || ( zone != 'Z' ) ) {
+      Py_RETURN_NONE;
+    }
+  }
+
+  if ( len == 15 ) {
+    len = sscanf( (const char*)buf, "20%02d%02d%02d%02d%02d%02d%c", &( time_tm.tm_year ), &( time_tm.tm_mon ), &( time_tm.tm_mday ),
+                       &( time_tm.tm_hour ), &( time_tm.tm_min ), &( time_tm.tm_sec ), &zone );
+    /* dont understand */
+    if ( ( len != 7 ) || ( zone != 'Z' ) ) {
+      Py_RETURN_NONE;
+    }
+  }
+#ifdef _BSD_SOURCE
+  time_tm.tm_zone = &zone;
+#endif
+  printf("DATE IS %d-%d-%d %d:%d:%d\n", time_tm.tm_year, time_tm.tm_mon, time_tm.tm_mday, time_tm.tm_hour, 
+                                         time_tm.tm_min, time_tm.tm_sec );
+
+  datetime = PyDateTime_FromDateAndTime( time_tm.tm_year, time_tm.tm_mon, time_tm.tm_mday, time_tm.tm_hour, 
+                                         time_tm.tm_min, time_tm.tm_sec, 0 );
+
+  printf("DATE IS %d-%d-%d %d:%d:%d\n", time_tm.tm_year, time_tm.tm_mon, time_tm.tm_mday, time_tm.tm_hour, 
+                                         time_tm.tm_min, time_tm.tm_sec );
+  /* dont understand */
+  if ( !datetime ) {
+    Py_RETURN_NONE;
+  }
+  return datetime;
+
+}
+
+

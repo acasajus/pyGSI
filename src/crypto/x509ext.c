@@ -56,6 +56,50 @@ crypto_X509Extension_get_value( crypto_X509ExtensionObj * self,
     return str;
 }
 
+static char crypto_X509Extension_get_asn1_value_doc[] = "\n\
+Returns the raw (binary) value of the X509Extension\n\
+\n\
+Arguments: self - The X509Extension object\n\
+           args - The argument tuple, should be empty\n\
+Returns: The value.\n\
+";
+
+static PyObject *
+crypto_X509Extension_get_asn1_value( crypto_X509ExtensionObj * self,
+                                PyObject * args )
+{
+    long done;
+    PyObject *asn1;
+    BIO *bio = BIO_new( BIO_s_mem(  ) );
+
+    if ( !PyArg_ParseTuple( args, ":get_asn1_value" ) )
+        return NULL;
+
+    return (PyObject*)loads_asn1(self->x509_extension->value->data,self->x509_extension->value->length,&done);
+}
+
+static char crypto_X509Extension_get_raw_value_doc[] = "\n\
+Returns the raw (binary) value of the X509Extension\n\
+\n\
+Arguments: self - The X509Extension object\n\
+           args - The argument tuple, should be empty\n\
+Returns: The value.\n\
+";
+
+static PyObject *
+crypto_X509Extension_get_raw_value( crypto_X509ExtensionObj * self,
+                                PyObject * args )
+{
+    long done;
+    PyObject *raw;
+    BIO *bio = BIO_new( BIO_s_mem(  ) );
+
+    if ( !PyArg_ParseTuple( args, ":get_raw_value" ) )
+        return NULL;
+
+    return PyByteArray_FromStringAndSize(self->x509_extension->value->data,self->x509_extension->value->length);
+}
+
 static char crypto_X509Extension_get_nid_doc[] = "\n\
 Returns the nid of the X509Extension\n\
 \n\
@@ -157,6 +201,8 @@ crypto_X509Extension_get_ln( crypto_X509ExtensionObj * self, PyObject * args )
 static PyMethodDef crypto_X509Extension_methods[] = {
     ADD_METHOD( get_critical ),
     ADD_METHOD( get_value ),
+    ADD_METHOD( get_asn1_value ),
+    ADD_METHOD( get_raw_value ),
     ADD_METHOD( get_nid ),
     ADD_METHOD( get_sn ),
     ADD_METHOD( get_ln ),

@@ -521,7 +521,7 @@ helper_treatHandshakeError( ssl_ConnectionObj * conn, int err, int ret )
         sprintf( readableError, "Handshake failed%s", sslExtraError );
 
     errlist = PyList_New( 0 );
-    while ( ( err = ERR_get_error(  ) ) != 0 )
+    while ( ( err = (int)ERR_get_error(  ) ) != 0 )
     {
         tuple = Py_BuildValue( "(ssss)", readableError,
                                ERR_lib_error_string( err ),
