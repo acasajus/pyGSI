@@ -70,9 +70,8 @@ static int init_crypto_ASN1Obj_from_pyobject(crypto_ASN1Obj* self, PyObject *obj
 static int crypto_ASN1Obj_init(crypto_ASN1Obj *self, PyObject *args, PyObject *kwds)
 {
   PyObject *obj=NULL;
-  static char *kwlist[] = {"content"};
 
-  if (! PyArg_ParseTupleAndKeywords(args, kwds, "O", kwlist, &obj))
+  if (! PyArg_ParseTuple(args, "O", &obj))
     return -1;
 
   if( !obj ) return NULL;
@@ -154,6 +153,28 @@ FUNC_HEADER(get_value) {
   return self->data;
 }
 
+DOC_HEADER(dump) "\n\
+    Dump object to ASN1 DER encoded form\n\
+    Arguments: Self - The ASN1 object \n\
+    Returns: bytearray with the ASN1 DER dump \n";
+FUNC_HEADER(dump) {
+  BUF_MEM *bptr;
+  BIO *mem;
+  PyObject *ret;
+
+  if ( !PyArg_ParseTuple(args, ":dump") )
+    return NULL;
+
+  mem = BIO_new(BIO_s_mem());
+  crypto_ASN1Obj_inner_dump(self,mem);
+  BIO_get_mem_ptr(mem, &bptr);
+  ret = PyByteArray_FromStringAndSize(bptr->data,bptr->length);
+  BIO_free(mem);
+
+  return ret;
+}
+
+
 
 /* END METHODS */
 
@@ -165,6 +186,7 @@ static PyMethodDef crypto_ASN1Obj_methods[] =
   ADD_METHOD(get_class),
   ADD_METHOD(is_compound),
   ADD_METHOD(get_value),
+  ADD_METHOD(dump),
   {NULL,NULL}
 };
 
@@ -230,12 +252,12 @@ static PyObject* stringToDatetime(char*buf, long len) {
   char zone;
 
   if ( ( len != 13 ) && ( len != 15 ) ) {
-      Py_RETURN_NONE;
+    Py_RETURN_NONE;
   }
 
   if ( len == 13 ) {
     len = sscanf( (const char*)buf, "%02d%02d%02d%02d%02d%02d%c", &( time_tm.tm_year ), &( time_tm.tm_mon ), 
-                       &( time_tm.tm_mday ), &( time_tm.tm_hour ), &( time_tm.tm_min ), &( time_tm.tm_sec ), &zone );
+        &( time_tm.tm_mday ), &( time_tm.tm_hour ), &( time_tm.tm_min ), &( time_tm.tm_sec ), &zone );
     //HACK: We don't expect this code to run past 2100s or receive certs pre-2000
     time_tm.tm_year += 2000;
     /* dont understand */
@@ -246,7 +268,7 @@ static PyObject* stringToDatetime(char*buf, long len) {
 
   if ( len == 15 ) {
     len = sscanf( (const char*)buf, "20%02d%02d%02d%02d%02d%02d%c", &( time_tm.tm_year ), &( time_tm.tm_mon ), &( time_tm.tm_mday ),
-                       &( time_tm.tm_hour ), &( time_tm.tm_min ), &( time_tm.tm_sec ), &zone );
+        &( time_tm.tm_hour ), &( time_tm.tm_min ), &( time_tm.tm_sec ), &zone );
     /* dont understand */
     if ( ( len != 7 ) || ( zone != 'Z' ) ) {
       Py_RETURN_NONE;
@@ -256,7 +278,7 @@ static PyObject* stringToDatetime(char*buf, long len) {
   time_tm.tm_zone = &zone;
 #endif
   datetime = PyDateTime_FromDateAndTime( time_tm.tm_year, time_tm.tm_mon, time_tm.tm_mday, time_tm.tm_hour, 
-                                         time_tm.tm_min, time_tm.tm_sec, 0 );
+      time_tm.tm_min, time_tm.tm_sec, 0 );
 
   /* dont understand */
   if ( !datetime ) {
@@ -416,6 +438,136 @@ PyObject* crypto_ASN1_loads(PyObject* spam, PyObject* args) {
   return (PyObject*)loads_asn1(buf, len, &done );
 }
 
-PyObject* crypto_ASN1_dumps(PyObject* spam, PyObject* args) {
-  return NULL;
+
+int crypto_ASN1Obj_inner_dump(crypto_ASN1Obj* self, BIO* bdata) {
+  unsigned char source[256];
+  unsigned char *buf=source,*dyn=NULL;
+  long tmp;
+  PyObject *pytmp;
+  ASN1_OBJECT *aob=NULL;
+  ASN1_OCTET_STRING *aos=NULL;
+  ASN1_INTEGER *ain;
+  struct tm time_tm;
+
+  if( buf == NULL ) { return 0; }
+  if( self->compound ) {
+    BIO *sbio = BIO_new(BIO_s_mem());
+    BUF_MEM *bm;
+    for( long i = 0; i < self->num_children; i ++ ) {
+      if( 0 == crypto_ASN1Obj_inner_dump( self->children[i], sbio ) ) {
+        BIO_free(sbio);
+        return 0;
+      }
+    }
+    BIO_get_mem_ptr(sbio,&bm);
+    ASN1_put_object( &buf, 1, bm->length, self->tag, self->class );
+    BIO_write( bdata, source, buf - source );
+    BIO_write( bdata, bm->data, bm->length );
+    BIO_free(sbio);
+    return 1;
+  }
+  switch ( self->tag ) {
+    case V_ASN1_PRINTABLESTRING:
+    case V_ASN1_T61STRING:
+    case V_ASN1_IA5STRING:
+    case V_ASN1_VISIBLESTRING:
+    case V_ASN1_NUMERICSTRING:
+      ASN1_put_object( &buf, 0, PyString_Size( self->data ), self->tag, self->class );
+      BIO_write( bdata, source, buf - source );
+      BIO_write( bdata, PyString_AsString( self->data ), PyString_Size( self->data ) );
+      break;
+    case V_ASN1_UTF8STRING:
+      pytmp = PyUnicode_AsUTF8String( self->data );
+      if( pytmp == NULL ) return 0;
+
+      ASN1_put_object( &buf, 0, PyString_Size( pytmp ), self->tag, self->class );
+      BIO_write( bdata, source, buf - source );
+      BIO_write( bdata, PyString_AsString( pytmp ), PyString_Size( self->data ) );
+      Py_DECREF( pytmp );
+      break;
+    case V_ASN1_UTCTIME:
+    case V_ASN1_GENERALIZEDTIME:
+      time_tm.tm_year = PyDateTime_GET_YEAR( self->data );
+      time_tm.tm_mon = PyDateTime_GET_MONTH( self->data );
+      time_tm.tm_mday = PyDateTime_GET_DAY( self->data );
+      time_tm.tm_hour = PyDateTime_DATE_GET_HOUR( self->data );
+      time_tm.tm_min = PyDateTime_DATE_GET_MINUTE( self->data );
+      time_tm.tm_sec = PyDateTime_DATE_GET_SECOND( self->data );
+      ASN1_put_object( &buf, 0, 13, self->tag, self->class );
+      sprintf( buf, "%02d%02d%02d%02d%02d%02dZ", time_tm.tm_year , time_tm.tm_mon, 
+        time_tm.tm_mday , time_tm.tm_hour , time_tm.tm_min , time_tm.tm_sec );
+      BIO_write( bdata, source, buf - source );
+      break;
+    case V_ASN1_BOOLEAN:
+      i2d_ASN1_BOOLEAN( PyBool_Check( self->data ), &buf );
+      BIO_write( bdata, source, buf - source );
+      break;
+    case V_ASN1_OBJECT:
+      aob = OBJ_txt2obj( PyString_AsString( self->data ), 0 );
+      if ( aob == NULL ) 
+      {
+        aob = OBJ_txt2obj( PyString_AsString( self->data ), 1 );
+      }
+      if( aob == NULL ) {
+        exception_from_error_queue();
+        return 0;
+      }
+      if( i2d_ASN1_OBJECT( aob, &buf ) == 0 ) {
+        exception_from_error_queue();
+        return 0;
+      } 
+      BIO_write( bdata, source, buf - source );
+      break;
+    case V_ASN1_OCTET_STRING:
+    case V_ASN1_BIT_STRING:
+      aos = ASN1_OCTET_STRING_new();
+      aos->data = PyByteArray_AsString( self->data );
+      aos->length = PyByteArray_Size( self->data );
+      dyn = (char*) malloc(aos->length + 256 );
+      buf = dyn;
+      switch (self->tag) {
+        case V_ASN1_OCTET_STRING:
+          tmp = i2d_ASN1_OCTET_STRING( aos, dyn ) ;
+          break;
+        case V_ASN1_BIT_STRING:
+          tmp = i2d_ASN1_BIT_STRING( aos, dyn ) ;
+          break;
+      }
+      if( 0 == tmp ) {
+        free( dyn );
+        exception_from_error_queue();
+        return 0;
+      }
+      BIO_write( bdata, source, dyn - buf);
+      free( dyn );
+      break;
+    case V_ASN1_NULL:
+      i2d_ASN1_NULL( NULL, &buf );
+      BIO_write( bdata, source, buf - source );
+      break;
+    case V_ASN1_INTEGER:
+    case V_ASN1_NEG_INTEGER:
+      ain = ASN1_INTEGER_new();
+      ASN1_INTEGER_set( ain, PyLong_AsLong( self->data ) );
+      if( 0 == i2d_ASN1_INTEGER( ain, &buf ) ) {
+        ASN1_INTEGER_free(ain);
+        exception_from_error_queue();
+        return 0;
+      }
+      ASN1_INTEGER_free(ain);
+      BIO_write( bdata, source, buf - source );
+      break;
+    case V_ASN1_ENUMERATED:
+      ain = ASN1_ENUMERATED_new();
+      ASN1_ENUMERATED_set( ain, PyLong_AsLong( self->data ) );
+      if( 0 == i2d_ASN1_ENUMERATED( ain, &buf ) ) {
+        ASN1_ENUMERATED_free(ain);
+        exception_from_error_queue();
+        return 0;
+      }
+      ASN1_ENUMERATED_free(ain);
+      BIO_write( bdata, source, buf - source );
+      break;
+  }
+  return 1;
 }

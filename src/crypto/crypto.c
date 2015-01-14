@@ -978,7 +978,6 @@ static PyMethodDef crypto_methods[] = {
      ( PyCFunction ) crypto_add_x509_extension_alias, METH_VARARGS,
      crypto_add_x509_extension_alias_doc},
     {"asn1_loads", crypto_ASN1_loads, METH_VARARGS, "" },
-    {"asn1_dumps", crypto_ASN1_dumps, METH_VARARGS, "" },
     /* Factory functions */
     {"X509Store", ( PyCFunction ) crypto_X509Store, METH_VARARGS, crypto_X509Store_doc},
     {"X509", ( PyCFunction ) crypto_X509, METH_VARARGS, crypto_X509_doc},
