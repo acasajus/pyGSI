@@ -168,7 +168,7 @@ FUNC_HEADER(dump) {
   mem = BIO_new(BIO_s_mem());
   crypto_ASN1Obj_inner_dump(self,mem);
   BIO_get_mem_ptr(mem, &bptr);
-  ret = PyByteArray_FromStringAndSize(bptr->data,bptr->length);
+  ret = PyString_FromStringAndSize(bptr->data,bptr->length);
   BIO_free(mem);
 
   return ret;
@@ -299,7 +299,7 @@ crypto_ASN1Obj* loads_asn1(char* buf, long len, long *len_done ){
   ASN1_OCTET_STRING *os=NULL;
   ASN1_INTEGER *ai;
   ASN1_BIT_STRING *bs;
-
+  
   ret=ASN1_get_object((const unsigned char**)&xbuf,&xlen,&xtag,&xclass,len);
   if (ret & 0x80){
     exception_from_error_queue();
@@ -447,6 +447,7 @@ int crypto_ASN1Obj_inner_dump(crypto_ASN1Obj* self, BIO* bdata) {
   ASN1_OBJECT *aob=NULL;
   ASN1_OCTET_STRING *aos=NULL;
   ASN1_INTEGER *ain;
+  ASN1_NULL anull;
   struct tm time_tm;
 
   if( buf == NULL ) { return 0; }
@@ -493,10 +494,10 @@ int crypto_ASN1Obj_inner_dump(crypto_ASN1Obj* self, BIO* bdata) {
       time_tm.tm_hour = PyDateTime_DATE_GET_HOUR( self->data );
       time_tm.tm_min = PyDateTime_DATE_GET_MINUTE( self->data );
       time_tm.tm_sec = PyDateTime_DATE_GET_SECOND( self->data );
-      ASN1_put_object( &buf, 0, 13, self->tag, self->class );
-      sprintf( buf, "%02d%02d%02d%02d%02d%02dZ", time_tm.tm_year , time_tm.tm_mon, 
-        time_tm.tm_mday , time_tm.tm_hour , time_tm.tm_min , time_tm.tm_sec );
-      BIO_write( bdata, source, buf - source );
+      ASN1_put_object( &buf, 0, 15, self->tag, self->class );
+      sprintf( buf, "20%02d%02d%02d%02d%02d%02dZ", time_tm.tm_year , time_tm.tm_mon, 
+          time_tm.tm_mday , time_tm.tm_hour , time_tm.tm_min , time_tm.tm_sec );
+      BIO_write( bdata, source, ( buf - source ) + 15 );
       break;
     case V_ASN1_BOOLEAN:
       i2d_ASN1_BOOLEAN( PyBool_Check( self->data ), &buf );
@@ -527,22 +528,22 @@ int crypto_ASN1Obj_inner_dump(crypto_ASN1Obj* self, BIO* bdata) {
       buf = dyn;
       switch (self->tag) {
         case V_ASN1_OCTET_STRING:
-          tmp = i2d_ASN1_OCTET_STRING( aos, dyn ) ;
+          tmp = i2d_ASN1_OCTET_STRING( aos, &dyn ) ;
           break;
         case V_ASN1_BIT_STRING:
-          tmp = i2d_ASN1_BIT_STRING( aos, dyn ) ;
+          tmp = i2d_ASN1_BIT_STRING( aos, &dyn ) ;
           break;
       }
       if( 0 == tmp ) {
-        free( dyn );
+        free( buf );
         exception_from_error_queue();
         return 0;
       }
-      BIO_write( bdata, source, dyn - buf);
-      free( dyn );
+      BIO_write( bdata, buf, dyn - buf);
+      free( buf );
       break;
     case V_ASN1_NULL:
-      i2d_ASN1_NULL( NULL, &buf );
+      i2d_ASN1_NULL( &anull, &buf );
       BIO_write( bdata, source, buf - source );
       break;
     case V_ASN1_INTEGER:
