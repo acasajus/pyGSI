@@ -122,6 +122,17 @@ FUNC_HEADER(get_tag) {
   return Py_BuildValue("i",self->tag);
 }
 
+DOC_HEADER(get_tag_str) "\n\
+    Get the tag \n\
+    Arguments: self - The ASN1 object \n\
+    Returns: The tag name as a string. empty if not set \n";
+FUNC_HEADER(get_tag_str) {
+  if ( !PyArg_ParseTuple(args, ":get_tag_str") )
+    return NULL;
+  return PyString_FromString( ASN1_tag2str( self->tag ) );
+}
+
+
 DOC_HEADER(get_class) "\n\
     Get the class \n\
     Arguments: self - The ASN1 object \n\
@@ -139,7 +150,7 @@ DOC_HEADER(is_compound) "\n\
 FUNC_HEADER(is_compound) {
   if ( !PyArg_ParseTuple(args, ":is_compound") )
     return NULL;
-  return Py_BuildValue("i",self->class);
+  return Py_BuildValue("i",self->compound);
 }
 
 DOC_HEADER(get_value) "\n\
@@ -152,6 +163,22 @@ FUNC_HEADER(get_value) {
   Py_XINCREF(self->data);
   return self->data;
 }
+
+DOC_HEADER(convert_to_object) "\n\
+    Converts a string into an asn1 object \n\
+    Arguments: Self - The ASN1 object \n\
+    Returns: None \n";
+FUNC_HEADER(convert_to_object) {
+  if ( !PyArg_ParseTuple(args, ":convert_to_object") )
+    return NULL;
+  if( !PyString_Check( self->data ) ) {
+    PyErr_SetString( PyExc_TypeError, "Only strins can be converted to objects" );
+    return NULL;
+  }
+  self->tag = V_ASN1_OBJECT;
+  Py_RETURN_NONE;
+}
+
 
 DOC_HEADER(dump) "\n\
     Dump object to ASN1 DER encoded form\n\
@@ -174,21 +201,63 @@ FUNC_HEADER(dump) {
   return ret;
 }
 
-
-
 /* END METHODS */
 
+static Py_ssize_t ASN1Obj_len(crypto_ASN1Obj* self) {   
+  return self->num_children;
+}
+
+static PyObject* ASN1Obj_getitem(crypto_ASN1Obj* self, Py_ssize_t pos ) {
+  if( pos >= self->num_children ) {
+    PyErr_SetString( PyExc_IndexError, "Index out of bounds" );
+    return NULL;
+  }
+  Py_INCREF( self->children[pos] );
+  return (PyObject*) self->children[pos];
+}
+
+static int ASN1Obj_setitem(crypto_ASN1Obj* self, Py_ssize_t pos, PyObject* obj ){
+  if( pos >= self->num_children ) {
+    PyErr_SetString( PyExc_IndexError, "Index out of bounds" );
+    return -1;
+  }
+  if( ! PyObject_TypeCheck( obj, &crypto_ASN1Obj_Type ) ) {
+    PyErr_SetString( PyExc_TypeError, "Expected ASN1Obj type" );
+    return -1;
+  }
+  Py_INCREF( obj );
+  Py_XDECREF( self->children[pos] );
+  self->children[pos] = obj;
+  return 0;
+}
+/* END SEQUENCE METHODS */
+
+static PySequenceMethods crypto_ASN1Obj_sequence_methods = {
+      ASN1Obj_len,  /* sq_length */
+      NULL, /* sq_concat */
+      NULL, /* sq_repeat */
+      ASN1Obj_getitem, /* sq_item */
+      NULL, /* sq_slice */
+      ASN1Obj_setitem, /* sq_ass_item */
+      NULL, /* sq_ass_slice */
+      NULL, /* sq_contains */
+      NULL, /* sq_inplace_concat */
+      NULL, /* sq_inplace_repeat */
+};
 
 #define ADD_METHOD(name) { #name, (PyCFunction)crypto_ASN1Obj_##name, METH_VARARGS, crypto_ASN1Obj_##name##_doc }
 static PyMethodDef crypto_ASN1Obj_methods[] =
 {
   ADD_METHOD(get_tag),
+  ADD_METHOD(get_tag_str),
   ADD_METHOD(get_class),
   ADD_METHOD(is_compound),
   ADD_METHOD(get_value),
+  ADD_METHOD(convert_to_object),
   ADD_METHOD(dump),
   {NULL,NULL}
 };
+
 
 static PyTypeObject crypto_ASN1Obj_Type = {
   PyObject_HEAD_INIT(NULL)
@@ -203,7 +272,7 @@ static PyTypeObject crypto_ASN1Obj_Type = {
   0,                         /*tp_compare*/
   0,                         /*tp_repr*/
   0,                         /*tp_as_number*/
-  0,                         /*tp_as_sequence*/
+  &crypto_ASN1Obj_sequence_methods,  /*tp_as_sequence*/
   0,                         /*tp_as_mapping*/
   0,                         /*tp_hash */
   0,                         /*tp_call*/
