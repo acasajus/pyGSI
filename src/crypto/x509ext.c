@@ -108,13 +108,10 @@ crypto_X509Extension_get_asn1_value( crypto_X509ExtensionObj * self,
                                 PyObject * args )
 {
     long done;
-    PyObject *asn1;
-    BIO *bio = BIO_new( BIO_s_mem(  ) );
-
     if ( !PyArg_ParseTuple( args, ":get_asn1_value" ) )
         return NULL;
 
-    return (PyObject*)loads_asn1(self->x509_extension->value->data,self->x509_extension->value->length,&done);
+    return (PyObject*)loads_asn1((char*)self->x509_extension->value->data,self->x509_extension->value->length,&done);
 }
 
 static char crypto_X509Extension_get_raw_value_doc[] = "\n\
@@ -129,14 +126,10 @@ static PyObject *
 crypto_X509Extension_get_raw_value( crypto_X509ExtensionObj * self,
                                 PyObject * args )
 {
-    long done;
-    PyObject *raw;
-    BIO *bio = BIO_new( BIO_s_mem(  ) );
-
     if ( !PyArg_ParseTuple( args, ":get_raw_value" ) )
         return NULL;
 
-    return PyByteArray_FromStringAndSize(self->x509_extension->value->data,self->x509_extension->value->length);
+    return PyByteArray_FromStringAndSize((const char*)self->x509_extension->value->data,self->x509_extension->value->length);
 }
 
 static char crypto_X509Extension_get_nid_doc[] = "\n\

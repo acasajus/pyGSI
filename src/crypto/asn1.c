@@ -74,7 +74,7 @@ static int crypto_ASN1_init(crypto_ASN1 *self, PyObject *args, PyObject *kwds)
   if (! PyArg_ParseTuple(args, "O", &obj))
     return -1;
 
-  if( !obj ) return NULL;
+  if( !obj ) return -1;
 
   return init_crypto_ASN1_from_pyobject(self,obj);
 }
@@ -227,18 +227,18 @@ static int ASN1_setitem(crypto_ASN1* self, Py_ssize_t pos, PyObject* obj ){
   }
   Py_INCREF( obj );
   Py_XDECREF( self->children[pos] );
-  self->children[pos] = obj;
+  self->children[pos] = (crypto_ASN1*)obj;
   return 0;
 }
 /* END SEQUENCE METHODS */
 
 static PySequenceMethods crypto_ASN1_sequence_methods = {
-      ASN1_len,  /* sq_length */
+      (lenfunc)ASN1_len,  /* sq_length */
       NULL, /* sq_concat */
       NULL, /* sq_repeat */
-      ASN1_getitem, /* sq_item */
+      (ssizeargfunc)ASN1_getitem, /* sq_item */
       NULL, /* sq_slice */
-      ASN1_setitem, /* sq_ass_item */
+      (ssizeobjargproc)ASN1_setitem, /* sq_ass_item */
       NULL, /* sq_ass_slice */
       NULL, /* sq_contains */
       NULL, /* sq_inplace_concat */
@@ -564,7 +564,7 @@ int crypto_ASN1_inner_dump(crypto_ASN1* self, BIO* bdata) {
       time_tm.tm_min = PyDateTime_DATE_GET_MINUTE( self->data );
       time_tm.tm_sec = PyDateTime_DATE_GET_SECOND( self->data );
       ASN1_put_object( &buf, 0, 15, self->tag, self->class );
-      sprintf( buf, "20%02d%02d%02d%02d%02d%02dZ", time_tm.tm_year , time_tm.tm_mon, 
+      sprintf( (char*)buf, "20%02d%02d%02d%02d%02d%02dZ", time_tm.tm_year , time_tm.tm_mon, 
           time_tm.tm_mday , time_tm.tm_hour , time_tm.tm_min , time_tm.tm_sec );
       BIO_write( bdata, source, ( buf - source ) + 15 );
       break;
@@ -591,9 +591,9 @@ int crypto_ASN1_inner_dump(crypto_ASN1* self, BIO* bdata) {
     case V_ASN1_OCTET_STRING:
     case V_ASN1_BIT_STRING:
       aos = ASN1_OCTET_STRING_new();
-      aos->data = PyByteArray_AsString( self->data );
+      aos->data = (unsigned char*) PyByteArray_AsString( self->data );
       aos->length = PyByteArray_Size( self->data );
-      dyn = (char*) malloc(aos->length + 256 );
+      dyn = (unsigned char*) malloc(aos->length + 256 );
       buf = dyn;
       switch (self->tag) {
         case V_ASN1_OCTET_STRING:
