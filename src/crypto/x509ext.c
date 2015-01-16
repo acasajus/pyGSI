@@ -22,6 +22,45 @@ crypto_X509Extension_get_critical( crypto_X509ExtensionObj * self,
         PyInt_FromLong( X509_EXTENSION_get_critical( self->x509_extension ) );
 }
 
+static char crypto_X509Extension_set_critical_doc[] = "\n\
+Sets critical field of the X509Extension\n\
+\n\
+Arguments: self - The X509Extension object\n\
+           args - The argument tuple, should be empty\n\
+Returns: None.\n\
+";
+
+static PyObject *
+crypto_X509Extension_set_critical( crypto_X509ExtensionObj * self,
+                                   PyObject * args )
+{
+    if ( !PyArg_ParseTuple( args, ":set_critical" ) )
+        return NULL;
+
+    X509_EXTENSION_set_critical( self->x509_extension, 1 ) ;
+    Py_RETURN_NONE;
+}
+
+static char crypto_X509Extension_set_no_critical_doc[] = "\n\
+Sets critical field to false of the X509Extension\n\
+\n\
+Arguments: self - The X509Extension object\n\
+           args - The argument tuple, should be empty\n\
+Returns: None.\n\
+";
+
+static PyObject *
+crypto_X509Extension_set_no_critical( crypto_X509ExtensionObj * self,
+                                   PyObject * args )
+{
+    if ( !PyArg_ParseTuple( args, ":set_no_critical" ) )
+        return NULL;
+
+    X509_EXTENSION_set_critical( self->x509_extension, 0 ) ;
+    Py_RETURN_NONE;
+}
+
+
 static char crypto_X509Extension_get_value_doc[] = "\n\
 Returns the value of the X509Extension\n\
 \n\
@@ -200,6 +239,8 @@ crypto_X509Extension_get_ln( crypto_X509ExtensionObj * self, PyObject * args )
 { #name, (PyCFunction)crypto_X509Extension_##name, METH_VARARGS, crypto_X509Extension_##name##_doc }
 static PyMethodDef crypto_X509Extension_methods[] = {
     ADD_METHOD( get_critical ),
+    ADD_METHOD( set_critical ),
+    ADD_METHOD( set_no_critical ),
     ADD_METHOD( get_value ),
     ADD_METHOD( get_asn1_value ),
     ADD_METHOD( get_raw_value ),
