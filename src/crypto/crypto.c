@@ -1099,7 +1099,7 @@ initcrypto( void )
         goto error;
     if ( !init_crypto_x509CRL( dict ) )
         goto error;
-    if ( !init_crypto_ASN1Obj( dict ) )
+    if ( !init_crypto_ASN1( dict ) )
         goto error;
 
   error:

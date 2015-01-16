@@ -3,14 +3,14 @@
 #include "asn1.h"
 #include "crypto.h"
 
-static PyObject * crypto_ASN1Obj_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+static PyObject * crypto_ASN1_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
-  crypto_ASN1Obj *self;
+  crypto_ASN1 *self;
 
   if ( type == NULL ) {
-    type = &crypto_ASN1Obj_Type;
+    type = &crypto_ASN1_Type;
   }
-  self = (crypto_ASN1Obj *)type->tp_alloc(type, 0);
+  self = (crypto_ASN1 *)type->tp_alloc(type, 0);
   if (self == NULL) {
     return (PyObject*) self;
   }
@@ -23,7 +23,7 @@ static PyObject * crypto_ASN1Obj_new(PyTypeObject *type, PyObject *args, PyObjec
   return (PyObject *)self;
 }
 
-static int init_crypto_ASN1Obj_from_pyobject(crypto_ASN1Obj* self, PyObject *obj){
+static int init_crypto_ASN1_from_pyobject(crypto_ASN1* self, PyObject *obj){
   self->data = obj;
   Py_INCREF( obj );
   if( PyString_Check( obj ) ) {
@@ -46,20 +46,20 @@ static int init_crypto_ASN1Obj_from_pyobject(crypto_ASN1Obj* self, PyObject *obj
     self->tag = V_ASN1_SET;
     self->compound = 1;
     self->num_children = PyTuple_Size(obj);
-    self->children = (crypto_ASN1Obj**)malloc(sizeof(crypto_ASN1Obj*)*(self->num_children));
+    self->children = (crypto_ASN1**)malloc(sizeof(crypto_ASN1*)*(self->num_children));
     for( long i = 0; i < self->num_children; i ++ ) {
-      crypto_ASN1Obj* c = (crypto_ASN1Obj*)crypto_ASN1Obj_new(NULL,NULL,NULL);
-      init_crypto_ASN1Obj_from_pyobject(c,PyTuple_GetItem(obj,i));
+      crypto_ASN1* c = (crypto_ASN1*)crypto_ASN1_new(NULL,NULL,NULL);
+      init_crypto_ASN1_from_pyobject(c,PyTuple_GetItem(obj,i));
       self->children[i] = c;
     }
   } else if ( PyList_Check( obj ) ) {
     self->tag = V_ASN1_SEQUENCE;
     self->compound = 1;
     self->num_children = PyList_Size(obj);
-    self->children = (crypto_ASN1Obj**)malloc(sizeof(crypto_ASN1Obj*)*(self->num_children));
+    self->children = (crypto_ASN1**)malloc(sizeof(crypto_ASN1*)*(self->num_children));
     for( long i = 0; i < self->num_children; i ++ ) {
-      crypto_ASN1Obj* c = (crypto_ASN1Obj*)crypto_ASN1Obj_new(NULL,NULL,NULL);
-      init_crypto_ASN1Obj_from_pyobject(c,PyList_GetItem(obj,i));
+      crypto_ASN1* c = (crypto_ASN1*)crypto_ASN1_new(NULL,NULL,NULL);
+      init_crypto_ASN1_from_pyobject(c,PyList_GetItem(obj,i));
       self->children[i] = c;
     }
   } else return 1;
@@ -67,7 +67,7 @@ static int init_crypto_ASN1Obj_from_pyobject(crypto_ASN1Obj* self, PyObject *obj
   return 0;
 }
 
-static int crypto_ASN1Obj_init(crypto_ASN1Obj *self, PyObject *args, PyObject *kwds)
+static int crypto_ASN1_init(crypto_ASN1 *self, PyObject *args, PyObject *kwds)
 {
   PyObject *obj=NULL;
 
@@ -76,10 +76,10 @@ static int crypto_ASN1Obj_init(crypto_ASN1Obj *self, PyObject *args, PyObject *k
 
   if( !obj ) return NULL;
 
-  return init_crypto_ASN1Obj_from_pyobject(self,obj);
+  return init_crypto_ASN1_from_pyobject(self,obj);
 }
 
-static int crypto_ASN1Obj_traverse(crypto_ASN1Obj *self, visitproc visit, void *arg)
+static int crypto_ASN1_traverse(crypto_ASN1 *self, visitproc visit, void *arg)
 {
   for( int i = 0; i < self->num_children; i++ ) {
     Py_VISIT( self->children[i] );
@@ -88,7 +88,7 @@ static int crypto_ASN1Obj_traverse(crypto_ASN1Obj *self, visitproc visit, void *
 }
 
 
-static int crypto_ASN1Obj_clear(crypto_ASN1Obj *self)
+static int crypto_ASN1_clear(crypto_ASN1 *self)
 {
   for( int i = 0; i < self->num_children; i++ ) {
     Py_CLEAR(self->children[i]);
@@ -101,16 +101,16 @@ static int crypto_ASN1Obj_clear(crypto_ASN1Obj *self)
   return 0;
 }
 
-static void crypto_ASN1Obj_dealloc(crypto_ASN1Obj* self)
+static void crypto_ASN1_dealloc(crypto_ASN1* self)
 {
-  crypto_ASN1Obj_clear(self);
+  crypto_ASN1_clear(self);
   self->ob_type->tp_free((PyObject*)self);
 }
 
 
 /* METHODS */
-#define DOC_HEADER(name) static char crypto_ASN1Obj_##name##_doc[] =
-#define FUNC_HEADER(name) static PyObject* crypto_ASN1Obj_##name ( crypto_ASN1Obj *self, PyObject *args )
+#define DOC_HEADER(name) static char crypto_ASN1_##name##_doc[] =
+#define FUNC_HEADER(name) static PyObject* crypto_ASN1_##name ( crypto_ASN1 *self, PyObject *args )
 
 DOC_HEADER(get_tag) "\n\
     Get the tag \n\
@@ -193,7 +193,7 @@ FUNC_HEADER(dump) {
     return NULL;
 
   mem = BIO_new(BIO_s_mem());
-  crypto_ASN1Obj_inner_dump(self,mem);
+  crypto_ASN1_inner_dump(self,mem);
   BIO_get_mem_ptr(mem, &bptr);
   ret = PyString_FromStringAndSize(bptr->data,bptr->length);
   BIO_free(mem);
@@ -203,11 +203,11 @@ FUNC_HEADER(dump) {
 
 /* END METHODS */
 
-static Py_ssize_t ASN1Obj_len(crypto_ASN1Obj* self) {   
+static Py_ssize_t ASN1_len(crypto_ASN1* self) {   
   return self->num_children;
 }
 
-static PyObject* ASN1Obj_getitem(crypto_ASN1Obj* self, Py_ssize_t pos ) {
+static PyObject* ASN1_getitem(crypto_ASN1* self, Py_ssize_t pos ) {
   if( pos >= self->num_children ) {
     PyErr_SetString( PyExc_IndexError, "Index out of bounds" );
     return NULL;
@@ -216,13 +216,13 @@ static PyObject* ASN1Obj_getitem(crypto_ASN1Obj* self, Py_ssize_t pos ) {
   return (PyObject*) self->children[pos];
 }
 
-static int ASN1Obj_setitem(crypto_ASN1Obj* self, Py_ssize_t pos, PyObject* obj ){
+static int ASN1_setitem(crypto_ASN1* self, Py_ssize_t pos, PyObject* obj ){
   if( pos >= self->num_children ) {
     PyErr_SetString( PyExc_IndexError, "Index out of bounds" );
     return -1;
   }
-  if( ! PyObject_TypeCheck( obj, &crypto_ASN1Obj_Type ) ) {
-    PyErr_SetString( PyExc_TypeError, "Expected ASN1Obj type" );
+  if( ! PyObject_TypeCheck( obj, &crypto_ASN1_Type ) ) {
+    PyErr_SetString( PyExc_TypeError, "Expected ASN1 type" );
     return -1;
   }
   Py_INCREF( obj );
@@ -232,21 +232,21 @@ static int ASN1Obj_setitem(crypto_ASN1Obj* self, Py_ssize_t pos, PyObject* obj )
 }
 /* END SEQUENCE METHODS */
 
-static PySequenceMethods crypto_ASN1Obj_sequence_methods = {
-      ASN1Obj_len,  /* sq_length */
+static PySequenceMethods crypto_ASN1_sequence_methods = {
+      ASN1_len,  /* sq_length */
       NULL, /* sq_concat */
       NULL, /* sq_repeat */
-      ASN1Obj_getitem, /* sq_item */
+      ASN1_getitem, /* sq_item */
       NULL, /* sq_slice */
-      ASN1Obj_setitem, /* sq_ass_item */
+      ASN1_setitem, /* sq_ass_item */
       NULL, /* sq_ass_slice */
       NULL, /* sq_contains */
       NULL, /* sq_inplace_concat */
       NULL, /* sq_inplace_repeat */
 };
 
-#define ADD_METHOD(name) { #name, (PyCFunction)crypto_ASN1Obj_##name, METH_VARARGS, crypto_ASN1Obj_##name##_doc }
-static PyMethodDef crypto_ASN1Obj_methods[] =
+#define ADD_METHOD(name) { #name, (PyCFunction)crypto_ASN1_##name, METH_VARARGS, crypto_ASN1_##name##_doc }
+static PyMethodDef crypto_ASN1_methods[] =
 {
   ADD_METHOD(get_tag),
   ADD_METHOD(get_tag_str),
@@ -259,20 +259,20 @@ static PyMethodDef crypto_ASN1Obj_methods[] =
 };
 
 
-static PyTypeObject crypto_ASN1Obj_Type = {
+static PyTypeObject crypto_ASN1_Type = {
   PyObject_HEAD_INIT(NULL)
     0,
-  "ASN1Obj",
-  sizeof( crypto_ASN1Obj ),
+  "ASN1",
+  sizeof( crypto_ASN1 ),
   0,                         /*tp_itemsize*/
-  (destructor)crypto_ASN1Obj_dealloc,                         /*tp_dealloc*/
+  (destructor)crypto_ASN1_dealloc,                         /*tp_dealloc*/
   0,                         /*tp_print*/
   0,                         /*tp_getattr*/
   0,                         /*tp_setattr*/
   0,                         /*tp_compare*/
   0,                         /*tp_repr*/
   0,                         /*tp_as_number*/
-  &crypto_ASN1Obj_sequence_methods,  /*tp_as_sequence*/
+  &crypto_ASN1_sequence_methods,  /*tp_as_sequence*/
   0,                         /*tp_as_mapping*/
   0,                         /*tp_hash */
   0,                         /*tp_call*/
@@ -281,14 +281,14 @@ static PyTypeObject crypto_ASN1Obj_Type = {
   0,                         /*tp_setattro*/
   0,                         /*tp_as_buffer*/
   Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,        /*tp_flags*/
-  "ASN1Obj objects",           /* tp_doc */
-  (traverseproc)crypto_ASN1Obj_traverse,                   /* tp_traverse */
-  (inquiry)crypto_ASN1Obj_clear,                   /* tp_clear */
+  "ASN1 objects",           /* tp_doc */
+  (traverseproc)crypto_ASN1_traverse,                   /* tp_traverse */
+  (inquiry)crypto_ASN1_clear,                   /* tp_clear */
   0,                   /* tp_richcompare */
   0,                   /* tp_weaklistoffset */
   0,                   /* tp_iter */
   0,                   /* tp_iternext */
-  crypto_ASN1Obj_methods,             /* tp_methods */
+  crypto_ASN1_methods,             /* tp_methods */
   0,             /* tp_members */
   0,                         /* tp_getset */
   0,                         /* tp_base */
@@ -296,18 +296,18 @@ static PyTypeObject crypto_ASN1Obj_Type = {
   0,                         /* tp_descr_get */
   0,                         /* tp_descr_set */
   0,                         /* tp_dictoffset */
-  (initproc)crypto_ASN1Obj_init,      /* tp_init */
+  (initproc)crypto_ASN1_init,      /* tp_init */
   0,                         /* tp_alloc */
-  crypto_ASN1Obj_new,                 /* tp_new */
+  crypto_ASN1_new,                 /* tp_new */
 };
 
-int init_crypto_ASN1Obj( PyObject * dict )
+int init_crypto_ASN1( PyObject * dict )
 {
-  if (PyType_Ready(&crypto_ASN1Obj_Type) < 0)
+  if (PyType_Ready(&crypto_ASN1_Type) < 0)
     return -1;
-  //crypto_ASN1Obj_Type.ob_type = &PyType_Type;
-  //Py_INCREF( &crypto_ASN1Obj_Type );
-  PyDict_SetItemString( dict, "ASN1Obj", ( PyObject * ) & crypto_ASN1Obj_Type );
+  //crypto_ASN1_Type.ob_type = &PyType_Type;
+  //Py_INCREF( &crypto_ASN1_Type );
+  PyDict_SetItemString( dict, "ASN1", ( PyObject * ) & crypto_ASN1_Type );
 
   PyDateTime_IMPORT;
   return 1;
@@ -358,8 +358,8 @@ static PyObject* stringToDatetime(char*buf, long len) {
 }
 
 
-crypto_ASN1Obj* loads_asn1(char* buf, long len, long *len_done ){
-  crypto_ASN1Obj *obj;
+crypto_ASN1* loads_asn1(char* buf, long len, long *len_done ){
+  crypto_ASN1 *obj;
   long xlen, header_len;
   char *ctmp, *xbuf = buf;
   int xtag, xclass, ret;
@@ -376,7 +376,7 @@ crypto_ASN1Obj* loads_asn1(char* buf, long len, long *len_done ){
   }
   header_len = xbuf - buf;
   *len_done = header_len;
-  if( (obj=(crypto_ASN1Obj*)crypto_ASN1Obj_new(NULL,NULL,NULL) ) == NULL ) {
+  if( (obj=(crypto_ASN1*)crypto_ASN1_new(NULL,NULL,NULL) ) == NULL ) {
     exception_from_error_queue();
     return NULL;
   }
@@ -386,9 +386,9 @@ crypto_ASN1Obj* loads_asn1(char* buf, long len, long *len_done ){
   if( obj->compound ) {
     char *child_buf = xbuf;
     long child_len;
-    crypto_ASN1Obj* child;
+    crypto_ASN1* child;
     int alloc_space = 1;
-    obj->children = (crypto_ASN1Obj**)malloc( sizeof( crypto_ASN1Obj** ) * alloc_space );
+    obj->children = (crypto_ASN1**)malloc( sizeof( crypto_ASN1** ) * alloc_space );
     while( child_buf < xbuf + xlen ) {
       child = loads_asn1(child_buf,len-(*len_done), &child_len );
       if ( child == NULL ) {
@@ -404,13 +404,13 @@ crypto_ASN1Obj* loads_asn1(char* buf, long len, long *len_done ){
       }
       if( obj->num_children >= alloc_space ) {
         alloc_space *= 2;
-        obj->children = (crypto_ASN1Obj**)realloc( obj->children, sizeof( crypto_ASN1Obj** ) * alloc_space );
+        obj->children = (crypto_ASN1**)realloc( obj->children, sizeof( crypto_ASN1** ) * alloc_space );
       }
       obj->children[obj->num_children] = child;
       obj->num_children++;
     }
     if(obj->num_children>alloc_space) {
-      obj->children = (crypto_ASN1Obj**)realloc( obj->children, sizeof( crypto_ASN1Obj** ) * obj->num_children );
+      obj->children = (crypto_ASN1**)realloc( obj->children, sizeof( crypto_ASN1** ) * obj->num_children );
     }
     obj->data = PyTuple_New(obj->num_children);
     for(int i = 0; i< obj->num_children; i++ ) {
@@ -508,7 +508,7 @@ PyObject* crypto_ASN1_loads(PyObject* spam, PyObject* args) {
 }
 
 
-int crypto_ASN1Obj_inner_dump(crypto_ASN1Obj* self, BIO* bdata) {
+int crypto_ASN1_inner_dump(crypto_ASN1* self, BIO* bdata) {
   unsigned char source[256];
   unsigned char *buf=source,*dyn=NULL;
   long tmp;
@@ -524,7 +524,7 @@ int crypto_ASN1Obj_inner_dump(crypto_ASN1Obj* self, BIO* bdata) {
     BIO *sbio = BIO_new(BIO_s_mem());
     BUF_MEM *bm;
     for( long i = 0; i < self->num_children; i ++ ) {
-      if( 0 == crypto_ASN1Obj_inner_dump( self->children[i], sbio ) ) {
+      if( 0 == crypto_ASN1_inner_dump( self->children[i], sbio ) ) {
         BIO_free(sbio);
         return 0;
       }
