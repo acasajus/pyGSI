@@ -254,7 +254,7 @@ static PyMethodDef crypto_X509Extension_methods[] = {
  * Returns:   The newly created X509Extension object
  */
 crypto_X509ExtensionObj *
-crypto_X509Extension_New( char *type_name, char *value )
+crypto_X509Extension_New( char *type_name, char *value, int val_length )
 {
     crypto_X509ExtensionObj *self;
     int ext_nid;
@@ -274,8 +274,7 @@ crypto_X509Extension_New( char *type_name, char *value )
         return NULL;
     }
 
-    self =
-        PyObject_New( crypto_X509ExtensionObj, &crypto_X509Extension_Type );
+    self = PyObject_New( crypto_X509ExtensionObj, &crypto_X509Extension_Type );
     if ( self == NULL )
     {
         X509_EXTENSION_free( extension );

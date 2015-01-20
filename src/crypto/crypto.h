@@ -61,7 +61,7 @@ extern PyObject *crypto_Error;
 
 #define crypto_X509Extension_New_NUM    5
 #define crypto_X509Extension_New_RETURN crypto_X509ExtensionObj *
-#define crypto_X509Extension_New_PROTO  (char *, char *)
+#define crypto_X509Extension_New_PROTO  (char *, char *, int)
 
 #define crypto_PKCS7_New_NUM            6
 #define crypto_PKCS7_New_RETURN         crypto_PKCS7Obj *

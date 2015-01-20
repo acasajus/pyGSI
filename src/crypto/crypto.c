@@ -880,11 +880,12 @@ static PyObject *
 crypto_X509Extension( PyObject * spam, PyObject * args )
 {
     char *type_name, *value;
+		int val_length;
 
-    if ( !PyArg_ParseTuple( args, "ss:X509Extension", &type_name, &value ) )
+    if ( !PyArg_ParseTuple( args, "ss#:X509Extension", &type_name, &value, &val_length ) )
         return NULL;
 
-    return ( PyObject * ) crypto_X509Extension_New( type_name, value );
+    return ( PyObject * ) crypto_X509Extension_New( type_name, value, val_length);
 }
 
 static char crypto_NetscapeSPKI_doc[] = "\n\

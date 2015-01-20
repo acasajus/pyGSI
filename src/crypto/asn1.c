@@ -573,19 +573,14 @@ int crypto_ASN1_inner_dump(crypto_ASN1* self, BIO* bdata) {
       BIO_write( bdata, source, buf - source );
       break;
     case V_ASN1_OBJECT:
-      aob = OBJ_txt2obj( PyString_AsString( self->data ), 0 );
-      if ( aob == NULL ) 
-      {
-        aob = OBJ_txt2obj( PyString_AsString( self->data ), 1 );
-      }
-      if( aob == NULL ) {
+			if( ( aob = OBJ_txt2obj( PyString_AsString( self->data ), 0 ) ) == NULL ) {
+				PyErr_SetString( PyExc_ValueError, "Unknown object id" );
+				return 0;
+			}
+			if( i2d_ASN1_OBJECT( aob, &buf ) == 0 ) {
         exception_from_error_queue();
         return 0;
-      }
-      if( i2d_ASN1_OBJECT( aob, &buf ) == 0 ) {
-        exception_from_error_queue();
-        return 0;
-      } 
+			}
       BIO_write( bdata, source, buf - source );
       break;
     case V_ASN1_OCTET_STRING:
