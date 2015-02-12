@@ -324,6 +324,8 @@ static PyObject* stringToDatetime(char*buf, long len) {
     Py_RETURN_NONE;
   }
 
+	printf( "LENGTH OF TIME IS %d\n", len );
+
   if ( len == 13 ) {
     len = sscanf( (const char*)buf, "%02d%02d%02d%02d%02d%02d%c", &( time_tm.tm_year ), &( time_tm.tm_mon ), 
         &( time_tm.tm_mday ), &( time_tm.tm_hour ), &( time_tm.tm_min ), &( time_tm.tm_sec ), &zone );
@@ -336,7 +338,7 @@ static PyObject* stringToDatetime(char*buf, long len) {
   }
 
   if ( len == 15 ) {
-    len = sscanf( (const char*)buf, "20%02d%02d%02d%02d%02d%02d%c", &( time_tm.tm_year ), &( time_tm.tm_mon ), &( time_tm.tm_mday ),
+    len = sscanf( (const char*)buf, "%04d%02d%02d%02d%02d%02d%c", &( time_tm.tm_year ), &( time_tm.tm_mon ), &( time_tm.tm_mday ),
         &( time_tm.tm_hour ), &( time_tm.tm_min ), &( time_tm.tm_sec ), &zone );
     /* dont understand */
     if ( ( len != 7 ) || ( zone != 'Z' ) ) {

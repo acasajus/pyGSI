@@ -103,7 +103,7 @@ unsigned short convertStringTotm( unsigned char* asn1String, struct tm *time_tm 
 
   if ( len == 15 )
   {
-    len = sscanf( ( char * ) asn1String, "20%02d%02d%02d%02d%02d%02d%c",
+    len = sscanf( ( char * ) asn1String, "%04d%02d%02d%02d%02d%02d%c",
         &( time_tm->tm_year ),
         &( time_tm->tm_mon ),
         &( time_tm->tm_mday ),
