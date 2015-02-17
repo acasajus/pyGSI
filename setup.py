@@ -41,7 +41,7 @@ def createExtension( extName ):
                     cFiles,
                     depends = hFiles,
                     libraries = [ 'ssl', 'crypto' ],
-                    extra_compile_args = [ "-Wno-deprecated-declarations" ],
+                    extra_compile_args = [ "-Wno-deprecated-declarations", "-std=c99" ],
                     ** extraArgs
                     )
 
