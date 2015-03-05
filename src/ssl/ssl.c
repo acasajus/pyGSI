@@ -185,10 +185,15 @@ do {                                                                          \
     PyModule_AddIntConstant( module, "SSLv23_SERVER_METHOD",
                              ssl_SSLv23_SERVER_METHOD );
     PyModule_AddIntConstant( module, "TLSv1_METHOD", ssl_TLSv1_METHOD );
-    PyModule_AddIntConstant( module, "TLSv1_CLIENT_METHOD",
-                             ssl_TLSv1_CLIENT_METHOD );
-    PyModule_AddIntConstant( module, "TLSv1_SERVER_METHOD",
-                             ssl_TLSv1_SERVER_METHOD );
+    PyModule_AddIntConstant( module, "TLSv1_CLIENT_METHOD", ssl_TLSv1_CLIENT_METHOD );
+    PyModule_AddIntConstant( module, "TLSv1_SERVER_METHOD", ssl_TLSv1_SERVER_METHOD );
+    PyModule_AddIntConstant( module, "TLSv1_1_METHOD", ssl_TLSv1_1_METHOD );
+    PyModule_AddIntConstant( module, "TLSv1_1_CLIENT_METHOD", ssl_TLSv1_1_CLIENT_METHOD );
+    PyModule_AddIntConstant( module, "TLSv1_1_SERVER_METHOD", ssl_TLSv1_1_SERVER_METHOD );
+    PyModule_AddIntConstant( module, "TLSv1_2_METHOD", ssl_TLSv1_2_METHOD );
+    PyModule_AddIntConstant( module, "TLSv1_2_CLIENT_METHOD", ssl_TLSv1_2_CLIENT_METHOD );
+    PyModule_AddIntConstant( module, "TLSv1_2_SERVER_METHOD", ssl_TLSv1_2_SERVER_METHOD );
+
 
     /* Verify constants */
     PyModule_AddIntConstant( module, "VERIFY_NONE", SSL_VERIFY_NONE );

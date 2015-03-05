@@ -41,5 +41,12 @@ typedef struct
 #define ssl_TLSv1_METHOD         (10)
 #define ssl_TLSv1_CLIENT_METHOD  (11)
 #define ssl_TLSv1_SERVER_METHOD  (12)
+#define ssl_TLSv1_1_METHOD         (13)
+#define ssl_TLSv1_1_CLIENT_METHOD  (14)
+#define ssl_TLSv1_1_SERVER_METHOD  (15)
+#define ssl_TLSv1_2_METHOD         (16)
+#define ssl_TLSv1_2_CLIENT_METHOD  (17)
+#define ssl_TLSv1_2_SERVER_METHOD  (18)
+
 
 #endif

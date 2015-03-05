@@ -1575,6 +1575,7 @@ ADD_METHOD( get_session_cache_mode ),
  *                       constants.
  * Returns:   The newly created Context object
  */
+
 ssl_ContextObj *
 ssl_Context_New( int i_method )
 {
@@ -1616,6 +1617,26 @@ ssl_Context_New( int i_method )
 			break;
 		case ssl_TLSv1_SERVER_METHOD:
 			method = TLSv1_server_method();
+			break;
+		case ssl_TLSv1_1_METHOD:
+			method = TLSv1_1_method();
+			break;
+		case ssl_TLSv1_1_CLIENT_METHOD:
+			method = TLSv1_1_client_method();
+			clientMethod = 1;
+			break;
+		case ssl_TLSv1_1_SERVER_METHOD:
+			method = TLSv1_1_server_method();
+			break;
+		case ssl_TLSv1_2_METHOD:
+			method = TLSv1_2_method();
+			break;
+		case ssl_TLSv1_2_CLIENT_METHOD:
+			method = TLSv1_2_client_method();
+			clientMethod = 1;
+			break;
+		case ssl_TLSv1_2_SERVER_METHOD:
+			method = TLSv1_2_server_method();
 			break;
 		default:
 			PyErr_SetString(PyExc_ValueError, "No such protocol");
