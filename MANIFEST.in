@@ -1,0 +1,2 @@
+recursive-include src *.c
+recursive-include src *.h

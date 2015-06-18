@@ -5,7 +5,7 @@ Installation script for the GSI module
 #import ez_setup
 #ez_setup.use_setuptools()
 
-from setuptools import setup, Extension
+from distutils.core import setup, Extension
 import ConfigParser
 
 import os, sys
@@ -47,7 +47,7 @@ def createExtension( extName ):
 
 setup(
   name = "GSI",
-  version = "0.6.3",
+  version =  '0.6.4',
   author = "Adrian Casajus",
   author_email = "adria@ecm.ub.es",
   description = "Python wrapper module around the OpenSSL library (including hack to accept GSI SSL proxies)",
